@@ -1,0 +1,271 @@
+<?php  
+  $newsDataArr = $pageContent['pageData']['news_data']; 
+
+  if(isset($_GET['record_status'])){
+    if($_GET['record_status'] == 'active'){
+       $record_status = 'active'; 
+    }else{
+       $record_status = 'blocked'; 
+    }
+  }else{
+    $record_status = 'active'; 
+  }
+
+  //Fetching page action permission
+  $createPermission = $this->globalLibraryHandlerObj->checkUserRolePermission("create_news"); 
+  $updatePermission = $this->globalLibraryHandlerObj->checkUserRolePermission("update_news"); 
+  $deletePermission = $this->globalLibraryHandlerObj->checkUserRolePermission("delete_news"); 
+  /*print"<pre>";
+  print_r($newsDataArr); 
+  print"</pre>";*/ 
+?>
+ 
+             <div class="wrapper wrapper-content fadeInRight">
+                <div class="row">
+                    <div class="col-lg-12">
+                        <div class="ibox ">
+                            <div class="ibox-title">
+                                <h5>Fetch News based on their status </h5>
+                                <div class="ibox-tools">
+                                    <a class="collapse-link">
+                                        <i class="fa fa-chevron-up"></i>
+                                    </a>
+                                </div>
+                            </div>
+                            <div class="ibox-content">
+                               <form id="fetch_all_news_records" onsubmit="return false;">
+                                 <div class="row">
+                                    <div class="col-sm-10 m-b-xs">
+                                      <select class="form-control-sm form-control input-s-sm inline record_status" name="record_status" id="record_status">
+                                        <option selected disabled value>Select a Data type to proceed</option>
+                                        <option value="active" <?=(($record_status =='active' || $record_status =='')?'selected':'')?>>Active</option>  
+                                        <option value="blocked" <?=($record_status=='blocked'?'selected':'')?>>Blocked</option>  
+                                      </select>
+                                    </div>
+                                    <input type="hidden" name="page_route" id="page_route" value="<?=$_GET['route']?>">
+                                 
+                                    <div class="col-sm-2">
+                                      <button class="btn btn-primary" type="submit" id="fetch_item_data"><i class="fa fa-search"></i>&nbsp;Fetch Data</button>
+                                    </div>
+                                </div>
+                              </form>
+                            </div>
+                        </div>
+                      </div>
+                    </div>
+                     
+                    <div class="row">
+                     <div class="col-lg-12">  
+                      <div class="ibox">
+                        <div class="ibox-title">
+                            <h5>All News List</h5>
+                            <div class="ibox-tools">
+                                 <?php if($createPermission){ ?> 
+                                     <a href="<?=SITE_URL?>?route=add_news" class="table-action-primary" data-toggle="tooltip" data-placement="bottom" title="Add New News"><i class="fa fa-plus-circle"></i></a>
+                                 <?php }?>
+
+                                  <a href="<?=SITE_URL?>?route=view_newss" class="table-action-info"  data-toggle="tooltip" data-placement="bottom" title="Refresh News Data"><i class="fa fa-refresh"></i></a>
+                              
+                                 <?php if($record_status == 'active'){ ?>
+                                   <?php if($updatePermission){ ?>
+                                      <a href="javascript:void(0);" class="table-action-warning changeRecordStatus" data-rid = "all" data-type="news" data-ptype="News" data-rstatus="blocked" data-toggle="tooltip" data-placement="bottom" title="Trash single or multiple rows"><i class="fa fa-trash"></i></a>
+                                   <?php } ?>   
+                                <?php }else{ ?>   
+                                  <?php if($updatePermission){ ?>
+                                    <a href="javascript:void(0);" class="table-action-success changeRecordStatus" data-rid = "all" data-type="news" data-ptype="News" data-rstatus="active" data-toggle="tooltip" data-placement="bottom" title="Restore single or multiple rows"><i class="fa fa-recycle"></i></a>
+                                  <?php } ?>  
+
+                                  <?php if($deletePermission){ ?>
+                                     <a href="javascript:void(0);" class="table-action-danger changeRecordStatus" data-rid = "all" data-type="news" data-ptype="News" data-rstatus="delete" data-toggle="tooltip" data-placement="bottom" title="Delete single or multiple rows"><i class="fa fa-times"></i></a>
+                                   <?php } ?>  
+                                <?php } ?>   
+                            </div>
+                        </div>
+                        <div class="ibox-content content_div_loader">
+                            <div class="sk-spinner sk-spinner-wave">
+                                <div class="sk-rect1"></div>
+                                <div class="sk-rect2"></div>
+                                <div class="sk-rect3"></div>
+                                <div class="sk-rect4"></div>
+                                <div class="sk-rect5"></div>
+                            </div>
+                            <div class="table-responsive project-list">
+                              <table class="table table-striped table-bordered table-hover dataTables-example text-center">
+                                    <thead class="cursor-pointer">
+                                      <tr>
+                                        <th class="notexport">
+                                           <div class="pretty p-image p-plain checkAll ml-2">
+                                               <input type="checkbox" id="checkAll" />
+                                               <div class="state">
+                                                  <img class="image" src="<?=RESOURCE_URL?>images/checkbox.png">
+                                                  <label></label>
+                                               </div>
+                                           </div>
+                                        </th>
+                                        <th class="sorting_desc_disabled" style="width:10%;">SL No.</th>
+                                        <th class="sorting_desc_disabled"> News Title <span class="footable-sort-indicator"><i class="fa fa-sort"></i></th>
+                                         <th class="sorting_desc_disabled">Status <span class="footable-sort-indicator"><i class="fa fa-sort"></i></th>
+                                        <th class="sorting_desc_disabled notexport">Description <span class="footable-sort-indicator"><i class="fa fa-sort"></i></th>
+                                        <th class="sorting_desc_disabled notexport">Action</th>
+                                      </tr>
+                                    </thead>
+                                    <tbody>
+                                      <?php 
+                                         foreach($newsDataArr as $index => $news){
+
+                                          if(strlen($news->optional_pdf)>0 && file_exists(USER_UPLOAD_DIR.'news/'.$news->optional_pdf)){
+                                             $optional_pdf = USER_UPLOAD_URL.'news/'.$news->optional_pdf;
+                                          }else{
+                                             $optional_pdf = null;
+                                          }
+
+                                      ?> 
+                                            <tr>
+                                                <td>
+                                                   <div class="pretty p-image p-plain selectAllItem ml-2">
+                                                       <input type="checkbox" class="singleCheck" id="<?=$news->id?>" value="<?=$news->id?>"/>
+                                                       <div class="state">
+                                                          <img class="image" src="<?=RESOURCE_URL?>images/checkbox.png">
+                                                          <label class="cursor-pointer selectAllItem" for="<?=$news->id?>"></label>
+                                                       </div>
+                                                    </div>  
+                                                </td>
+                                                
+                                                <td class="project-title"><?=$index+1?></td>
+                                               
+                                                <td class="project-title">
+                                                    <a href="<?=SITE_URL.'?route=edit_news&id='.$news->id?>" data-toggle="tooltip" data-placement="bottom" title="News Title: <?=$news->title?>"><?=ucfirst($news->title)?></a>
+                                                    <br/>
+                                                    <small>Created <?=date('jS F, Y',strtotime($news->created_at))?></small>
+                                                </td>
+
+                                                <td class="project-status">
+                                                 <span class="label label-<?=($news->record_status == 'active'?'primary':'danger')?> cursor-pointer" data-toggle="tooltip" data-placement="bottom" title="News Status: <?=ucfirst($news->record_status)?>"><?=ucfirst($news->record_status)?></span> 
+                                                </td>
+
+                                                <td class="project-title">
+                                                   <button type="button" id="view_news_message" data-type="student" data-description="<?=strip_tags($news->description)?>" class="btn btn-info btn-xs cursor-pointer" data-toggle="tooltip" data-placement="bottom" title="Click here to view this Description"><i class="fa fa-eye"></i> View Description</button>
+                                                </td>
+
+                                               <td>
+                                                 <span class="dropdown">
+                                                  <button class="btn btn-success product-btn dropdown-toggle btn-xs" type="button" data-toggle="dropdown">Action</button>
+                                                 <ul class="dropdown-menu">
+                                                    <?php if($updatePermission){ ?>
+                                                        <li>
+                                                         <a href="<?=SITE_URL?>?route=edit_news&id=<?=$news->id?>" class="#" data-toggle="tooltip" data-placement="bottom" title="Edit this News"><i class="fa fa-pencil"></i> Edit News</a>
+                                                       </li> 
+                                                    <?php } ?>   
+
+                                                     <?php if($updatePermission){ ?>
+                                                          <li>
+                                                            <a href="javascript:void(0)" id="item_<?=$news->id?>" class="featured_action" data-type="news" data-ptype="News" data-ftype="<?=($news->featured_status=='active'?'inactive':'active')?>" data-rid="<?=$news->id?>" data-toggle="tooltip" data-placement="bottom" title="<?=($news->featured_status=='active'?'Non-Featured':'Featured')?> this News"><i class="<?=($news->featured_status=='active'?'fa fa-star':'fa fa-star-o')?>"></i> <?=($news->featured_status=='active'?'Featured':'Non-Featured')?> 
+                                                            </a>
+                                                          </li>
+                                                     <?php } ?>
+                                                   
+                                                     <?php if($news->record_status == 'active'){?>
+                                                       <?php if($updatePermission){ ?>
+                                                           <li>
+                                                             <a href="javascript:void(0)" class="changeRecordStatus" data-rid = "<?=$news->id?>" data-type="news" data-ptype="News" data-rstatus="blocked" data-toggle="tooltip" data-placement="bottom" title="Block this News"><i class="fa fa-trash"></i> Block News</a>
+                                                           </li>
+                                                        <?php } ?> 
+
+                                                         <?php if(!$updatePermission){ ?>
+                                                            <li><a href="javascript:void(0)" title="You have no action to perform for this item!">You have no action to perform for this item! </a></li>
+                                                         <?php } ?>  
+
+                                                     <?php }else{ ?>
+                                                       <?php if($updatePermission){ ?> 
+                                                           <li>
+                                                             <a href="javascript:void(0)" class="changeRecordStatus" data-rid = "<?=$news->id?>" data-type="news" data-ptype="News" data-rstatus="active" data-toggle="tooltip" data-placement="bottom" title="Restore this News"><i class="fa fa-refresh"></i> Restore News</a>
+                                                           </li>
+                                                        <?php } ?>
+                                                        
+                                                        <?php if($deletePermission){ ?>   
+                                                           <li>
+                                                             <a href="javascript:void(0)" class="changeRecordStatus" data-rid = "<?=$news->id?>" data-type="news" data-ptype="News" data-rstatus="delete" data-toggle="tooltip" data-placement="bottom" title="Delete this News"><i class="fa fa-times"></i> Delete News</a>
+                                                           </li>
+                                                        <?php } ?>  
+
+                                                         <?php if(!$updatePermission && !$deletePermission){ ?>
+                                                           <li><a href="javascript:void(0)" title="You have no action to perform for this item!">You have no action to perform for this item! </a></li>
+                                                        <?php } ?> 
+                                                    <?php } ?>        
+                                                </ul>
+                                               </span> 
+                                              </td>
+                                            </tr>
+                                        <?php } ?>    
+                                    </tbody>
+                                 </table>
+                            </div> 
+                        </div>
+                    </div>
+                </div>
+            </div>
+         </div>
+
+          <!-- Modal window div-->
+             <div class="modal inmodal" id="viewNewsAnswerModal" tabindex="-1" role="dialog" aria-hidden="true">
+                <div class="modal-dialog">
+                   <div class="modal-content animated flipInY">
+                        <div class="modal-header">
+                            <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+                            <h4 class="modal-title" id="category_modal_title">View News Description</h4>
+                        </div>
+                        <div class="modal-body" id="news_description_div">
+                        </div>
+                      <div class="modal-footer">
+                          <button type="button" class="btn btn-danger" data-dismiss="modal">Close</button>
+                      </div>
+                    </div>
+                </div>
+              </div>
+            <!-- Modal ends here -->
+
+            <script>
+               //Handling show user message 
+               $(document).on('click','#view_news_message',function(){
+                  var news_description = $(this).data('description');
+                  $('#news_description_div').html(news_description);
+                  $('#viewNewsAnswerModal').modal('show');
+                  return true; 
+               });
+
+
+                $(document).on('submit', '#fetch_all_news_records', function(event){
+                      event.preventDefault();
+                      var page_route = $('#page_route').val();
+                      var record_status = $('#record_status').val();
+                      var news_type = $('#news_type').val();
+
+                      if(record_status === null){
+                          window.location = SITE_URL+"?route="+page_route;
+                      }else{
+                        $('#fetch_item_data').html('<i class="fa fa-spinner fa-spin"></i>&nbsp;Fetching').attr('disabled',true);
+                         setTimeout(function(){
+                         $('#fetch_item_data').html('<i class="fa fa-search"></i>&nbsp;Fetch Data').attr('disabled',false);
+                         //show sweetalert success
+                         swal({
+                          title: "Great!",
+                          text: "Data has been successfully fetched!",
+                          type: "success",
+                          allowEscapeKey : false,
+                          allowOutsideClick: false
+                         },function(){
+                           var redirect_url = SITE_URL+"?route="+page_route+"&record_status="+record_status;
+
+                           if(news_type){
+                              redirect_url += "&news_type="+news_type;
+                           }
+                          
+                           window.location = redirect_url;
+                          
+                         });},500);
+                         return true;  
+                     } 
+                });
+
+            </script>
+       
