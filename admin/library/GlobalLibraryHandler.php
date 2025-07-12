@@ -79,58 +79,55 @@ class GlobalLibraryHandler
     }
   }
 
-  public function purgeSiteCache($section){
+  public function purgeSiteCache($section)
+  {
     switch ($section) {
       case 'student':
-          if ($_SESSION['user_type'] == 'developer' || $_SESSION['user_type'] == 'admin') {
-            $this->memObj->delete("student_dashboard_today");
-            $this->memObj->delete("student_dashboard_weekly");
-            $this->memObj->delete("student_dashboard_monthly");
-            $this->memObj->delete("student_dashboard_annual");
-          }
-
-          elseif($_SESSION['user_type'] == 'franchise'){
-            $franchise_id = $_SESSION['user_id'];
-            $this->memObj->delete("student_dashboard_today_$franchise_id");
-            $this->memObj->delete("student_dashboard_weekly_$franchise_id");
-            $this->memObj->delete("student_dashboard_monthly_$franchise_id");
-            $this->memObj->delete("student_dashboard_annual_$franchise_id");
-          }
+        if ($_SESSION['user_type'] == 'developer' || $_SESSION['user_type'] == 'admin') {
+          $this->memObj->delete("student_dashboard_today");
+          $this->memObj->delete("student_dashboard_weekly");
+          $this->memObj->delete("student_dashboard_monthly");
+          $this->memObj->delete("student_dashboard_annual");
+        } elseif ($_SESSION['user_type'] == 'franchise') {
+          $franchise_id = $_SESSION['user_id'];
+          $this->memObj->delete("student_dashboard_today_$franchise_id");
+          $this->memObj->delete("student_dashboard_weekly_$franchise_id");
+          $this->memObj->delete("student_dashboard_monthly_$franchise_id");
+          $this->memObj->delete("student_dashboard_annual_$franchise_id");
+        }
         break;
-      
-      case 'student_receipts':
-          if ($_SESSION['user_type'] == 'developer' || $_SESSION['user_type'] == 'admin') {
-            $this->memObj->delete("receipt_dashboard_today");
-            $this->memObj->delete("receipt_dashboard_weekly");
-            $this->memObj->delete("receipt_dashboard_monthly");
-            $this->memObj->delete("receipt_dashboard_annual");
-          }
 
-          elseif($_SESSION['user_type'] == 'franchise'){
-            $franchise_id = $_SESSION['user_id'];
-            $this->memObj->delete("receipt_dashboard_today_$franchise_id");
-            $this->memObj->delete("receipt_dashboard_weekly_$franchise_id");
-            $this->memObj->delete("receipt_dashboard_monthly_$franchise_id");
-            $this->memObj->delete("receipt_dashboard_annual_$franchise_id");
-          }
-        break;  
-      
+      case 'student_receipts':
+        if ($_SESSION['user_type'] == 'developer' || $_SESSION['user_type'] == 'admin') {
+          $this->memObj->delete("receipt_dashboard_today");
+          $this->memObj->delete("receipt_dashboard_weekly");
+          $this->memObj->delete("receipt_dashboard_monthly");
+          $this->memObj->delete("receipt_dashboard_annual");
+        } elseif ($_SESSION['user_type'] == 'franchise') {
+          $franchise_id = $_SESSION['user_id'];
+          $this->memObj->delete("receipt_dashboard_today_$franchise_id");
+          $this->memObj->delete("receipt_dashboard_weekly_$franchise_id");
+          $this->memObj->delete("receipt_dashboard_monthly_$franchise_id");
+          $this->memObj->delete("receipt_dashboard_annual_$franchise_id");
+        }
+        break;
+
       case 'franchise':
-          $this->memObj->delete("franchise_data_active");
-          $this->memObj->delete("franchise_data_blocked");
-        break;  
-      
+        $this->memObj->delete("franchise_data_active");
+        $this->memObj->delete("franchise_data_blocked");
+        break;
+
       case 'course':
-          $this->memObj->delete("course_data");
-          $this->memObj->delete("course_data_active");
-          $this->memObj->delete("course_data_blocked");
-        break;    
-      
+        $this->memObj->delete("course_data");
+        $this->memObj->delete("course_data_active");
+        $this->memObj->delete("course_data_blocked");
+        break;
+
       case 'others':
-          $this->memObj->delete("news_data");
-          $this->memObj->delete("enquiry_data");
-          $this->memObj->delete("gallery_data");
-        break;  
+        $this->memObj->delete("news_data");
+        $this->memObj->delete("enquiry_data");
+        $this->memObj->delete("gallery_data");
+        break;
 
       default:
         # code...
@@ -142,10 +139,10 @@ class GlobalLibraryHandler
   {
     // Specify the folder path
     $folderPath = SITE_BACKUP_DIR;
-    
+
     // Create backup folder if not exists
     if (!file_exists($folderPath)) {
-        mkdir($folderPath, 0777, true);
+      mkdir($folderPath, 0777, true);
     }
 
     // Initialize an empty array to store file details
@@ -155,7 +152,7 @@ class GlobalLibraryHandler
     $directory = opendir($folderPath);
 
     // Define allowed file extensions
-    $allowedExtensions = ['zip', 'sql'];
+    $allowedExtensions = ['zip', 'txt'];
 
     // Loop through each file in the folder
     while (($file = readdir($directory)) !== false) {
@@ -388,7 +385,7 @@ class GlobalLibraryHandler
               //Set data into a key of memcached
               $this->globalReturnArr['receipt_data'] = $receiptData;
             }
-          }else{
+          } else {
             $response = $this->memObj->get("receipt_dashboard_weekly");
             //Check if data stored in memcached
             if ($response) {
@@ -534,7 +531,7 @@ class GlobalLibraryHandler
                 //Set data into a key of memcached
                 $this->globalReturnArr['receipt_data'] = $receiptData;
               }
-            }else{
+            } else {
               $response = $this->memObj->get("receipt_dashboard_weekly_$franchise_id");
               //Check if data stored in memcached
               if ($response) {
@@ -590,7 +587,7 @@ class GlobalLibraryHandler
       } else {
         $record_status = 'active';
       }
-      
+
       //Call read global blog method
       $this->globalReturnArr['data'] = $this->GlobalControllerInterfaceObj->fetch_Global_Franchise($record_status);
 
@@ -644,7 +641,6 @@ class GlobalLibraryHandler
           $this->globalReturnArr['data'] = $response;
         }
       }
-
     } else {
       $this->globalReturnArr['data'] = array();
     }
@@ -652,44 +648,44 @@ class GlobalLibraryHandler
     return $this->globalReturnArr;
   }
 
-  public function fetch_Active_Course_Franchise_Data(){
-     
-     $activeCourseFranchiseArr = [];
+  public function fetch_Active_Course_Franchise_Data()
+  {
 
-     //Fetch franchise data based on memcached
-     if ($this->memObj == null) {
-        $activeCourseFranchiseArr['franchise'] = $this->GlobalControllerInterfaceObj->fetch_Global_Franchise("active");
-     } else {
-        $response = $this->memObj->get("franchise_data_active");
-        //Check if data stored in memcached
-        if ($response) {
-          $activeCourseFranchiseArr['franchise'] = $response;
-        } else {
-          $response = $this->GlobalControllerInterfaceObj->fetch_Global_Franchise("active");
-          $this->memObj->set("franchise_data_active", $response);
-          //Set data into a key of memcached
-          $activeCourseFranchiseArr['franchise'] = $response;
-        }
-     }
+    $activeCourseFranchiseArr = [];
 
-      //Fetch course data based on memcached
-      if ($this->memObj == null) {
-        $activeCourseFranchiseArr['course'] = $this->GlobalControllerInterfaceObj->fetch_Global_Course("active");
+    //Fetch franchise data based on memcached
+    if ($this->memObj == null) {
+      $activeCourseFranchiseArr['franchise'] = $this->GlobalControllerInterfaceObj->fetch_Global_Franchise("active");
+    } else {
+      $response = $this->memObj->get("franchise_data_active");
+      //Check if data stored in memcached
+      if ($response) {
+        $activeCourseFranchiseArr['franchise'] = $response;
       } else {
-        $response = $this->memObj->get("course_data_active");
-        //Check if data stored in memcached
-        if ($response) {
-          $activeCourseFranchiseArr['course'] = $response;
-        } else {
-          $response = $this->GlobalControllerInterfaceObj->fetch_Global_Course("active");
-          $this->memObj->set("course_data_active", $response);
-          //Set data into a key of memcached
-          $activeCourseFranchiseArr['course'] = $response;
-        }
-     }
+        $response = $this->GlobalControllerInterfaceObj->fetch_Global_Franchise("active");
+        $this->memObj->set("franchise_data_active", $response);
+        //Set data into a key of memcached
+        $activeCourseFranchiseArr['franchise'] = $response;
+      }
+    }
 
-     return $activeCourseFranchiseArr;
+    //Fetch course data based on memcached
+    if ($this->memObj == null) {
+      $activeCourseFranchiseArr['course'] = $this->GlobalControllerInterfaceObj->fetch_Global_Course("active");
+    } else {
+      $response = $this->memObj->get("course_data_active");
+      //Check if data stored in memcached
+      if ($response) {
+        $activeCourseFranchiseArr['course'] = $response;
+      } else {
+        $response = $this->GlobalControllerInterfaceObj->fetch_Global_Course("active");
+        $this->memObj->set("course_data_active", $response);
+        //Set data into a key of memcached
+        $activeCourseFranchiseArr['course'] = $response;
+      }
+    }
 
+    return $activeCourseFranchiseArr;
   }
 
   public function view_Student_Required_Data()
@@ -711,7 +707,7 @@ class GlobalLibraryHandler
 
       //Fetch all active course & franchise list
       $activeCourseFranchiseList = $this->fetch_Active_Course_Franchise_Data();
-      
+
       $this->globalReturnArr['franchise_data'] = $activeCourseFranchiseList['franchise'];
       $this->globalReturnArr['course_data'] = $activeCourseFranchiseList['course'];
 
@@ -1292,7 +1288,7 @@ class GlobalLibraryHandler
 
       //Fetch all active course & franchise list
       $activeCourseFranchiseList = $this->fetch_Active_Course_Franchise_Data();
-      
+
       $this->globalReturnArr['franchise_data'] = $activeCourseFranchiseList['franchise'];
       $this->globalReturnArr['course_data'] = $activeCourseFranchiseList['course'];
 
@@ -1366,7 +1362,7 @@ class GlobalLibraryHandler
 
       //Fetch all active course & franchise list
       $activeCourseFranchiseList = $this->fetch_Active_Course_Franchise_Data();
-      
+
       $this->globalReturnArr['franchise_data'] = $activeCourseFranchiseList['franchise'];
       $this->globalReturnArr['course_data'] = $activeCourseFranchiseList['course'];
     } else {
@@ -1454,7 +1450,7 @@ class GlobalLibraryHandler
 
         //Fetch all active course & franchise list
         $activeCourseFranchiseList = $this->fetch_Active_Course_Franchise_Data();
-        
+
         $this->globalReturnArr['franchise_data'] = $activeCourseFranchiseList['franchise'];
         $this->globalReturnArr['course_data'] = $activeCourseFranchiseList['course'];
 
@@ -1463,7 +1459,7 @@ class GlobalLibraryHandler
         } else {
           $dataArr['pageNo'] = 1;
         }
-  
+
         $dataArr['limit'] = 20;
 
         //Fetching batch detail
@@ -1521,7 +1517,7 @@ class GlobalLibraryHandler
 
     //Fetch all active course & franchise list
     $activeCourseFranchiseList = $this->fetch_Active_Course_Franchise_Data();
-      
+
     $this->globalReturnArr['franchise_data'] = $activeCourseFranchiseList['franchise'];
     $this->globalReturnArr['course_data'] = $activeCourseFranchiseList['course'];
 
@@ -1530,9 +1526,10 @@ class GlobalLibraryHandler
     return $this->globalReturnArr;
   }
 
-  
 
-  public function view_Due_Students_Data(){
+
+  public function view_Due_Students_Data()
+  {
 
     $user_role_slug = 'view_due_students';
     //Check user permission for this section
@@ -1551,11 +1548,11 @@ class GlobalLibraryHandler
       } else {
         $dataArr['student_id'] = null;
       }
-  
+
       if ($_GET['course_id'] > 0) {
         $dataArr['course_id'] = $_GET['course_id'];
       }
-  
+
       if ($_SESSION['user_type'] == 'franchise') {
         $dataArr['franchise_id'] = $_SESSION['user_id'];
       } else {
@@ -1563,31 +1560,30 @@ class GlobalLibraryHandler
           $dataArr['franchise_id'] = $_GET['franchise_id'];
         }
       }
-  
+
       if (isset($_GET['pageNo'])) {
         $dataArr['pageNo'] = $_GET['pageNo'];
       } else {
         $dataArr['pageNo'] = 1;
       }
-  
+
       $dataArr['limit'] = 20;
       //Fetch all active course & franchise list
       $activeCourseFranchiseList = $this->fetch_Active_Course_Franchise_Data();
-      
+
       $this->globalReturnArr['franchise_data'] = $activeCourseFranchiseList['franchise'];
       $this->globalReturnArr['course_data'] = $activeCourseFranchiseList['course'];
 
       if (!isset($_GET['fetchType']) && $_GET['fetchType'] == "dueList") {
-         //Student details
+        //Student details
         $this->globalReturnArr['student_data'] = $this->GlobalControllerInterfaceObj->fetch_Due_Students_Data($dataArr);
-      }else{
-         //Student details
+      } else {
+        //Student details
         $this->globalReturnArr['student_data'] = $this->GlobalControllerInterfaceObj->fetch_Updated_Markup_Students_Data($dataArr);
       }
-
-    }else{
-       //Fetch all active course & franchise list
-       $activeCourseFranchiseList = $this->fetch_Active_Course_Franchise_Data();
+    } else {
+      //Fetch all active course & franchise list
+      $activeCourseFranchiseList = $this->fetch_Active_Course_Franchise_Data();
 
       $this->globalReturnArr['franchise_data'] = $activeCourseFranchiseList['franchise'];
       $this->globalReturnArr['course_data'] = $activeCourseFranchiseList['course'];
@@ -1731,7 +1727,7 @@ class GlobalLibraryHandler
 
         //Fetch all active course & franchise list
         $activeCourseFranchiseList = $this->fetch_Active_Course_Franchise_Data();
-      
+
         $this->globalReturnArr['franchise_data'] = $activeCourseFranchiseList['franchise'];
         $this->globalReturnArr['course_data'] = $activeCourseFranchiseList['course'];
       } else {
@@ -1740,7 +1736,7 @@ class GlobalLibraryHandler
 
         //Fetch all active course & franchise list
         $activeCourseFranchiseList = $this->fetch_Active_Course_Franchise_Data();
-        
+
         $this->globalReturnArr['franchise_data'] = $activeCourseFranchiseList['franchise'];
         $this->globalReturnArr['course_data'] = $activeCourseFranchiseList['course'];
 
@@ -1768,10 +1764,10 @@ class GlobalLibraryHandler
       if ($this->globalReturnArr['page_permission']) {
         //Fetch news detail
         $this->globalReturnArr['exam_details'] = $this->GlobalControllerInterfaceObj->fetch_Student_Exam_Detail($exam_id);
-       
+
         //Fetch all active course & franchise list
         $activeCourseFranchiseList = $this->fetch_Active_Course_Franchise_Data();
-        
+
         $this->globalReturnArr['franchise_data'] = $activeCourseFranchiseList['franchise'];
         $this->globalReturnArr['course_data'] = $activeCourseFranchiseList['course'];
       } else {
@@ -1782,10 +1778,10 @@ class GlobalLibraryHandler
       //Check user permission for this section
       $this->globalReturnArr['page_permission'] = $this->checkUserRolePermission($user_role_slug);
       $this->globalReturnArr['exam_details'] = array();
-      
+
       //Fetch all active course & franchise list
       $activeCourseFranchiseList = $this->fetch_Active_Course_Franchise_Data();
-      
+
       $this->globalReturnArr['franchise_data'] = $activeCourseFranchiseList['franchise'];
       $this->globalReturnArr['course_data'] = $activeCourseFranchiseList['course'];
     }
@@ -2687,7 +2683,7 @@ class GlobalLibraryHandler
     }
   }
 
-    public function createDBBak($filePath)
+  public function createDBBak($filePath)
   {
     // Database configuration
     $host = HOST;
@@ -2698,7 +2694,7 @@ class GlobalLibraryHandler
     $mysqli = new mysqli($host, $username, $password, $dbName);
 
     if ($mysqli->connect_errno) {
-        die("Failed to connect to MySQL: " . $mysqli->connect_error);
+      die("Failed to connect to MySQL: " . $mysqli->connect_error);
     }
 
     $fp = fopen($filePath, 'w');
@@ -2708,66 +2704,120 @@ class GlobalLibraryHandler
     // Get all tables
     $tables_result = $mysqli->query("SHOW TABLES");
     while ($row = $tables_result->fetch_row()) {
-        $table = $row[0];
+      $table = $row[0];
 
-        // Write DROP TABLE
-        fwrite($fp, "DROP TABLE IF EXISTS `$table`;\n");
+      // Write DROP TABLE
+      fwrite($fp, "DROP TABLE IF EXISTS `$table`;\n");
 
-        // Write CREATE TABLE
-        $create_table_result = $mysqli->query("SHOW CREATE TABLE `$table`");
-        $create_table_row = $create_table_result->fetch_row();
-        fwrite($fp, $create_table_row[1] . ";\n\n");
+      // Write CREATE TABLE
+      $create_table_result = $mysqli->query("SHOW CREATE TABLE `$table`");
+      $create_table_row = $create_table_result->fetch_row();
+      fwrite($fp, $create_table_row[1] . ";\n\n");
 
-        // Write INSERT statements
-        $data_result = $mysqli->query("SELECT * FROM `$table`");
-        while ($data = $data_result->fetch_assoc()) {
-            $columns = array_map(function($val) { return "`$val`"; }, array_keys($data));
-            $values = array_map(function($val) use ($mysqli) {
-                return "'" . $mysqli->real_escape_string($val) . "'";
-            }, array_values($data));
+      // Write INSERT statements
+      $data_result = $mysqli->query("SELECT * FROM `$table`");
+      while ($data = $data_result->fetch_assoc()) {
+        $columns = array_map(function ($val) {
+          return "`$val`";
+        }, array_keys($data));
+        $values = array_map(function ($val) use ($mysqli) {
+          return "'" . $mysqli->real_escape_string($val) . "'";
+        }, array_values($data));
 
-            fwrite($fp, "INSERT INTO `$table` (" . implode(", ", $columns) . ") VALUES (" . implode(", ", $values) . ");\n");
-        }
-        fwrite($fp, "\n\n");
+        fwrite($fp, "INSERT INTO `$table` (" . implode(", ", $columns) . ") VALUES (" . implode(", ", $values) . ");\n");
+      }
+      fwrite($fp, "\n\n");
     }
 
     fclose($fp);
 
-   return true;
+    // Create zip file
+    $zip = new ZipArchive();
+    $zipFilePath = $filePath . '.zip';
+
+    if ($zip->open($zipFilePath, ZipArchive::CREATE) === TRUE) {
+      // Add the SQL file to the zip
+      $zip->addFile($filePath, basename($filePath));
+      $zip->close();
+
+      $createDbBak= true;
+    } else {
+      $createDbBak= false;
+    }
+
+     // Delete the original SQL file
+     if (file_exists($filePath)) {
+        unlink($filePath);
+     }
+
+     return $createDbBak == true ? true : false;
   }
 
- public function createUploadsZip()
-{
-    // Define source directory
+  public function createUploadsZip()
+  {
     $sourceFolder = realpath(USER_UPLOAD_DIR);
     if (!$sourceFolder) return false;
 
-    // Get all subdirectories
     $folders = ['course', 'franchise', 'gallery', 'home_sliders', 'news', 'others', 'student'];
-    
-    // Array to store created zip files
     $createdZips = [];
 
     foreach ($folders as $folder) {
-        $folderPath = $sourceFolder . DIRECTORY_SEPARATOR . $folder;
+      $folderPath = $sourceFolder . DIRECTORY_SEPARATOR . $folder;
 
-        // Check if folder exists
-        if (!is_dir($folderPath)) continue;
+      if (!is_dir($folderPath)) continue;
 
-        // Define zip file name
-        $zipFile = SITE_BACKUP_DIR . "{$folder}_" . date('Y-m-d_H-i-s') . "_backup.zip";
+      $zipFile = SITE_BACKUP_DIR . "{$folder}_" . date('Y-m-d_H-i-s') . "_backup.zip";
 
-        // Use shell command for fast zipping
-        $zipCommand = "zip -r " . escapeshellarg($zipFile) . " " . escapeshellarg($folderPath) . " > /dev/null 2>&1";
-        
-        exec($zipCommand, $output, $zipResult);
+      $zip = new ZipArchive();
+      if ($zip->open($zipFile, ZipArchive::CREATE | ZipArchive::OVERWRITE) !== true) {
+        continue;
+      }
 
-        if ($zipResult === 0) {
-            $createdZips[] = $zipFile;
+      $files = new RecursiveIteratorIterator(
+        new RecursiveDirectoryIterator($folderPath, RecursiveDirectoryIterator::SKIP_DOTS),
+        RecursiveIteratorIterator::SELF_FIRST
+      );
+
+      foreach ($files as $name => $file) {
+        $filePath = $file->getRealPath();
+        $relativePath = substr($filePath, strlen($folderPath) + 1);
+
+        if ($file->isDir()) {
+          $zip->addEmptyDir($relativePath);
+        } else {
+          $zip->addFile($filePath, $relativePath);
         }
+      }
+
+      $zip->close();
+      $createdZips[] = $zipFile;
     }
 
     return !empty($createdZips) ? true : false;
-}
+  }
 
+  // Method to log request data in a file
+  public function logServerData($fileName, $logDataArr = [])
+  {
+
+    $logDataJson = json_encode($logDataArr, JSON_PRETTY_PRINT);
+
+    // Get the current timestamp.
+    $timestamp = date('Y-m-d H:i:s');
+
+    // Open the file in "append" mode, creating it if it doesn't exist.
+    $file = fopen($fileName, 'a');
+
+    if ($file) {
+
+      fwrite($file, "===========================================\n");
+      fwrite($file, "Timestamp: $timestamp\n");
+      fwrite($file, "payload ==> $logDataJson\n");
+      fwrite($file, "===========================================\n");
+      fclose($file);
+    } else {
+      // Handle the case where the file couldn't be opened.
+      echo "Failed to open the file for logging.";
+    }
+  }
 }

@@ -190,10 +190,6 @@ $backupLimit = $_SESSION['user_type'] == "developer" ? true : ($_COOKIE["backupC
                 <button type="button" id="createServerBackup" class="btn btn-xs btn-primary">
                   <i class="fa fa-recycle"> </i> Create Latest Backup
                 </button>
-
-                <button type="button" id="uploadBackuptoCloud" class="btn btn-xs btn-info">
-                  <i class="fa fa-cloud-upload"> </i> Upload Latest Backup to Cloud
-                </button>
               <?php } ?>  
             </div>
           </div>
@@ -790,12 +786,12 @@ $backupLimit = $_SESSION['user_type'] == "developer" ? true : ($_COOKIE["backupC
     //Create latest backup on server
     $(document).on('click', '#createServerBackup', function() {
         var formData = {
-          action: "createBackupOnServer",
+          action: "createSiteBackupQueueJob",
         };
 
         swal({
           title: "Are you sure?",
-          text: "Current backup files will be removed and new backup files will be created and this will take some time",
+          text: `Current backup files will be removed and new backup files will be created and this will take some time to run on background`,
           type: "warning",
           showCancelButton: true,
           confirmButtonColor: "#DD6B55",
@@ -803,7 +799,7 @@ $backupLimit = $_SESSION['user_type'] == "developer" ? true : ($_COOKIE["backupC
           closeOnConfirm: true
         }, function() {
             $.ajax({
-              url: backupControllerHandler,
+              url: ajaxControllerHandler,
               method: 'POST',
               data: formData,
               beforeSend: function() {
@@ -813,8 +809,11 @@ $backupLimit = $_SESSION['user_type'] == "developer" ? true : ($_COOKIE["backupC
               success: function(responseData) {
                 var result = JSON.parse(responseData);
                 //console.log(result);
+                
+                $('.content_div_loader').removeClass('sk-loading');
+
                 if(result.check == "success"){
-                  toastr.options.onHidden = function() { location.reload(); }
+                  //toastr.options.onHidden = function() { location.reload(); }
                   toastr.success(result.message, "Success!", {
                       timeOut: 2000
                   });
@@ -822,56 +821,6 @@ $backupLimit = $_SESSION['user_type'] == "developer" ? true : ($_COOKIE["backupC
                   toastr.error(result.message, "Error!", {
                       timeOut: 2000
                   });
-
-                  setTimeout(function(){
-                    $('.content_div_loader').removeClass('sk-loading');
-                  },2000);
-                }
-                return true;
-              }
-            });
-        });    
-    });
-
-    //Create latest backup on server
-    $(document).on('click', '#uploadBackuptoCloud', function() {
-        var formData = {
-          action: "uploadBackuptoCloudStorage",
-        };
-
-        swal({
-          title: "Are you sure?",
-          text: "Current backup files will be uploaded to cloud and this will take some time",
-          type: "warning",
-          showCancelButton: true,
-          confirmButtonColor: "#DD6B55",
-          confirmButtonText: "Yes, Go ahead...",
-          closeOnConfirm: true
-        }, function() {
-            $.ajax({
-              url: backupControllerHandler,
-              method: 'POST',
-              data: formData,
-              beforeSend: function() {
-                //$('.tooltip').hide();
-                $('.content_div_loader').addClass('sk-loading');
-              },
-              success: function(responseData) {
-                var result = JSON.parse(responseData);
-                //console.log(result);
-                if(result.check == "success"){
-                  toastr.options.onHidden = function() { location.reload(); }
-                  toastr.success(result.message, "Success!", {
-                      timeOut: 2000
-                  });
-                }else{
-                  toastr.error(result.message, "Error!", {
-                      timeOut: 2000
-                  });
-
-                  setTimeout(function(){
-                    $('.content_div_loader').removeClass('sk-loading');
-                  },2000);
                 }
                 return true;
               }

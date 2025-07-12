@@ -20,74 +20,65 @@ $cookie_name = "backupCount";
 
 setcookie("backupCount", "", time() - 3600, "/");
 
-if($checkActionPermission){
+if ($checkActionPermission) {
 
-    if($action == "createBackupOnServer"){ 
-   
-        if(!empty($_COOKIE[$cookie_name])){
+    if ($action == "createBackupOnServer") {
+
+        if (!empty($_COOKIE[$cookie_name])) {
             $backupCount = $_COOKIE[$cookie_name];
-        }else{
+        } else {
             $backupCount = null;
-        } 
+        }
 
-        $backupLimit = $_SESSION['user_type'] == "developer" ? true: ($backupCount == 2 ? false:true);
-        $setCookie = $_SESSION['user_type'] == "developer" ? false: true;
+        $backupLimit = $_SESSION['user_type'] == "developer" ? true : ($backupCount == 2 ? false : true);
+        $setCookie = $_SESSION['user_type'] == "developer" ? false : true;
 
         //var_dump($_COOKIE[$cookie_name]);exit;
 
-        if($backupLimit){
-            
+        if ($backupLimit) {
+
             //Fetch current site backup files
             $siteBackupFiles = $GlobalLibraryHandlerObj->fetchSiteBackupFiles();
 
             // DB file path
-            $dbFilePath = SITE_BACKUP_DIR . 'theaimgcsm_' . date('Y-m-d_H-i-s') .'_'. time(). '_backup.sql';
-
-            //Upload file path
-            $uploadsFilePath = SITE_BACKUP_DIR . 'uploads_' . date('Y-m-d_H-i-s') .'_'. time(). '_backup.zip';
+            $dbFilePath = SITE_BACKUP_DIR . 'theaimgcsm_' . date('Y-m-d_H-i-s') . '_' . time() . '_db_backup.sql';
 
             //Creating database backup file 
             $dbFileCreated = $GlobalLibraryHandlerObj->createDBBak($dbFilePath);
-            
+
             //Take bakup of uploads folder if database bakup file successfully created
-            if($dbFileCreated){
-                $zipFileCreated = $GlobalLibraryHandlerObj->createUploadsZip($uploadsFilePath);
+            if ($dbFileCreated) {
+                $zipFileCreated = $GlobalLibraryHandlerObj->createUploadsZip();
 
-                if($zipFileCreated){
-                //Remove all previous site backup files
-                foreach($siteBackupFiles as $index => $file){
-                    $file_url = SITE_BACKUP_DIR . $file->name;
-                    unlink($file_url);
-                }
+                if ($zipFileCreated) {
+                    //Remove all previous site backup files
+                    foreach ($siteBackupFiles as $index => $file) {
+                        $file_url = SITE_BACKUP_DIR . $file->name;
+                        unlink($file_url);
+                    }
 
-                if($setCookie){
-                    //Set backup count in cookies
-                    $newBackupCount = intval($backupCount+1);
-                    setcookie($cookie_name, $newBackupCount, time() + (86400 * 1), "/");
-                }
+                    if ($setCookie) {
+                        //Set backup count in cookies
+                        $newBackupCount = intval($backupCount + 1);
+                        setcookie($cookie_name, $newBackupCount, time() + (86400 * 1), "/");
+                    }
 
-                $returnArr = array('check'=>'success',"message"=>"Backup is successfully created!"); 
-                }else{
-                unlink($dbFilePath);
-                $returnArr = array('check'=>'failure',"message"=>"Backup failed!"); 
+                    $returnArr = array('check' => 'success', "message" => "Backup is successfully created!");
+                } else {
+                    unlink($dbFilePath);
+                    $returnArr = array('check' => 'failure', "message" => "Backup failed!");
                 }
-            }else{
-                $returnArr = array('check'=>'failure',"message"=>"Backup failed!"); 
+            } else {
+                $returnArr = array('check' => 'failure', "message" => "Backup failed!");
             }
-        }else{
-            $returnArr = array('check'=>'failure',"message"=>"Backup limit exhausted!"); 
-        }   
-    
-    }    
-
-    elseif($action == "uploadBackuptoCloudStorage"){
-        $returnArr = array('check'=>'success',"message"=>"Backup is successfully uploaded to cloud!"); 
-    }else{
-        $returnArr = array('check'=>'failure',"message"=>"No action found!"); 
+        } else {
+            $returnArr = array('check' => 'failure', "message" => "Backup limit exhausted!");
+        }
+    } else {
+        $returnArr = array('check' => 'failure', "message" => "No action found!");
     }
+} else {
+    $returnArr = array('check' => 'failure', 'message' => "You don't have the permission to perform this action!");
+}
 
-}else{
-  $returnArr = array('check'=>'failure','message'=>"You don't have the permission to perform this action!");
-} 
-
-echo json_encode($returnArr); 
+echo json_encode($returnArr);

@@ -481,14 +481,10 @@ class GlobalInterfaceController
       if (!empty($dataArr['receipt_season_start']) && empty($dataArr['receipt_season_end'])) {
          $receipt_season_start = $dataArr['receipt_season_start'];
          $where_Clause .= " AND DATE(rcpt.created_at) >='$receipt_season_start'";
-      } 
-      
-      else if (empty($dataArr['receipt_season_start']) && !empty($dataArr['receipt_season_end'])) {
+      } else if (empty($dataArr['receipt_season_start']) && !empty($dataArr['receipt_season_end'])) {
          $receipt_season_end = $dataArr['receipt_season_end'];
          $where_Clause .= " AND DATE(rcpt.created_at) <='$receipt_season_end'";
-      } 
-      
-      else if (!empty($dataArr['receipt_season_start']) && !empty($dataArr['receipt_season_end'])) {
+      } else if (!empty($dataArr['receipt_season_start']) && !empty($dataArr['receipt_season_end'])) {
          $receipt_season_start = $dataArr['receipt_season_start'];
          $receipt_season_end = $dataArr['receipt_season_end'];
          $where_Clause .= " AND DATE(rcpt.created_at) BETWEEN '$receipt_season_start' AND '$receipt_season_end'";
@@ -533,14 +529,10 @@ class GlobalInterfaceController
       if (!empty($dataArr['receipt_season_start']) && empty($dataArr['receipt_season_end'])) {
          $receipt_season_start = $dataArr['receipt_season_start'];
          $where_Clause .= " AND DATE(rcpt.created_at) >='$receipt_season_start'";
-      } 
-      
-      else if (empty($dataArr['receipt_season_start']) && !empty($dataArr['receipt_season_end'])) {
+      } else if (empty($dataArr['receipt_season_start']) && !empty($dataArr['receipt_season_end'])) {
          $receipt_season_end = $dataArr['receipt_season_end'];
          $where_Clause .= " AND DATE(rcpt.created_at) <='$receipt_season_end'";
-      } 
-      
-      else if (!empty($dataArr['receipt_season_start']) && !empty($dataArr['receipt_season_end'])) {
+      } else if (!empty($dataArr['receipt_season_start']) && !empty($dataArr['receipt_season_end'])) {
          $receipt_season_start = $dataArr['receipt_season_start'];
          $receipt_season_end = $dataArr['receipt_season_end'];
          $where_Clause .= " AND DATE(rcpt.created_at) BETWEEN '$receipt_season_start' AND '$receipt_season_end'";
@@ -695,18 +687,18 @@ class GlobalInterfaceController
       //$sql = "SELECT * FROM ".DB_AIMGCSM.".".TABLEPREFIX."students WHERE `record_status` = '$record_status' ORDER BY id DESC";
 
       $sql_fetch_student = "SELECT stu.id,stu.stu_id,stu.stu_name,stu.stu_phone,stu.stu_dob,stu.record_status,stu.verified_status,stu.image_file_name,stu.student_status,
-      stu.stu_result,stu.created_at,frn.center_name,crs.course_title FROM " . DB_AIMGCSM . "." . TABLEPREFIX . "students stu LEFT JOIN " .DB_AIMGCSM . "." . TABLEPREFIX . 
-      "franchise frn ON stu.franchise_id = frn.id LEFT JOIN " . DB_AIMGCSM . "." . TABLEPREFIX . "course crs ON stu.course_id = crs.id LEFT JOIN " . DB_AIMGCSM . "." . TABLEPREFIX . 
-      "student_receipts rcpt ON stu.stu_id = rcpt.stu_id" . $where_Clause . " GROUP BY stu.id ORDER BY stu.id DESC";
+      stu.stu_result,stu.created_at,frn.center_name,crs.course_title FROM " . DB_AIMGCSM . "." . TABLEPREFIX . "students stu LEFT JOIN " . DB_AIMGCSM . "." . TABLEPREFIX .
+         "franchise frn ON stu.franchise_id = frn.id LEFT JOIN " . DB_AIMGCSM . "." . TABLEPREFIX . "course crs ON stu.course_id = crs.id LEFT JOIN " . DB_AIMGCSM . "." . TABLEPREFIX .
+         "student_receipts rcpt ON stu.stu_id = rcpt.stu_id" . $where_Clause . " GROUP BY stu.id ORDER BY stu.id DESC";
 
-      if (!array_key_exists('student_id',$dataArr) || $dataArr['student_id'] == null) {
+      if (!array_key_exists('student_id', $dataArr) || $dataArr['student_id'] == null) {
          $sql_fetch_student = $sql_fetch_student . " LIMIT $offset, $limit";
       }
 
       $sql_count_rec = "SELECT stu.id,stu.stu_id,stu.stu_name,stu.stu_phone,stu.stu_dob,stu.record_status,stu.verified_status,stu.image_file_name,stu.student_status,
-      stu.stu_result,stu.created_at,frn.center_name,crs.course_title FROM " . DB_AIMGCSM . "." . TABLEPREFIX . "students stu LEFT JOIN " .DB_AIMGCSM . "." . TABLEPREFIX . 
-      "franchise frn ON stu.franchise_id = frn.id LEFT JOIN " . DB_AIMGCSM . "." . TABLEPREFIX . "course crs ON stu.course_id = crs.id LEFT JOIN " . DB_AIMGCSM . "." . TABLEPREFIX . 
-      "student_receipts rcpt ON stu.stu_id = rcpt.stu_id" . $where_Clause . " GROUP BY stu.id ORDER BY stu.id DESC";
+      stu.stu_result,stu.created_at,frn.center_name,crs.course_title FROM " . DB_AIMGCSM . "." . TABLEPREFIX . "students stu LEFT JOIN " . DB_AIMGCSM . "." . TABLEPREFIX .
+         "franchise frn ON stu.franchise_id = frn.id LEFT JOIN " . DB_AIMGCSM . "." . TABLEPREFIX . "course crs ON stu.course_id = crs.id LEFT JOIN " . DB_AIMGCSM . "." . TABLEPREFIX .
+         "student_receipts rcpt ON stu.stu_id = rcpt.stu_id" . $where_Clause . " GROUP BY stu.id ORDER BY stu.id DESC";
 
       //echo $sql_fetch_student;exit();
 
@@ -748,18 +740,18 @@ class GlobalInterfaceController
       }
 
       $sql_fetch_student = "SELECT stu.id,stu.stu_id,stu.stu_name,stu.stu_phone,stu.stu_dob,stu.record_status,stu.verified_status,stu.image_file_name,stu.student_status,
-      stu.stu_result,stu.created_at,frn.center_name,crs.course_title FROM " . DB_AIMGCSM . "." . TABLEPREFIX . "students stu LEFT JOIN " .DB_AIMGCSM . "." . TABLEPREFIX . 
-      "franchise frn ON stu.franchise_id = frn.id LEFT JOIN " . DB_AIMGCSM . "." . TABLEPREFIX . "course crs ON stu.course_id = crs.id LEFT JOIN " . DB_AIMGCSM . "." . TABLEPREFIX . 
-      "student_receipts rcpt ON stu.stu_id = rcpt.stu_id" . $where_Clause . " GROUP BY stu.id ORDER BY stu.id DESC";
+      stu.stu_result,stu.created_at,frn.center_name,crs.course_title FROM " . DB_AIMGCSM . "." . TABLEPREFIX . "students stu LEFT JOIN " . DB_AIMGCSM . "." . TABLEPREFIX .
+         "franchise frn ON stu.franchise_id = frn.id LEFT JOIN " . DB_AIMGCSM . "." . TABLEPREFIX . "course crs ON stu.course_id = crs.id LEFT JOIN " . DB_AIMGCSM . "." . TABLEPREFIX .
+         "student_receipts rcpt ON stu.stu_id = rcpt.stu_id" . $where_Clause . " GROUP BY stu.id ORDER BY stu.id DESC";
 
-      if (!array_key_exists('student_id',$dataArr) || $dataArr['student_id'] == null) {
+      if (!array_key_exists('student_id', $dataArr) || $dataArr['student_id'] == null) {
          $sql_fetch_student = $sql_fetch_student . " LIMIT $offset, $limit";
       }
 
       $sql_count_rec = "SELECT stu.id,stu.stu_id,stu.stu_name,stu.stu_phone,stu.stu_dob,stu.record_status,stu.verified_status,stu.image_file_name,stu.student_status,
-      stu.stu_result,stu.created_at,frn.center_name,crs.course_title FROM " . DB_AIMGCSM . "." . TABLEPREFIX . "students stu LEFT JOIN " .DB_AIMGCSM . "." . TABLEPREFIX . 
-      "franchise frn ON stu.franchise_id = frn.id LEFT JOIN " . DB_AIMGCSM . "." . TABLEPREFIX . "course crs ON stu.course_id = crs.id LEFT JOIN " . DB_AIMGCSM . "." . TABLEPREFIX . 
-      "student_receipts rcpt ON stu.stu_id = rcpt.stu_id" . $where_Clause . " GROUP BY stu.id ORDER BY stu.id DESC";
+      stu.stu_result,stu.created_at,frn.center_name,crs.course_title FROM " . DB_AIMGCSM . "." . TABLEPREFIX . "students stu LEFT JOIN " . DB_AIMGCSM . "." . TABLEPREFIX .
+         "franchise frn ON stu.franchise_id = frn.id LEFT JOIN " . DB_AIMGCSM . "." . TABLEPREFIX . "course crs ON stu.course_id = crs.id LEFT JOIN " . DB_AIMGCSM . "." . TABLEPREFIX .
+         "student_receipts rcpt ON stu.stu_id = rcpt.stu_id" . $where_Clause . " GROUP BY stu.id ORDER BY stu.id DESC";
 
       //echo $sql_fetch_student;exit();
 
@@ -2844,6 +2836,48 @@ class GlobalInterfaceController
       if ($stu_row_id > 0) {
          $sql = "UPDATE " . DB_AIMGCSM . "." . TABLEPREFIX . "students SET `stu_pass` = '$stu_pass',`stu_og_pass` = '$stu_og_pass',`stu_name` = '$stu_name', `stu_father_name` = '$stu_father_name',`stu_phone` = '$stu_phone', `stu_email`= '$stu_email', `stu_gender` = '$stu_gender', `stu_marital_status` = '$stu_marital_status', `stu_address` = '$stu_address', `stu_qualification` = '$stu_qualification',`stu_dob` = '$stu_dob',`stu_address` = '$stu_address', `stu_description` = '$stu_description',`file_upload_type` = '$file_upload_type', `image_file_name` = '$image_file_name', `updated_at` = now() WHERE `id`='$stu_row_id'";
       }
+      //echo $sql;exit();
+
+      $resultArr = $this->conn->global_CRUD_DB($sql);
+
+      return $resultArr;
+   }
+
+   public function check_Task_Status($status=null){
+
+      if($status){
+         $sql_count_jobs = "SELECT * FROM " . DB_AIMGCSM . "." . TABLEPREFIX . "queue_jobs WHERE `status` = '$status'";
+      }else{
+         $sql_count_jobs = "SELECT * FROM " . DB_AIMGCSM . "." . TABLEPREFIX . "queue_jobs WHERE `status` IN ('pending', 'failed')";
+      }
+      
+      //echo $sql_count_flagged;exit();
+
+      $row_count = $this->conn->global_Rows_Count_DB($sql_count_jobs);
+
+      if ($row_count > 0) {
+         return true;
+      }else{
+         return false;
+      }
+   }
+
+   public function manage_Queue_Jobs($cronDetailArr)
+   {
+      
+      $action = $cronDetailArr['action'];
+      $job_type = $cronDetailArr['job_type'];
+
+      if ($action == "update") {
+         
+         $status = $cronDetailArr['status'];
+         $response = $cronDetailArr['response'];
+
+         $sql = "UPDATE " . DB_AIMGCSM . "." . TABLEPREFIX . "queue_jobs SET `response` = '$response', `status` = '$status' WHERE `status` IN ('pending','running','failed')";
+      } else {
+         $sql = "INSERT INTO " . DB_AIMGCSM . "." . TABLEPREFIX . "queue_jobs SET `job_type` = '$job_type', `created_at` = now()";
+      }
+
       //echo $sql;exit();
 
       $resultArr = $this->conn->global_CRUD_DB($sql);

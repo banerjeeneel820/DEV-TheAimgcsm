@@ -410,7 +410,7 @@ if (empty($_SESSION['user_id'])) {
                         <?php } ?>
 
                         <?php if ($_SESSION['user_type'] == "developer") { ?>
-                            <button type="button" class="btn btn-danger clearSiteCache" data-ctype="all_pages" data-toggle="tooltip" data-placement="bottom" title="Clear Server Cache Memory"><i class="fa fa-trash"></i></button>
+                            <!-- <button type="button" class="btn btn-danger clearSiteCache" data-ctype="all_pages" data-toggle="tooltip" data-placement="bottom" title="Clear Server Cache Memory"><i class="fa fa-trash"></i></button> -->
                         <?php } ?>
 
                     </div>
