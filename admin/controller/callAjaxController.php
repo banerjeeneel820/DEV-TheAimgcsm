@@ -3134,12 +3134,15 @@ switch ($action) {
         // DB file path
         $dbFilePath = SITE_BACKUP_DIR . 'theaimgcsm_' . date('Y-m-d_H-i-s') . '_' . time() . '_db_backup.sql';
 
+        //Upload file path
+        $uploadsFilePath = SITE_BACKUP_DIR . 'uploads_' . date('Y-m-d_H-i-s') .'_'. time(). '_backup.zip';
+
         //Creating database backup file 
         $dbFileCreated = $GlobalLibraryHandlerObj->createDBBak($dbFilePath);
 
         //Take bakup of uploads folder if database bakup file successfully created
         if ($dbFileCreated) {
-          $zipFileCreated = $GlobalLibraryHandlerObj->createUploadsZip();
+          $zipFileCreated = $GlobalLibraryHandlerObj->createUploadsZip($uploadsFilePath);
 
           if ($zipFileCreated) {
             //Remove all previous site backup files
@@ -3183,7 +3186,7 @@ switch ($action) {
       // Check if there is already a pending task in db
       $checkPendingTask = $GlobalControllerInterfaceObj->check_Task_Status();
 
-      if(!$checkPendingTask){
+      if (!$checkPendingTask) {
 
         if (!empty($_COOKIE[$cookie_name])) {
           $backupCount = $_COOKIE[$cookie_name];
@@ -3202,19 +3205,22 @@ switch ($action) {
           $formDataArr['job_type'] = "site_backup_creation";
 
           //Call create queue job method
-          $returnArr = $GlobalControllerInterfaceObj->manage_Queue_Jobs($formDataArr);
+          $createRspns = $GlobalControllerInterfaceObj->manage_Queue_Jobs($formDataArr);
 
-          $returnArr = array('check' => 'success', "message" => "Backup job is successfully queued!");
+          if ($createRspns['check'] == "success") {
+            $returnArr = array('check' => 'success', "message" => "Backup job is successfully queued!");
+          } else {
+            $returnArr = array('check' => 'failure', "message" => "Something went wrong, please try later!");
+          }
         } else {
           $returnArr = array('check' => 'failure', "message" => "Backup limit exhausted!");
         }
       } else {
         $returnArr = array('check' => 'failure', 'message' => "There is already a pending task on the queue!");
       }
-
-    }else{
+    } else {
       $returnArr = array('check' => 'failure', 'message' => "You don't have the permission to perform this action!");
-    }  
+    }
 
     echo json_encode($returnArr);
     break;

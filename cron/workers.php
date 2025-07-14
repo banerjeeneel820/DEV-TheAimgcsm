@@ -28,13 +28,14 @@ class SiteBackupWorker
         $this->checkRunningTask();
     }
 
-    private function checkRunningTask(){
-         // Check if there's a running task
-         $checkRunningTask = $this->globalController->check_Task_Status("running");
-         if ($checkRunningTask) {
-             echo "ℹ️ There is already a running task on the process.\n";
-             exit;
-         }
+    private function checkRunningTask()
+    {
+        // Check if there's a running task
+        $checkRunningTask = $this->globalController->check_Task_Status("running");
+        if ($checkRunningTask) {
+            echo "ℹ️ There is already a running task on the process.\n";
+            exit;
+        }
     }
 
     private function ensureLogFile()
@@ -48,6 +49,16 @@ class SiteBackupWorker
         }
     }
 
+    public function create_Site_Backup_Queue_Job()
+    {
+
+        $formDataArr['action'] = "create";
+        $formDataArr['job_type'] = "site_backup_creation";
+
+        //Call create queue job method
+        $this->globalController->manage_Queue_Jobs($formDataArr);
+    }
+
     public function run()
     {
         try {
@@ -55,13 +66,21 @@ class SiteBackupWorker
             $checkPendingTask = $this->globalController->check_Task_Status();
             if (!$checkPendingTask) {
                 echo "ℹ️ No pending backup tasks.\n";
+
+                // Queue a backup job for future
+                $this->create_Site_Backup_Queue_Job();
                 return;
             }
 
             echo "✔️ Backup process has been initiated...\n";
 
             $siteBackupFiles = $this->globalLibrary->fetchSiteBackupFiles();
+
+            // DB file path
             $dbFilePath = SITE_BACKUP_DIR . 'theaimgcsm_' . date('Y-m-d_H-i-s') . '_' . time() . '_db_backup.sql';
+
+            //Upload file path
+            $uploadsFilePath = SITE_BACKUP_DIR . 'uploads_' . date('Y-m-d_H-i-s') .'_'. time(). '_backup.zip';
 
             // Updating status of cuurent task to running
             $updateCronArr = [
@@ -74,7 +93,7 @@ class SiteBackupWorker
             $endTime = date('Y-m-d H:i:s');
 
             if ($dbFileCreated) {
-                $zipFileCreated = $this->globalLibrary->createUploadsZip();
+                $zipFileCreated = $this->globalLibrary->createUploadsZip($uploadsFilePath);
                 $endTime = date('Y-m-d H:i:s');
 
                 if ($zipFileCreated) {
@@ -114,7 +133,6 @@ class SiteBackupWorker
             $this->globalController->manage_Queue_Jobs($updateCronArr);
 
             echo "\n✔️ " . $cronLogArr['message'] . "\n";
-
         } catch (Exception $e) {
             echo "❌ Error: " . $e->getMessage() . "\n";
         }

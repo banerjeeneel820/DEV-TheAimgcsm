@@ -43,12 +43,15 @@ if ($checkActionPermission) {
             // DB file path
             $dbFilePath = SITE_BACKUP_DIR . 'theaimgcsm_' . date('Y-m-d_H-i-s') . '_' . time() . '_db_backup.sql';
 
+            //Upload file path
+            $uploadsFilePath = SITE_BACKUP_DIR . 'uploads_' . date('Y-m-d_H-i-s') .'_'. time(). '_backup.zip';
+
             //Creating database backup file 
             $dbFileCreated = $GlobalLibraryHandlerObj->createDBBak($dbFilePath);
 
             //Take bakup of uploads folder if database bakup file successfully created
             if ($dbFileCreated) {
-                $zipFileCreated = $GlobalLibraryHandlerObj->createUploadsZip();
+                $zipFileCreated = $GlobalLibraryHandlerObj->createUploadsZip($uploadsFilePath);
 
                 if ($zipFileCreated) {
                     //Remove all previous site backup files

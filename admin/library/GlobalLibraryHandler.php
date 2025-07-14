@@ -2740,20 +2740,51 @@ class GlobalLibraryHandler
       $zip->addFile($filePath, basename($filePath));
       $zip->close();
 
-      $createDbBak= true;
+      $createDbBak = true;
     } else {
-      $createDbBak= false;
+      $createDbBak = false;
     }
 
-     // Delete the original SQL file
-     if (file_exists($filePath)) {
-        unlink($filePath);
-     }
+    // Delete the original SQL file
+    if (file_exists($filePath)) {
+      unlink($filePath);
+    }
 
-     return $createDbBak == true ? true : false;
+    return $createDbBak == true ? true : false;
   }
 
-  public function createUploadsZip()
+  public function createUploadsZip($zipFile)
+  {
+    $sourceFolder = realpath(USER_UPLOAD_DIR);
+    if (!$sourceFolder) return false;
+
+    $zip = new ZipArchive();
+    if ($zip->open($zipFile, ZipArchive::CREATE | ZipArchive::OVERWRITE) !== true) {
+      return false;
+    }
+
+    $files = new RecursiveIteratorIterator(
+      new RecursiveDirectoryIterator($sourceFolder, RecursiveDirectoryIterator::SKIP_DOTS),
+      RecursiveIteratorIterator::SELF_FIRST
+    );
+
+    foreach ($files as $file) {
+      $filePath = $file->getRealPath();
+      $relativePath = substr($filePath, strlen($sourceFolder) + 1);
+
+      if ($file->isDir()) {
+        $zip->addEmptyDir($relativePath);
+      } else {
+        $zip->addFile($filePath, $relativePath);
+      }
+    }
+
+    $zip->close();
+
+    return file_exists($zipFile);
+  }
+
+  public function createUploadsZipChunk()
   {
     $sourceFolder = realpath(USER_UPLOAD_DIR);
     if (!$sourceFolder) return false;
