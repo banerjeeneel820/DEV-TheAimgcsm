@@ -17,12 +17,12 @@ class GlobalLibraryHandler
 {
 
   private $globalReturnArr = [];
-  private $GlobalControllerInterfaceObj;
+  private $GlobalInterfaceControllerObj;
   private $memObj;
 
   public function __construct()
   {
-    $this->GlobalControllerInterfaceObj = new GlobalInterfaceController();
+    $this->GlobalInterfaceControllerObj = new GlobalInterfaceController();
     if (SERVER_ENV == "PRODUCTION") {
       $this->memObj = new Memcached();
       $this->memObj->addServer("127.0.0.1", 11211);
@@ -34,7 +34,7 @@ class GlobalLibraryHandler
   public function checkUserLogin($paramArr)
   {
     $returnArr = array();
-    $returnArr = $this->GlobalControllerInterfaceObj->check_User_Login($paramArr);
+    $returnArr = $this->GlobalInterfaceControllerObj->check_User_Login($paramArr);
 
     return $returnArr;
   }
@@ -57,7 +57,7 @@ class GlobalLibraryHandler
 
     if ($fetch_type == "hard") {
       //Fetch current user role
-      $userRoleArr = $this->GlobalControllerInterfaceObj->fetch_Current_User_Role($paramArr);
+      $userRoleArr = $this->GlobalInterfaceControllerObj->fetch_Current_User_Role($paramArr);
     } else {
       //Fetch current user role
       $userRoleArr = $_SESSION['user_role'];
@@ -243,14 +243,14 @@ class GlobalLibraryHandler
 
       //Fetch news data based on parameters
       if ($this->memObj == null) {
-        $this->globalReturnArr['news_data'] = $this->GlobalControllerInterfaceObj->fetch_Global_News($newsParamArr);
+        $this->globalReturnArr['news_data'] = $this->GlobalInterfaceControllerObj->fetch_Global_News($newsParamArr);
       } else {
         $response = $this->memObj->get("news_data");
         //Check if data stored in memcached
         if ($response) {
           $this->globalReturnArr['news_data'] = $response;
         } else {
-          $response = $this->GlobalControllerInterfaceObj->fetch_Global_News($newsParamArr);
+          $response = $this->GlobalInterfaceControllerObj->fetch_Global_News($newsParamArr);
           $this->memObj->set("news_data", $response);
           //Set data into a key of memcached
           $this->globalReturnArr['news_data'] = $response;
@@ -259,25 +259,30 @@ class GlobalLibraryHandler
 
       //Fetch course data based on parameters
       if ($this->memObj == null) {
-        $this->globalReturnArr['course_data'] = $this->GlobalControllerInterfaceObj->fetch_Global_Course();
+        $this->globalReturnArr['course_data'] = $this->GlobalInterfaceControllerObj->fetch_Global_Course();
       } else {
         $response = $this->memObj->get("course_data");
         //Check if data stored in memcached
         if ($response) {
           $this->globalReturnArr['course_data'] = $response;
         } else {
-          $response = $this->GlobalControllerInterfaceObj->fetch_Global_Course();
+          $response = $this->GlobalInterfaceControllerObj->fetch_Global_Course();
           $this->memObj->set("course_data", $response);
           //Set data into a key of memcached
           $this->globalReturnArr['course_data'] = $response;
         }
       }
 
+      // Check if there's a pending task for creating site backup
+      $checkPendingTask = $this->GlobalInterfaceControllerObj->check_Task_Status();
+
+      $this->globalReturnArr['site_backup_queue'] = !empty($checkPendingTask) ? true : false;
+
       if ($_SESSION['user_type'] == 'developer' || $_SESSION['user_type'] == 'admin') {
 
         //Fetch student data based on parameters
         if ($this->memObj == null) {
-          $this->globalReturnArr['student_data'] = $this->GlobalControllerInterfaceObj->fetch_Dashboard_Student_Data($stuParamArr);
+          $this->globalReturnArr['student_data'] = $this->GlobalInterfaceControllerObj->fetch_Dashboard_Student_Data($stuParamArr);
         } else {
           if ($_GET['dataType'] == "student" && $_GET['fetchType'] == "today") {
             $response = $this->memObj->get("student_dashboard_today");
@@ -285,7 +290,7 @@ class GlobalLibraryHandler
             if ($response) {
               $this->globalReturnArr['student_data'] = $response;
             } else {
-              $studentData = $this->GlobalControllerInterfaceObj->fetch_Dashboard_Student_Data($stuParamArr);
+              $studentData = $this->GlobalInterfaceControllerObj->fetch_Dashboard_Student_Data($stuParamArr);
               $this->memObj->set("student_dashboard_today", $studentData);
               //Set data into a key of memcached
               $this->globalReturnArr['student_data'] = $studentData;
@@ -296,7 +301,7 @@ class GlobalLibraryHandler
             if ($response) {
               $this->globalReturnArr['student_data'] = $response;
             } else {
-              $studentData = $this->GlobalControllerInterfaceObj->fetch_Dashboard_Student_Data($stuParamArr);
+              $studentData = $this->GlobalInterfaceControllerObj->fetch_Dashboard_Student_Data($stuParamArr);
               $this->memObj->set("student_dashboard_weekly", $studentData);
               //Set data into a key of memcached
               $this->globalReturnArr['student_data'] = $studentData;
@@ -307,7 +312,7 @@ class GlobalLibraryHandler
             if ($response) {
               $this->globalReturnArr['student_data'] = $response;
             } else {
-              $studentData = $this->GlobalControllerInterfaceObj->fetch_Dashboard_Student_Data($stuParamArr);
+              $studentData = $this->GlobalInterfaceControllerObj->fetch_Dashboard_Student_Data($stuParamArr);
               $this->memObj->set("student_dashboard_monthly", $studentData);
               //Set data into a key of memcached
               $this->globalReturnArr['student_data'] = $studentData;
@@ -318,7 +323,7 @@ class GlobalLibraryHandler
             if ($response) {
               $this->globalReturnArr['student_data'] = $response;
             } else {
-              $studentData = $this->GlobalControllerInterfaceObj->fetch_Dashboard_Student_Data($stuParamArr);
+              $studentData = $this->GlobalInterfaceControllerObj->fetch_Dashboard_Student_Data($stuParamArr);
               $this->memObj->set("student_dashboard_annual", $studentData);
               //Set data into a key of memcached
               $this->globalReturnArr['student_data'] = $studentData;
@@ -329,7 +334,7 @@ class GlobalLibraryHandler
             if ($response) {
               $this->globalReturnArr['student_data'] = $response;
             } else {
-              $studentData = $this->GlobalControllerInterfaceObj->fetch_Dashboard_Student_Data($stuParamArr);
+              $studentData = $this->GlobalInterfaceControllerObj->fetch_Dashboard_Student_Data($stuParamArr);
               $this->memObj->set("student_dashboard_weekly", $studentData);
               //Set data into a key of memcached
               $this->globalReturnArr['student_data'] = $studentData;
@@ -339,7 +344,7 @@ class GlobalLibraryHandler
 
         //Fetch receipt data based on parameters
         if ($this->memObj == null) {
-          $this->globalReturnArr['receipt_data'] = $this->GlobalControllerInterfaceObj->fetch_Dashboard_Receipt_Data($rcptParamArr);
+          $this->globalReturnArr['receipt_data'] = $this->GlobalInterfaceControllerObj->fetch_Dashboard_Receipt_Data($rcptParamArr);
         } else {
           if ($_GET['dataType'] == "receipt" && $_GET['fetchType'] == "today") {
             $response = $this->memObj->get("receipt_dashboard_today");
@@ -347,7 +352,7 @@ class GlobalLibraryHandler
             if ($response) {
               $this->globalReturnArr['receipt_data'] = $response;
             } else {
-              $receiptData = $this->GlobalControllerInterfaceObj->fetch_Dashboard_Receipt_Data($rcptParamArr);
+              $receiptData = $this->GlobalInterfaceControllerObj->fetch_Dashboard_Receipt_Data($rcptParamArr);
               $this->memObj->set("receipt_dashboard_today", $receiptData);
               //Set data into a key of memcached
               $this->globalReturnArr['receipt_data'] = $receiptData;
@@ -358,7 +363,7 @@ class GlobalLibraryHandler
             if ($response) {
               $this->globalReturnArr['receipt_data'] = $response;
             } else {
-              $receiptData = $this->GlobalControllerInterfaceObj->fetch_Dashboard_Receipt_Data($rcptParamArr);
+              $receiptData = $this->GlobalInterfaceControllerObj->fetch_Dashboard_Receipt_Data($rcptParamArr);
               $this->memObj->set("receipt_dashboard_weekly", $receiptData);
               //Set data into a key of memcached
               $this->globalReturnArr['receipt_data'] = $receiptData;
@@ -369,7 +374,7 @@ class GlobalLibraryHandler
             if ($response) {
               $this->globalReturnArr['receipt_data'] = $response;
             } else {
-              $receiptData = $this->GlobalControllerInterfaceObj->fetch_Dashboard_Receipt_Data($rcptParamArr);
+              $receiptData = $this->GlobalInterfaceControllerObj->fetch_Dashboard_Receipt_Data($rcptParamArr);
               $this->memObj->set("receipt_dashboard_monthly", $receiptData);
               //Set data into a key of memcached
               $this->globalReturnArr['receipt_data'] = $receiptData;
@@ -380,7 +385,7 @@ class GlobalLibraryHandler
             if ($response) {
               $this->globalReturnArr['receipt_data'] = $response;
             } else {
-              $receiptData = $this->GlobalControllerInterfaceObj->fetch_Dashboard_Receipt_Data($rcptParamArr);
+              $receiptData = $this->GlobalInterfaceControllerObj->fetch_Dashboard_Receipt_Data($rcptParamArr);
               $this->memObj->set("receipt_dashboard_annual", $receiptData);
               //Set data into a key of memcached
               $this->globalReturnArr['receipt_data'] = $receiptData;
@@ -391,7 +396,7 @@ class GlobalLibraryHandler
             if ($response) {
               $this->globalReturnArr['receipt_data'] = $response;
             } else {
-              $receiptData = $this->GlobalControllerInterfaceObj->fetch_Dashboard_Receipt_Data($rcptParamArr);
+              $receiptData = $this->GlobalInterfaceControllerObj->fetch_Dashboard_Receipt_Data($rcptParamArr);
               $this->memObj->set("receipt_dashboard_weekly", $receiptData);
               //Set data into a key of memcached
               $this->globalReturnArr['receipt_data'] = $receiptData;
@@ -401,14 +406,14 @@ class GlobalLibraryHandler
 
         //Fetch student data based on parameters
         if ($this->memObj == null) {
-          $this->globalReturnArr['enquiry_data'] = $this->GlobalControllerInterfaceObj->fetch_Global_Enquiry($enquiryParamArr);
+          $this->globalReturnArr['enquiry_data'] = $this->GlobalInterfaceControllerObj->fetch_Global_Enquiry($enquiryParamArr);
         } else {
           $response = $this->memObj->get("enquiry_data");
           //Check if data stored in memcached
           if ($response) {
             $this->globalReturnArr['enquiry_data'] = $response;
           } else {
-            $response = $this->GlobalControllerInterfaceObj->fetch_Global_Enquiry($enquiryParamArr);
+            $response = $this->GlobalInterfaceControllerObj->fetch_Global_Enquiry($enquiryParamArr);
             $this->memObj->set("enquiry_data", $response);
             //Set data into a key of memcached
             $this->globalReturnArr['enquiry_data'] = $response;
@@ -418,11 +423,11 @@ class GlobalLibraryHandler
 
         $franchise_id = $_SESSION['user_id'];
 
-        $franchiseDetailArr = $this->GlobalControllerInterfaceObj->fetch_Global_Single_Franchise($franchise_id);
+        $franchiseDetailArr = $this->GlobalInterfaceControllerObj->fetch_Global_Single_Franchise($franchise_id);
         $owned_status = $franchiseDetailArr->owned_status;
 
         if ($this->memObj == null) {
-          $this->globalReturnArr['student_data'] = $this->GlobalControllerInterfaceObj->fetch_Dashboard_Student_Data($stuParamArr);
+          $this->globalReturnArr['student_data'] = $this->GlobalInterfaceControllerObj->fetch_Dashboard_Student_Data($stuParamArr);
         } else {
           if ($_GET['dataType'] == "student" && $_GET['fetchType'] == "today") {
             $response = $this->memObj->get("student_dashboard_today_$franchise_id");
@@ -430,7 +435,7 @@ class GlobalLibraryHandler
             if ($response) {
               $this->globalReturnArr['student_data'] = $response;
             } else {
-              $studentData = $this->GlobalControllerInterfaceObj->fetch_Dashboard_Student_Data($stuParamArr);
+              $studentData = $this->GlobalInterfaceControllerObj->fetch_Dashboard_Student_Data($stuParamArr);
               $this->memObj->set("student_dashboard_today_$franchise_id", $studentData);
               //Set data into a key of memcached
               $this->globalReturnArr['student_data'] = $studentData;
@@ -441,7 +446,7 @@ class GlobalLibraryHandler
             if ($response) {
               $this->globalReturnArr['student_data'] = $response;
             } else {
-              $studentData = $this->GlobalControllerInterfaceObj->fetch_Dashboard_Student_Data($stuParamArr);
+              $studentData = $this->GlobalInterfaceControllerObj->fetch_Dashboard_Student_Data($stuParamArr);
               $this->memObj->set("student_dashboard_weekly_$franchise_id", $studentData);
               //Set data into a key of memcached
               $this->globalReturnArr['student_data'] = $studentData;
@@ -452,7 +457,7 @@ class GlobalLibraryHandler
             if ($response) {
               $this->globalReturnArr['student_data'] = $response;
             } else {
-              $studentData = $this->GlobalControllerInterfaceObj->fetch_Dashboard_Student_Data($stuParamArr);
+              $studentData = $this->GlobalInterfaceControllerObj->fetch_Dashboard_Student_Data($stuParamArr);
               $this->memObj->set("student_dashboard_monthly_$franchise_id", $studentData);
               //Set data into a key of memcached
               $this->globalReturnArr['student_data'] = $studentData;
@@ -463,7 +468,7 @@ class GlobalLibraryHandler
             if ($response) {
               $this->globalReturnArr['student_data'] = $response;
             } else {
-              $studentData = $this->GlobalControllerInterfaceObj->fetch_Dashboard_Student_Data($stuParamArr);
+              $studentData = $this->GlobalInterfaceControllerObj->fetch_Dashboard_Student_Data($stuParamArr);
               $this->memObj->set("student_dashboard_annual_$franchise_id", $studentData);
               //Set data into a key of memcached
               $this->globalReturnArr['student_data'] = $studentData;
@@ -474,7 +479,7 @@ class GlobalLibraryHandler
             if ($response) {
               $this->globalReturnArr['student_data'] = $response;
             } else {
-              $studentData = $this->GlobalControllerInterfaceObj->fetch_Dashboard_Student_Data($stuParamArr);
+              $studentData = $this->GlobalInterfaceControllerObj->fetch_Dashboard_Student_Data($stuParamArr);
               $this->memObj->set("student_dashboard_weekly_$franchise_id", $studentData);
               //Set data into a key of memcached
               $this->globalReturnArr['student_data'] = $studentData;
@@ -485,7 +490,7 @@ class GlobalLibraryHandler
         if ($owned_status == 'yes') {
           //Fetch receipt data based on parameters
           if ($this->memObj == null) {
-            $this->globalReturnArr['receipt_data'] = $this->GlobalControllerInterfaceObj->fetch_Dashboard_Receipt_Data($rcptParamArr);
+            $this->globalReturnArr['receipt_data'] = $this->GlobalInterfaceControllerObj->fetch_Dashboard_Receipt_Data($rcptParamArr);
           } else {
             if ($_GET['dataType'] == "receipt" && $_GET['fetchType'] == "today") {
               $response = $this->memObj->get("receipt_dashboard_today_$franchise_id");
@@ -493,7 +498,7 @@ class GlobalLibraryHandler
               if ($response) {
                 $this->globalReturnArr['receipt_data'] = $response;
               } else {
-                $receiptData = $this->GlobalControllerInterfaceObj->fetch_Dashboard_Receipt_Data($rcptParamArr);
+                $receiptData = $this->GlobalInterfaceControllerObj->fetch_Dashboard_Receipt_Data($rcptParamArr);
                 $this->memObj->set("receipt_dashboard_today_$franchise_id", $receiptData);
                 //Set data into a key of memcached
                 $this->globalReturnArr['receipt_data'] = $receiptData;
@@ -504,7 +509,7 @@ class GlobalLibraryHandler
               if ($response) {
                 $this->globalReturnArr['receipt_data'] = $response;
               } else {
-                $receiptData = $this->GlobalControllerInterfaceObj->fetch_Dashboard_Receipt_Data($rcptParamArr);
+                $receiptData = $this->GlobalInterfaceControllerObj->fetch_Dashboard_Receipt_Data($rcptParamArr);
                 $this->memObj->set("receipt_dashboard_weekly_$franchise_id", $receiptData);
                 //Set data into a key of memcached
                 $this->globalReturnArr['receipt_data'] = $receiptData;
@@ -515,7 +520,7 @@ class GlobalLibraryHandler
               if ($response) {
                 $this->globalReturnArr['receipt_data'] = $response;
               } else {
-                $receiptData = $this->GlobalControllerInterfaceObj->fetch_Dashboard_Receipt_Data($rcptParamArr);
+                $receiptData = $this->GlobalInterfaceControllerObj->fetch_Dashboard_Receipt_Data($rcptParamArr);
                 $this->memObj->set("receipt_dashboard_monthly_$franchise_id", $receiptData);
                 //Set data into a key of memcached
                 $this->globalReturnArr['receipt_data'] = $receiptData;
@@ -526,7 +531,7 @@ class GlobalLibraryHandler
               if ($response) {
                 $this->globalReturnArr['receipt_data'] = $response;
               } else {
-                $receiptData = $this->GlobalControllerInterfaceObj->fetch_Dashboard_Receipt_Data($rcptParamArr);
+                $receiptData = $this->GlobalInterfaceControllerObj->fetch_Dashboard_Receipt_Data($rcptParamArr);
                 $this->memObj->set("receipt_dashboard_annual_$franchise_id", $receiptData);
                 //Set data into a key of memcached
                 $this->globalReturnArr['receipt_data'] = $receiptData;
@@ -537,7 +542,7 @@ class GlobalLibraryHandler
               if ($response) {
                 $this->globalReturnArr['receipt_data'] = $response;
               } else {
-                $receiptData = $this->GlobalControllerInterfaceObj->fetch_Dashboard_Receipt_Data($rcptParamArr);
+                $receiptData = $this->GlobalInterfaceControllerObj->fetch_Dashboard_Receipt_Data($rcptParamArr);
                 $this->memObj->set("receipt_dashboard_weekly_$franchise_id", $receiptData);
                 //Set data into a key of memcached
                 $this->globalReturnArr['receipt_data'] = $receiptData;
@@ -547,14 +552,14 @@ class GlobalLibraryHandler
         } else {
           //Fetch gallery item
           if ($this->memObj == null) {
-            $this->globalReturnArr['gallery_data'] = $this->GlobalControllerInterfaceObj->fetch_Gallery_Arr($galleryParamArr['record_status']);
+            $this->globalReturnArr['gallery_data'] = $this->GlobalInterfaceControllerObj->fetch_Gallery_Arr($galleryParamArr['record_status']);
           } else {
             $response = $this->memObj->get("gallery_data");
             //Check if data stored in memcached
             if ($response) {
               $this->globalReturnArr['gallery_data'] = $response;
             } else {
-              $response = $this->GlobalControllerInterfaceObj->fetch_Gallery_Arr($galleryParamArr['record_status']);
+              $response = $this->GlobalInterfaceControllerObj->fetch_Gallery_Arr($galleryParamArr['record_status']);
               $this->memObj->set("gallery_data", $response);
               //Set data into a key of memcached
               $this->globalReturnArr['gallery_data'] = $response;
@@ -589,17 +594,17 @@ class GlobalLibraryHandler
       }
 
       //Call read global blog method
-      $this->globalReturnArr['data'] = $this->GlobalControllerInterfaceObj->fetch_Global_Franchise($record_status);
+      $this->globalReturnArr['data'] = $this->GlobalInterfaceControllerObj->fetch_Global_Franchise($record_status);
 
       if ($this->memObj == null) {
-        $this->globalReturnArr['data'] = $this->GlobalControllerInterfaceObj->fetch_Global_Franchise($record_status);
+        $this->globalReturnArr['data'] = $this->GlobalInterfaceControllerObj->fetch_Global_Franchise($record_status);
       } else {
         $response = $this->memObj->get("franchise_data_$record_status");
         //Check if data stored in memcached
         if ($response) {
           $this->globalReturnArr['data'] = $response;
         } else {
-          $response = $this->GlobalControllerInterfaceObj->fetch_Global_Franchise($record_status);
+          $response = $this->GlobalInterfaceControllerObj->fetch_Global_Franchise($record_status);
           $this->memObj->set("franchise_data_$record_status", $response);
           //Set data into a key of memcached
           $this->globalReturnArr['data'] = $response;
@@ -628,14 +633,14 @@ class GlobalLibraryHandler
     if ($this->globalReturnArr['page_permission']) {
       //Fetch course data based on parameters
       if ($this->memObj == null) {
-        $this->globalReturnArr['data'] = $this->GlobalControllerInterfaceObj->fetch_Global_Course($record_status);
+        $this->globalReturnArr['data'] = $this->GlobalInterfaceControllerObj->fetch_Global_Course($record_status);
       } else {
         $response = $this->memObj->get("course_data_$record_status");
         //Check if data stored in memcached
         if ($response) {
           $this->globalReturnArr['data'] = $response;
         } else {
-          $response = $this->GlobalControllerInterfaceObj->fetch_Global_Course($record_status);
+          $response = $this->GlobalInterfaceControllerObj->fetch_Global_Course($record_status);
           $this->memObj->set("course_data_$record_status", $response);
           //Set data into a key of memcached
           $this->globalReturnArr['data'] = $response;
@@ -655,14 +660,14 @@ class GlobalLibraryHandler
 
     //Fetch franchise data based on memcached
     if ($this->memObj == null) {
-      $activeCourseFranchiseArr['franchise'] = $this->GlobalControllerInterfaceObj->fetch_Global_Franchise("active");
+      $activeCourseFranchiseArr['franchise'] = $this->GlobalInterfaceControllerObj->fetch_Global_Franchise("active");
     } else {
       $response = $this->memObj->get("franchise_data_active");
       //Check if data stored in memcached
       if ($response) {
         $activeCourseFranchiseArr['franchise'] = $response;
       } else {
-        $response = $this->GlobalControllerInterfaceObj->fetch_Global_Franchise("active");
+        $response = $this->GlobalInterfaceControllerObj->fetch_Global_Franchise("active");
         $this->memObj->set("franchise_data_active", $response);
         //Set data into a key of memcached
         $activeCourseFranchiseArr['franchise'] = $response;
@@ -671,14 +676,14 @@ class GlobalLibraryHandler
 
     //Fetch course data based on memcached
     if ($this->memObj == null) {
-      $activeCourseFranchiseArr['course'] = $this->GlobalControllerInterfaceObj->fetch_Global_Course("active");
+      $activeCourseFranchiseArr['course'] = $this->GlobalInterfaceControllerObj->fetch_Global_Course("active");
     } else {
       $response = $this->memObj->get("course_data_active");
       //Check if data stored in memcached
       if ($response) {
         $activeCourseFranchiseArr['course'] = $response;
       } else {
-        $response = $this->GlobalControllerInterfaceObj->fetch_Global_Course("active");
+        $response = $this->GlobalInterfaceControllerObj->fetch_Global_Course("active");
         $this->memObj->set("course_data_active", $response);
         //Set data into a key of memcached
         $activeCourseFranchiseArr['course'] = $response;
@@ -767,7 +772,7 @@ class GlobalLibraryHandler
       }
 
       //Call read global student method
-      $this->globalReturnArr['student_data'] = $this->GlobalControllerInterfaceObj->fetch_Global_Student($dataArr);
+      $this->globalReturnArr['student_data'] = $this->GlobalInterfaceControllerObj->fetch_Global_Student($dataArr);
     } else {
       $this->globalReturnArr['franchise_data'] = array();
       $this->globalReturnArr['course_data'] = array();
@@ -780,7 +785,7 @@ class GlobalLibraryHandler
   public function create_Frnachise_ID()
   {
     //Creating new Franchise id method
-    $franchiseDetail = $this->GlobalControllerInterfaceObj->fetch_Last_Franchise_Detail();
+    $franchiseDetail = $this->GlobalInterfaceControllerObj->fetch_Last_Franchise_Detail();
     $last_fran_id = $franchiseDetail[0]->fran_id;
 
     if ($last_fran_id != null) {
@@ -798,7 +803,7 @@ class GlobalLibraryHandler
   public function create_Student_ID()
   {
     //Creating new Student id method
-    $stuIdDetail = $this->GlobalControllerInterfaceObj->fetch_Last_Student_Detail();
+    $stuIdDetail = $this->GlobalInterfaceControllerObj->fetch_Last_Student_Detail();
     $lst_stu_id = $stuIdDetail['lst_stu_id'];
 
     if (!empty($lst_stu_id)) {
@@ -826,7 +831,7 @@ class GlobalLibraryHandler
   public function create_Receipt_ID()
   {
     //Creating new Franchise id method
-    $receiptDetail = $this->GlobalControllerInterfaceObj->fetch_Last_Receipt_Detail();
+    $receiptDetail = $this->GlobalInterfaceControllerObj->fetch_Last_Receipt_Detail();
     $last_rcpt_id = $receiptDetail[0]->receipt_id;
 
     if ($last_rcpt_id != null) {
@@ -858,7 +863,7 @@ class GlobalLibraryHandler
 
     if ($this->globalReturnArr['page_permission']) {
       //Call read global news method
-      $returnArr = $this->GlobalControllerInterfaceObj->fetch_Global_Exams($dataArr);
+      $returnArr = $this->GlobalInterfaceControllerObj->fetch_Global_Exams($dataArr);
       $this->globalReturnArr['exam_data'] = $returnArr;
     } else {
       $this->globalReturnArr['exam_data'] = array();
@@ -884,7 +889,7 @@ class GlobalLibraryHandler
 
     if ($this->globalReturnArr['page_permission']) {
       //Call read global news method
-      $returnArr = $this->GlobalControllerInterfaceObj->fetch_Global_Exams($dataArr);
+      $returnArr = $this->GlobalInterfaceControllerObj->fetch_Global_Exams($dataArr);
       $this->globalReturnArr['exam_data'] = $returnArr;
     } else {
       $this->globalReturnArr['exam_data'] = array();
@@ -913,7 +918,7 @@ class GlobalLibraryHandler
 
       if ($this->globalReturnArr['page_permission']) {
         //Fetch gallery item
-        $this->globalReturnArr['gallery_data'] = $this->GlobalControllerInterfaceObj->fetch_Gallery_Arr($record_status);
+        $this->globalReturnArr['gallery_data'] = $this->GlobalInterfaceControllerObj->fetch_Gallery_Arr($record_status);
       } else {
         $this->globalReturnArr['gallery_data'] = array();
       }
@@ -924,7 +929,7 @@ class GlobalLibraryHandler
 
       if ($this->globalReturnArr['page_permission']) {
         //Fetch all category list
-        $this->globalReturnArr['category_data'] = $this->GlobalControllerInterfaceObj->fetch_Single_Parent_Category($type);
+        $this->globalReturnArr['category_data'] = $this->GlobalInterfaceControllerObj->fetch_Single_Parent_Category($type);
       } else {
         $this->globalReturnArr['category_data'] = array();
       }
@@ -935,9 +940,9 @@ class GlobalLibraryHandler
 
       if ($this->globalReturnArr['page_permission']) {
         $media_id = $_GET['id'];
-        $this->globalReturnArr['gallery_data'] = $this->GlobalControllerInterfaceObj->fetch_Gallery_Item_Detail($media_id);
+        $this->globalReturnArr['gallery_data'] = $this->GlobalInterfaceControllerObj->fetch_Gallery_Item_Detail($media_id);
         //Fetch all category list
-        $this->globalReturnArr['category_data'] = $this->GlobalControllerInterfaceObj->fetch_Single_Parent_Category($type);
+        $this->globalReturnArr['category_data'] = $this->GlobalInterfaceControllerObj->fetch_Single_Parent_Category($type);
       } else {
         $this->globalReturnArr['gallery_data'] = array();
         $this->globalReturnArr['category_data'] = array();
@@ -965,7 +970,7 @@ class GlobalLibraryHandler
     $this->globalReturnArr['page_type'] = $type;
 
     if ($this->globalReturnArr['page_permission']) {
-      $this->globalReturnArr['category_data'] = $this->GlobalControllerInterfaceObj->fetch_Parent_Category($record_status);
+      $this->globalReturnArr['category_data'] = $this->GlobalInterfaceControllerObj->fetch_Parent_Category($record_status);
     } else {
       $this->globalReturnArr['category_data'] = array();
     }
@@ -991,7 +996,7 @@ class GlobalLibraryHandler
     $this->globalReturnArr['page_type'] = $type;
 
     if ($this->globalReturnArr['page_permission']) {
-      $this->globalReturnArr['city_data'] = $this->GlobalControllerInterfaceObj->fetch_Global_Cities($record_status);
+      $this->globalReturnArr['city_data'] = $this->GlobalInterfaceControllerObj->fetch_Global_Cities($record_status);
     } else {
       $this->globalReturnArr['city_data'] = array();
     }
@@ -1043,7 +1048,7 @@ class GlobalLibraryHandler
       $activeCourseFranchiseList = $this->fetch_Active_Course_Franchise_Data();
       $this->globalReturnArr['course_data'] = $activeCourseFranchiseList['course'];
 
-      $this->globalReturnArr['enquiry_data'] = $this->GlobalControllerInterfaceObj->fetch_Global_Enquiry($dataArr);
+      $this->globalReturnArr['enquiry_data'] = $this->GlobalInterfaceControllerObj->fetch_Global_Enquiry($dataArr);
     } else {
       $this->globalReturnArr['enquiry_data'] = array();
       $this->globalReturnArr['course_data']  = array();
@@ -1068,7 +1073,7 @@ class GlobalLibraryHandler
 
     if ($this->globalReturnArr['page_permission']) {
       //Call read global email template method
-      $returnArr = $this->GlobalControllerInterfaceObj->fetch_Email_Templates($record_status);
+      $returnArr = $this->GlobalInterfaceControllerObj->fetch_Email_Templates($record_status);
       $this->globalReturnArr['email_template_data'] = $returnArr;
     } else {
       $this->globalReturnArr['email_template_data'] = array();
@@ -1094,7 +1099,7 @@ class GlobalLibraryHandler
 
     if ($this->globalReturnArr['page_permission']) {
       //Call read global news method
-      $returnArr = $this->GlobalControllerInterfaceObj->fetch_Global_News($dataArr);
+      $returnArr = $this->GlobalInterfaceControllerObj->fetch_Global_News($dataArr);
       $this->globalReturnArr['news_data'] = $returnArr;
     } else {
       $this->globalReturnArr['news_data'] = array();
@@ -1105,7 +1110,7 @@ class GlobalLibraryHandler
 
   public function fetchGlobalSingleFranchise($franchise_id)
   {
-    return $this->GlobalControllerInterfaceObj->fetch_Global_Single_Franchise($franchise_id);
+    return $this->GlobalInterfaceControllerObj->fetch_Global_Single_Franchise($franchise_id);
   }
 
   public function edit_Franchise_Profile_Data()
@@ -1118,7 +1123,7 @@ class GlobalLibraryHandler
 
     if ($this->globalReturnArr['page_permission']) {
       //Fetching franchise detail
-      $this->globalReturnArr['frnachise_data'] = $this->GlobalControllerInterfaceObj->fetch_Global_Single_Franchise($franchise_id);
+      $this->globalReturnArr['frnachise_data'] = $this->GlobalInterfaceControllerObj->fetch_Global_Single_Franchise($franchise_id);
     } else {
       $this->globalReturnArr['frnachise_data'] = array();
     }
@@ -1144,7 +1149,7 @@ class GlobalLibraryHandler
 
       if ($this->globalReturnArr['page_permission']) {
         //Fetching franchise detail
-        $this->globalReturnArr['frnachise_data'] = $this->GlobalControllerInterfaceObj->fetch_Global_Single_Franchise($franchise_id);
+        $this->globalReturnArr['frnachise_data'] = $this->GlobalInterfaceControllerObj->fetch_Global_Single_Franchise($franchise_id);
       } else {
         $this->globalReturnArr['frnachise_data'] = array();
       }
@@ -1176,7 +1181,7 @@ class GlobalLibraryHandler
 
       if ($user_id > 0) {
         //Fetching franchise detail
-        $this->globalReturnArr['profile_data'] = $this->GlobalControllerInterfaceObj->fetch_Admin_Profile_Data($user_id);
+        $this->globalReturnArr['profile_data'] = $this->GlobalInterfaceControllerObj->fetch_Admin_Profile_Data($user_id);
       } else {
         $this->globalReturnArr['profile_data'] = array();
       }
@@ -1203,7 +1208,7 @@ class GlobalLibraryHandler
 
       if ($user_id > 0) {
         //Fetching franchise detail
-        $this->globalReturnArr['profile_data'] = $this->GlobalControllerInterfaceObj->fetch_Developer_Profile_Data($user_id);
+        $this->globalReturnArr['profile_data'] = $this->GlobalInterfaceControllerObj->fetch_Developer_Profile_Data($user_id);
       } else {
         $this->globalReturnArr['profile_data'] = array();
       }
@@ -1226,7 +1231,7 @@ class GlobalLibraryHandler
 
       if ($this->globalReturnArr['page_permission']) {
         //Fetching course detail
-        $this->globalReturnArr['course_data'] = $this->GlobalControllerInterfaceObj->fetch_Global_Single_Course($course_id);
+        $this->globalReturnArr['course_data'] = $this->GlobalInterfaceControllerObj->fetch_Global_Single_Course($course_id);
       } else {
         $this->globalReturnArr['course_data'] = array();
       }
@@ -1267,7 +1272,7 @@ class GlobalLibraryHandler
 
         if ($this->globalReturnArr['page_permission']) {
           //Fetching batch detail
-          $this->globalReturnArr['student_data'] = $this->GlobalControllerInterfaceObj->fetch_Global_Single_Student($student_id);
+          $this->globalReturnArr['student_data'] = $this->GlobalInterfaceControllerObj->fetch_Global_Single_Student($student_id);
         } else {
           $this->globalReturnArr['student_data'] = array();
         }
@@ -1278,7 +1283,7 @@ class GlobalLibraryHandler
         $this->globalReturnArr['page_permission'] = $this->checkUserRolePermission($user_role_slug);
 
         //Fetching Temporary Student detail
-        $this->globalReturnArr['student_data'] = $this->GlobalControllerInterfaceObj->fetch_Tmp_Single_Student($tmp_id);
+        $this->globalReturnArr['student_data'] = $this->GlobalInterfaceControllerObj->fetch_Tmp_Single_Student($tmp_id);
       } else {
         $user_role_slug = 'create_student';
         //Check user permission for this section
@@ -1293,7 +1298,7 @@ class GlobalLibraryHandler
       $this->globalReturnArr['course_data'] = $activeCourseFranchiseList['course'];
 
       //Fetch all category list
-      $this->globalReturnArr['category_data'] = $this->GlobalControllerInterfaceObj->fetch_Single_Parent_Category($receipt_category_type);
+      $this->globalReturnArr['category_data'] = $this->GlobalInterfaceControllerObj->fetch_Single_Parent_Category($receipt_category_type);
     } else {
       $user_role_slug = 'view_student';
       //Check user permission for this section
@@ -1306,7 +1311,7 @@ class GlobalLibraryHandler
           $dataArr['franchise_id'] = null;
         }
         //Fetching batch detail
-        $this->globalReturnArr['student_list'] = $this->GlobalControllerInterfaceObj->fetch_Fresh_Students($dataArr);
+        $this->globalReturnArr['student_list'] = $this->GlobalInterfaceControllerObj->fetch_Fresh_Students($dataArr);
       } else {
         $this->globalReturnArr['student_list'] = array();
       }
@@ -1349,7 +1354,7 @@ class GlobalLibraryHandler
 
         if ($this->globalReturnArr['page_permission']) {
           //Fetching Temporary Student detail
-          $this->globalReturnArr['student_data'] = $this->GlobalControllerInterfaceObj->fetch_Tmp_Single_Student($tmp_id);
+          $this->globalReturnArr['student_data'] = $this->GlobalInterfaceControllerObj->fetch_Tmp_Single_Student($tmp_id);
         } else {
           $this->globalReturnArr['student_data'] = array();
         }
@@ -1463,7 +1468,7 @@ class GlobalLibraryHandler
         $dataArr['limit'] = 20;
 
         //Fetching batch detail
-        $this->globalReturnArr['student_data'] = $this->GlobalControllerInterfaceObj->fetch_Tmp_Students($dataArr);
+        $this->globalReturnArr['student_data'] = $this->GlobalInterfaceControllerObj->fetch_Tmp_Students($dataArr);
       } else {
         $this->globalReturnArr['student_data'] = array();
       }
@@ -1476,7 +1481,7 @@ class GlobalLibraryHandler
 
   public function fetch_Student_Admission_Receipt($student_id)
   {
-    $receiptDetails = $this->GlobalControllerInterfaceObj->fetch_Student_Admission_Receipt($student_id);
+    $receiptDetails = $this->GlobalInterfaceControllerObj->fetch_Student_Admission_Receipt($student_id);
     return $receiptDetails;
   }
 
@@ -1496,7 +1501,7 @@ class GlobalLibraryHandler
 
       if ($this->globalReturnArr['page_permission']) {
         //Fetching franchise detail
-        $this->globalReturnArr['student_data'] = $this->GlobalControllerInterfaceObj->fetch_Global_Single_Student($student_id);
+        $this->globalReturnArr['student_data'] = $this->GlobalInterfaceControllerObj->fetch_Global_Single_Student($student_id);
         $batchParamArr['franchise_id'] = $this->globalReturnArr['student_data']->franchise_id;
         $batchParamArr['course_id'] = $this->globalReturnArr['student_data']->course_id;
 
@@ -1576,10 +1581,10 @@ class GlobalLibraryHandler
 
       if (!isset($_GET['fetchType']) && $_GET['fetchType'] == "dueList") {
         //Student details
-        $this->globalReturnArr['student_data'] = $this->GlobalControllerInterfaceObj->fetch_Due_Students_Data($dataArr);
+        $this->globalReturnArr['student_data'] = $this->GlobalInterfaceControllerObj->fetch_Due_Students_Data($dataArr);
       } else {
         //Student details
-        $this->globalReturnArr['student_data'] = $this->GlobalControllerInterfaceObj->fetch_Updated_Markup_Students_Data($dataArr);
+        $this->globalReturnArr['student_data'] = $this->GlobalInterfaceControllerObj->fetch_Updated_Markup_Students_Data($dataArr);
       }
     } else {
       //Fetch all active course & franchise list
@@ -1610,7 +1615,7 @@ class GlobalLibraryHandler
     if (!empty($_GET['actionType'])) {
 
       //Fetch all category list
-      $this->globalReturnArr['category_data'] = $this->GlobalControllerInterfaceObj->fetch_Single_Parent_Category($type);
+      $this->globalReturnArr['category_data'] = $this->GlobalInterfaceControllerObj->fetch_Single_Parent_Category($type);
 
       if ($_GET['actionType'] == "create") {
         $user_role_slug = 'create_receipt';
@@ -1620,7 +1625,7 @@ class GlobalLibraryHandler
         if ($this->globalReturnArr['page_permission']) {
           $this->globalReturnArr['receipt_data'] = array();
           //Student details
-          $this->globalReturnArr['student_data'] = $this->GlobalControllerInterfaceObj->fetch_Global_Single_Student($student_id);
+          $this->globalReturnArr['student_data'] = $this->GlobalInterfaceControllerObj->fetch_Global_Single_Student($student_id);
         } else {
           $this->globalReturnArr['receipt_data'] = array();
           $this->globalReturnArr['student_data'] = array();
@@ -1634,12 +1639,12 @@ class GlobalLibraryHandler
           $receipt_id = $_GET['rcpt_id'];
 
           //Receipt details
-          $this->globalReturnArr['receipt_data'] = $this->GlobalControllerInterfaceObj->fetch_Single_Receipt_Data($receipt_id);
+          $this->globalReturnArr['receipt_data'] = $this->GlobalInterfaceControllerObj->fetch_Single_Receipt_Data($receipt_id);
 
           $stu_id = $this->globalReturnArr['receipt_data']->stu_id;
 
           //Student details
-          $this->globalReturnArr['student_data'] = $this->GlobalControllerInterfaceObj->fetch_Global_Single_Student($stu_id);
+          $this->globalReturnArr['student_data'] = $this->GlobalInterfaceControllerObj->fetch_Global_Single_Student($stu_id);
         } else {
           $this->globalReturnArr['receipt_data'] = array();
         }
@@ -1708,15 +1713,15 @@ class GlobalLibraryHandler
 
         if (!empty($student_id)) {
           //Student details
-          $this->globalReturnArr['student_data'] = $this->GlobalControllerInterfaceObj->fetch_Student_Receipt_Summary($dataArr);
+          $this->globalReturnArr['student_data'] = $this->GlobalInterfaceControllerObj->fetch_Student_Receipt_Summary($dataArr);
 
           //Fetch all receipt list
-          $this->globalReturnArr['receipt_data'] = $this->GlobalControllerInterfaceObj->fetch_Global_Receipt($dataArr);
+          $this->globalReturnArr['receipt_data'] = $this->GlobalInterfaceControllerObj->fetch_Global_Receipt($dataArr);
         } else {
 
           if ($_GET['record_status'] == "blocked" || !empty($_GET['course_id']) || !empty($_GET['franchise_id']) || !empty($_GET['created']) || !empty($_GET['receipt_season_start']) || !empty($_GET['receipt_season_end']) || !empty($_GET['verified_status'])) {
             //Fetch all receipt list
-            $this->globalReturnArr['receipt_data'] = $this->GlobalControllerInterfaceObj->fetch_Global_Receipt($dataArr);
+            $this->globalReturnArr['receipt_data'] = $this->GlobalInterfaceControllerObj->fetch_Global_Receipt($dataArr);
           } else {
             $this->globalReturnArr['receipt_data'] = array();
           }
@@ -1763,7 +1768,7 @@ class GlobalLibraryHandler
 
       if ($this->globalReturnArr['page_permission']) {
         //Fetch news detail
-        $this->globalReturnArr['exam_details'] = $this->GlobalControllerInterfaceObj->fetch_Student_Exam_Detail($exam_id);
+        $this->globalReturnArr['exam_details'] = $this->GlobalInterfaceControllerObj->fetch_Student_Exam_Detail($exam_id);
 
         //Fetch all active course & franchise list
         $activeCourseFranchiseList = $this->fetch_Active_Course_Franchise_Data();
@@ -1805,10 +1810,10 @@ class GlobalLibraryHandler
 
       if ($this->globalReturnArr['page_permission']) {
         //Fetch news detail
-        $this->globalReturnArr['exam_details'] = $this->GlobalControllerInterfaceObj->fetch_Student_Exam_Detail($exam_id);
+        $this->globalReturnArr['exam_details'] = $this->GlobalInterfaceControllerObj->fetch_Student_Exam_Detail($exam_id);
 
         //Fetch news detail
-        $this->globalReturnArr['questions'] = $this->GlobalControllerInterfaceObj->fetch_Exam_Questions($exam_id);
+        $this->globalReturnArr['questions'] = $this->GlobalInterfaceControllerObj->fetch_Exam_Questions($exam_id);
       } else {
         $this->globalReturnArr['questions'] = array();
       }
@@ -1836,10 +1841,10 @@ class GlobalLibraryHandler
 
       if ($this->globalReturnArr['page_permission']) {
         //Fetch news detail
-        $this->globalReturnArr['exam_details'] = $this->GlobalControllerInterfaceObj->fetch_Student_Exam_Detail($exam_id);
+        $this->globalReturnArr['exam_details'] = $this->GlobalInterfaceControllerObj->fetch_Student_Exam_Detail($exam_id);
 
         //Fetch news detail
-        $this->globalReturnArr['questions'] = $this->GlobalControllerInterfaceObj->fetch_Exam_Questions($exam_id);
+        $this->globalReturnArr['questions'] = $this->GlobalInterfaceControllerObj->fetch_Exam_Questions($exam_id);
       } else {
         $this->globalReturnArr['questions'] = array();
       }
@@ -1865,7 +1870,7 @@ class GlobalLibraryHandler
 
       if ($this->globalReturnArr['page_permission']) {
         //Fetch email template detail
-        $this->globalReturnArr['email_template_details'] = $this->GlobalControllerInterfaceObj->fetch_Global_Email_Template_Detail($template_id);
+        $this->globalReturnArr['email_template_details'] = $this->GlobalInterfaceControllerObj->fetch_Global_Email_Template_Detail($template_id);
       } else {
         $this->globalReturnArr['email_template_details'] = array();
       }
@@ -1891,7 +1896,7 @@ class GlobalLibraryHandler
 
       if ($this->globalReturnArr['page_permission']) {
         //Fetch news detail
-        $this->globalReturnArr['news_details'] = $this->GlobalControllerInterfaceObj->fetch_Global_News_Detail($news_id);
+        $this->globalReturnArr['news_details'] = $this->GlobalInterfaceControllerObj->fetch_Global_News_Detail($news_id);
       } else {
         $this->globalReturnArr['news_details'] = array();
       }
@@ -1906,7 +1911,7 @@ class GlobalLibraryHandler
 
   public function remove_File_From_Server($type, $row_id)
   {
-    $resultArr = $this->GlobalControllerInterfaceObj->fetch_Global_Single_Data($type, $row_id);
+    $resultArr = $this->GlobalInterfaceControllerObj->fetch_Global_Single_Data($type, $row_id);
 
     switch ($type) {
       case 'franchise':
@@ -2012,7 +2017,7 @@ class GlobalLibraryHandler
 
   public function checkSlugAvailibility($type, $field, $slug)
   {
-    $returnArr = $this->GlobalControllerInterfaceObj->check_Slug_Availibility($type, $field, $slug);
+    $returnArr = $this->GlobalInterfaceControllerObj->check_Slug_Availibility($type, $field, $slug);
     return $returnArr;
   }
 
@@ -2109,7 +2114,7 @@ class GlobalLibraryHandler
   public function fetchEmailTemplateDetail($email_code)
   {
 
-    $campaignDataArr = $this->GlobalControllerInterfaceObj->fetch_Email_Template_Detail($email_code);
+    $campaignDataArr = $this->GlobalInterfaceControllerObj->fetch_Email_Template_Detail($email_code);
 
     return $campaignDataArr;
   }
@@ -2144,7 +2149,7 @@ class GlobalLibraryHandler
 
       if ($this->globalReturnArr['page_permission']) {
         //Fetch gallery item
-        $this->globalReturnArr['slider_data'] = $this->GlobalControllerInterfaceObj->fetch_Slider_Arr($paramArr);
+        $this->globalReturnArr['slider_data'] = $this->GlobalInterfaceControllerObj->fetch_Slider_Arr($paramArr);
       } else {
         $this->globalReturnArr['slider_data'] = array();
       }
@@ -2159,7 +2164,7 @@ class GlobalLibraryHandler
 
       if ($this->globalReturnArr['page_permission']) {
         $slider_id = $_GET['id'];
-        $this->globalReturnArr['slider_data'] = $this->GlobalControllerInterfaceObj->fetch_Slider_Detail($slider_id);
+        $this->globalReturnArr['slider_data'] = $this->GlobalInterfaceControllerObj->fetch_Slider_Detail($slider_id);
         //Fetch all category list
       } else {
         $this->globalReturnArr['slider_data'] = array();
@@ -2181,7 +2186,7 @@ class GlobalLibraryHandler
 
     if ($this->globalReturnArr['page_permission']) {
       //Fetch site setting detail
-      $this->globalReturnArr['site_settings'] = $this->GlobalControllerInterfaceObj->fetch_Global_Site_Setting_Detail();
+      $this->globalReturnArr['site_settings'] = $this->GlobalInterfaceControllerObj->fetch_Global_Site_Setting_Detail();
     } else {
       $this->globalReturnArr['site_settings'] = array();
     }
@@ -2193,7 +2198,7 @@ class GlobalLibraryHandler
   public function fetchSiteSettingDetail()
   {
 
-    $siteSettingArr = $this->GlobalControllerInterfaceObj->fetch_Global_Site_Setting_Detail();
+    $siteSettingArr = $this->GlobalInterfaceControllerObj->fetch_Global_Site_Setting_Detail();
 
     return $siteSettingArr;
   }
@@ -2377,8 +2382,8 @@ class GlobalLibraryHandler
     if ($checkActionPermission) {
 
       //Fetch reecipt detail
-      $receiptDetailArr = $this->GlobalControllerInterfaceObj->fetch_Single_Receipt_Data($receipt_id);
-      $studentDetails = $this->GlobalControllerInterfaceObj->fetch_Global_Single_Student($receiptDetailArr->stu_id, $receiptDetailArr->created_at);
+      $receiptDetailArr = $this->GlobalInterfaceControllerObj->fetch_Single_Receipt_Data($receipt_id);
+      $studentDetails = $this->GlobalInterfaceControllerObj->fetch_Global_Single_Student($receiptDetailArr->stu_id, $receiptDetailArr->created_at);
 
       $file_upload_dir =  USER_UPLOAD_DIR . 'runtime_upload/' . "Receipt_" . $receiptDetailArr->receipt_id . '.pdf';
       $file_url = USER_UPLOAD_URL . 'runtime_upload/' . "Receipt_" . $receiptDetailArr->receipt_id . '.pdf';
@@ -2747,7 +2752,11 @@ class GlobalLibraryHandler
 
     // Delete the original SQL file
     if (file_exists($filePath)) {
-      unlink($filePath);
+      if (!unlink($filePath)) {
+        $removeDBAftrBakupErr = array('check' => "failure", 'filePath' => $filePath, 'message' => "Sql dump isn't get deleted");
+        // Log the error
+        $this->logServerData($removeDBAftrBakupErr);
+      }
     }
 
     return $createDbBak == true ? true : false;

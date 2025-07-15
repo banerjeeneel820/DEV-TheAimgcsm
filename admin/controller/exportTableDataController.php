@@ -13,7 +13,7 @@
 
     $export_table = $_POST['export_table'];
     //Creating object for global controller
-    $GlobalControllerInterfaceObj = new GlobalInterfaceController();
+    $GlobalInterfaceControllerObj = new GlobalInterfaceController();
     //Creating object for global library
     $GlobalLibraryHandlerObj = new GlobalLibraryHandler();
 
@@ -129,14 +129,14 @@
             $exportParamArr['search_end'] = mysqli_real_escape_string(DB::$WRITELINK,trim($_POST['search_end']));
 
             //fetching student data
-            $studentDataObj = $GlobalControllerInterfaceObj->fetch_Global_Student_Recipts($exportParamArr);  
+            $studentDataObj = $GlobalInterfaceControllerObj->fetch_Global_Student_Recipts($exportParamArr);  
             $studentListArr = json_decode(json_encode($studentDataObj),true);
           }
           else{
             $dataArr['fetchType'] = mysqli_real_escape_string(DB::$WRITELINK,trim($_POST['fetchType']));
 
             //fetching student data
-            $studentDataObj = $GlobalControllerInterfaceObj->fetch_Dashboard_Student_Data($dataArr);  
+            $studentDataObj = $GlobalInterfaceControllerObj->fetch_Dashboard_Student_Data($dataArr);  
             $studentListArr = json_decode(json_encode($studentDataObj['data']),true); 
           }
 
@@ -348,18 +348,18 @@
             if(!empty($_POST['student_id'])){
                 $exportParamArr['student_id'] = mysqli_real_escape_string(DB::$WRITELINK,trim($_POST['student_id']));
                //fetching receipt data
-               $receiptDataObj = $GlobalControllerInterfaceObj->fetch_Single_Student_Receipt($exportParamArr['student_id'],$exportParamArr);  
+               $receiptDataObj = $GlobalInterfaceControllerObj->fetch_Single_Student_Receipt($exportParamArr['student_id'],$exportParamArr);  
                $receiptListArr = json_decode(json_encode($receiptDataObj),true);
             }else{
                //fetching receipt data
-               $receiptDataObj = $GlobalControllerInterfaceObj->fetch_Global_Receipts($exportParamArr);  
+               $receiptDataObj = $GlobalInterfaceControllerObj->fetch_Global_Receipts($exportParamArr);  
                $receiptListArr = json_decode(json_encode($receiptDataObj),true);  
             }
             
           }elseif($_POST['protocol'] == "dashboard"){
             $dataArr['fetchType'] = mysqli_real_escape_string(DB::$WRITELINK,trim($_POST['fetchType']));
             //fetching student data
-            $receiptDataObj = $GlobalControllerInterfaceObj->fetch_Dashboard_Receipt_Data($dataArr);  
+            $receiptDataObj = $GlobalInterfaceControllerObj->fetch_Dashboard_Receipt_Data($dataArr);  
             $receiptListArr = json_decode(json_encode($receiptDataObj['data']),true); 
           }
 
@@ -524,7 +524,7 @@
           $record_status = mysqli_real_escape_string(DB::$WRITELINK,trim($_POST['record_status']));
            
           //fetching student data
-          $franchiseDataObj = $GlobalControllerInterfaceObj->fetch_Global_Franchise($record_status);  
+          $franchiseDataObj = $GlobalInterfaceControllerObj->fetch_Global_Franchise($record_status);  
           $franchiseListArr = json_decode(json_encode($franchiseDataObj),true);
           
           $export_method = mysqli_real_escape_string(DB::$WRITELINK,trim($_POST['export_method']));

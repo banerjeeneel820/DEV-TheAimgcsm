@@ -2853,13 +2853,9 @@ class GlobalInterfaceController
       
       //echo $sql_count_flagged;exit();
 
-      $row_count = $this->conn->global_Rows_Count_DB($sql_count_jobs);
+      $resultArr = $this->conn->global_Fetch_Single_DB($sql_count_jobs);
 
-      if ($row_count > 0) {
-         return true;
-      }else{
-         return false;
-      }
+      return $resultArr;
    }
 
    public function manage_Queue_Jobs($cronDetailArr)

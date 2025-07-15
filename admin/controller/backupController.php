@@ -8,7 +8,7 @@ defined('ROOTPATH') or exit('No direct script access allowed');
 $action = trim($_POST['action']);
 
 //Creating object for global controller
-$GlobalControllerInterfaceObj = new GlobalInterfaceController();
+$GlobalInterfaceControllerObj = new GlobalInterfaceController();
 //Creating object for global library
 $GlobalLibraryHandlerObj = new GlobalLibraryHandler();
 

@@ -6,13 +6,13 @@
 
         private $_page_handler;
         private $GlobalLibraryHandlerObj;
-        private $GlobalControllerInterfaceObj;
+        private $GlobalInterfaceControllerObj;
         private $globalReturnArr = array();
 
         public function __construct($page_Action){
             $this->_page_handler = $page_Action;
             $this->GlobalLibraryHandlerObj = new GlobalLibraryHandler();
-            $this->GlobalControllerInterfaceObj = new GlobalInterfaceController();
+            $this->GlobalInterfaceControllerObj = new GlobalInterfaceController();
             $this->globalReturnArr['check_site_maintenance'] = $this->check_Site_Maintenance_Status();
         }
 

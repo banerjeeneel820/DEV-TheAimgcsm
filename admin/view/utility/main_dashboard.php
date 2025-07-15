@@ -2,6 +2,9 @@
 //Configiring site backup files data
 $siteBakFilesArr = $pageContent['pageData']['site_bak_files'];
 
+//Check site backup job is created or not
+$siteBackupQueue = $pageContent['pageData']['site_backup_queue'];
+
 //Configiring course data
 $courseListArr = $pageContent['pageData']['course_data'];
 
@@ -53,6 +56,14 @@ if ($rcptFetchType == "today") {
   $rcpt_data_page_limit = "20";
 } else {
   $rcpt_data_page_limit = "50";
+}
+
+if($siteBackupQueue){
+  $backupAlertDivClass = "info";
+  $backupAlertDivMsg = "A job to create site backup is already in the queue; No further action is required.";
+}else{
+  $backupAlertDivClass = "warning";
+  $backupAlertDivMsg = "No job is queued to create site backup; Please create a latest backup now.";
 }
 
 //Fetching page action permission
@@ -186,7 +197,7 @@ $backupLimit = $_SESSION['user_type'] == "developer" ? true : ($_COOKIE["backupC
           <div class="ibox-title">
             <h5>Site Backup Files</h5>
             <div class="ibox-tools">
-              <?php if($backupLimit){ ?>
+              <?php if ($backupLimit && !$siteBackupQueue) { ?>
                 <button type="button" id="createServerBackup" class="btn btn-xs btn-primary">
                   <i class="fa fa-recycle"> </i> Create Latest Backup
                 </button>
@@ -253,15 +264,16 @@ $backupLimit = $_SESSION['user_type'] == "developer" ? true : ($_COOKIE["backupC
                         </tr>
                       <?php } ?>
                     </tbody>
-                    <?php if($_SESSION['user_type'] != "developer"){ ?>
                       <tfoot>
                         <tr>
-                          <div class="alert alert-warning text-center" role="alert">
-                            Total Backup Limit remains: <?=(2 - $_COOKIE["backupCount"])?>
+                          <div class="alert alert-<?=$backupAlertDivClass?> text-center" role="alert">
+                            <?php if($_SESSION['user_type'] != "developer"){ ?>
+                              <b>Total Backup Attempt remains: <?=(2 - $_COOKIE["backupCount"])?>&nbsp;||&nbsp;</b>
+                            <?php } ?>
+                              <b>*<?=$backupAlertDivMsg?>*</b>  
                           </div>
                         </tr>
                       </tfoot>
-                    <?php } ?>   
                   </table>
                 </div>
 
@@ -804,6 +816,7 @@ $backupLimit = $_SESSION['user_type'] == "developer" ? true : ($_COOKIE["backupC
               data: formData,
               beforeSend: function() {
                 //$('.tooltip').hide();
+                $("#createServerBackup").prop("disabled", true);
                 $('.content_div_loader').addClass('sk-loading');
               },
               success: function(responseData) {
@@ -813,7 +826,7 @@ $backupLimit = $_SESSION['user_type'] == "developer" ? true : ($_COOKIE["backupC
                 $('.content_div_loader').removeClass('sk-loading');
 
                 if(result.check == "success"){
-                  //toastr.options.onHidden = function() { location.reload(); }
+                  toastr.options.onHidden = function() { location.reload(); }
                   toastr.success(result.message, "Success!", {
                       timeOut: 2000
                   });

@@ -10,7 +10,7 @@ defined('ROOTPATH') or exit('No direct script access allowed');
 
 $action = $_POST['action'];
 //Creating object for global controller
-$GlobalControllerInterfaceObj = new GlobalInterfaceController();
+$GlobalInterfaceControllerObj = new GlobalInterfaceController();
 //Creating object for global library
 $GlobalLibraryHandlerObj = new GlobalLibraryHandler();
 
@@ -154,7 +154,7 @@ switch ($action) {
 
       //print_r($formDataArr);exit; 
       //Call create global hotel method
-      $returnArr = $GlobalControllerInterfaceObj->manage_Global_Franchise($formDataArr);
+      $returnArr = $GlobalInterfaceControllerObj->manage_Global_Franchise($formDataArr);
 
       if ($returnArr['check'] == 'success') {
         if ($returnArr['last_insert_id'] > 0) {
@@ -282,7 +282,7 @@ switch ($action) {
 
       //print_r($formDataArr);exit; 
       //Call create global hotel method
-      $returnArr = $GlobalControllerInterfaceObj->manage_Global_Course($formDataArr);
+      $returnArr = $GlobalInterfaceControllerObj->manage_Global_Course($formDataArr);
 
       if ($returnArr['check'] == "success") {
 
@@ -330,7 +330,7 @@ switch ($action) {
     $paramArr['franchise_id'] = mysqli_real_escape_string(DB::$WRITELINK, trim($_POST['franchise_id']));
     $paramArr['course_id'] = mysqli_real_escape_string(DB::$WRITELINK, trim($_POST['course_id']));
 
-    $batchList = $GlobalControllerInterfaceObj->fetch_Dependent_Batch_Arr($paramArr);
+    $batchList = $GlobalInterfaceControllerObj->fetch_Dependent_Batch_Arr($paramArr);
 
     if (count($batchList) > 0) {
       echo json_encode(array('check' => 'success', 'batchList' => $batchList));
@@ -360,7 +360,7 @@ switch ($action) {
     }
 
     if (!empty($formDataArr['stu_row_id']) && $formDataArr['stu_row_id'] != "null") {
-      $studentDetailArr =  $GlobalControllerInterfaceObj->fetch_Detail_Single_Student($formDataArr['stu_row_id']);
+      $studentDetailArr =  $GlobalInterfaceControllerObj->fetch_Detail_Single_Student($formDataArr['stu_row_id']);
     }
 
     //Fetching student detail to check if this is a valid action
@@ -376,7 +376,7 @@ switch ($action) {
         }
       }
 
-      $franchiseDetailArr = $GlobalControllerInterfaceObj->fetch_Global_Single_Franchise($franchise_id);
+      $franchiseDetailArr = $GlobalInterfaceControllerObj->fetch_Global_Single_Franchise($franchise_id);
       $owned_status = $franchiseDetailArr->owned_status;
     } else {
       $owned_status = "yes";
@@ -561,7 +561,7 @@ switch ($action) {
 
       //print_r($formDataArr);exit; 
       //Call create global hotel method
-      $returnArr = $GlobalControllerInterfaceObj->manage_Global_Student($formDataArr);
+      $returnArr = $GlobalInterfaceControllerObj->manage_Global_Student($formDataArr);
 
       if ($returnArr['check'] == 'success') {
 
@@ -621,7 +621,7 @@ switch ($action) {
 
       if ($user_role_slug == "update_student") {
         //Fetching current student
-        $studentDetailArr =  $GlobalControllerInterfaceObj->fetch_Detail_Single_Student($formDataArr['student_id']);
+        $studentDetailArr =  $GlobalInterfaceControllerObj->fetch_Detail_Single_Student($formDataArr['student_id']);
       }
 
       if ($_SESSION['user_type'] == "franchise" && $_SESSION['owned_status'] == "yes") {
@@ -647,7 +647,7 @@ switch ($action) {
           }
         }
 
-        $franchiseDetailArr = $GlobalControllerInterfaceObj->fetch_Global_Single_Franchise($franchise_id);
+        $franchiseDetailArr = $GlobalInterfaceControllerObj->fetch_Global_Single_Franchise($franchise_id);
         $owned_status = $franchiseDetailArr->owned_status;
       } else {
         $franchise_id = mysqli_real_escape_string(DB::$WRITELINK, trim($_POST['franchise_id']));
@@ -686,7 +686,7 @@ switch ($action) {
       //print_r($formDataArr);exit;
 
       //Call manage student admission method
-      $studentReturnArr = $GlobalControllerInterfaceObj->manage_Student_Admission($formDataArr);
+      $studentReturnArr = $GlobalInterfaceControllerObj->manage_Student_Admission($formDataArr);
 
       if ($studentReturnArr['check'] == 'success' && $studentReturnArr['last_insert_id'] > 0 && $user_role_slug == "create_student" && $_POST['receipt_amount'] > 0) {
 
@@ -705,13 +705,13 @@ switch ($action) {
         $checkReceiptPermission = $GlobalLibraryHandlerObj->checkUserRolePermission($receipt_role_slug, "hard");
 
         //Call manage receipt hotel method
-        $receiptReturnArr = $GlobalControllerInterfaceObj->create_Student_Admission_Receipt($receiptFormArr);
+        $receiptReturnArr = $GlobalInterfaceControllerObj->create_Student_Admission_Receipt($receiptFormArr);
       }
 
       if ($studentReturnArr['check'] == 'success' && !empty($_POST['tmp_id'])) {
         //Updating temporary student conversion status
         $tmp_id = $_POST['tmp_id'];
-        $GlobalControllerInterfaceObj->update_Tmp_Student_Conversion_Status($tmp_id, '1');
+        $GlobalInterfaceControllerObj->update_Tmp_Student_Conversion_Status($tmp_id, '1');
       }
 
       if ($studentReturnArr['check'] == 'success') {
@@ -762,14 +762,14 @@ switch ($action) {
 
         if (!empty($formDataArr['tmp_id']) && $formDataArr['tmp_id'] != "null") {
           //Checking if this student belongs to this franchise
-          $studentDetailArr =  $GlobalControllerInterfaceObj->fetch_Detail_Single_Student($formDataArr['tmp_id']);
+          $studentDetailArr =  $GlobalInterfaceControllerObj->fetch_Detail_Single_Student($formDataArr['tmp_id']);
           if ($studentDetailArr->franchise_id != $_SESSION['user_id']) {
             echo json_encode(array('check' => 'failure', 'message' => "You don't have the permission to perform this action!"));
             exit;
           }
         }
 
-        $franchiseDetailArr = $GlobalControllerInterfaceObj->fetch_Global_Single_Franchise($franchise_id);
+        $franchiseDetailArr = $GlobalInterfaceControllerObj->fetch_Global_Single_Franchise($franchise_id);
         $owned_status = $franchiseDetailArr->owned_status;
       } else {
         $franchise_id = mysqli_real_escape_string(DB::$WRITELINK, trim($_POST['franchise_id']));
@@ -792,7 +792,7 @@ switch ($action) {
       //print_r($formDataArr);exit;
 
       //Call manage student admission method
-      $returnArr = $GlobalControllerInterfaceObj->manage_Temp_Student($formDataArr);
+      $returnArr = $GlobalInterfaceControllerObj->manage_Temp_Student($formDataArr);
 
       if ($returnArr['check'] == 'success') {
 
@@ -829,7 +829,7 @@ switch ($action) {
       $formDataArr['receipt_amount'] = mysqli_real_escape_string(DB::$WRITELINK, trim($_POST['receipt_amount']));
 
       //Call manage receipt hotel method
-      $returnArr = $GlobalControllerInterfaceObj->update_Student_Admission_Receipt($formDataArr);
+      $returnArr = $GlobalInterfaceControllerObj->update_Student_Admission_Receipt($formDataArr);
     } else {
       $returnArr = array('check' => 'failure', 'message' => "You don't have the permission to perform this action!");
     }
@@ -870,7 +870,7 @@ switch ($action) {
     if ($checkActionPermission) {
 
       //Fetch receipt details
-      $receiptDetailArr =  $GlobalControllerInterfaceObj->fetch_Receipt_Detail($formDataArr['receipt_row_id']);
+      $receiptDetailArr =  $GlobalInterfaceControllerObj->fetch_Receipt_Detail($formDataArr['receipt_row_id']);
 
       $formDataArr['student_id'] = mysqli_real_escape_string(DB::$WRITELINK, trim($_POST['stu_id']));
 
@@ -880,7 +880,7 @@ switch ($action) {
       $formDataArr['extra_fees'] = mysqli_real_escape_string(DB::$WRITELINK, trim($_POST['extra_fees']));
 
       //Fetch student course fees details
-      $stuReceiptDetails = $GlobalControllerInterfaceObj->fetch_Global_Single_Student($formDataArr['student_id']);
+      $stuReceiptDetails = $GlobalInterfaceControllerObj->fetch_Global_Single_Student($formDataArr['student_id']);
 
       if (!empty($_POST['receipt_row_id'])) {
 
@@ -908,7 +908,7 @@ switch ($action) {
 
       //Fetching student detail to check if this is a valid action
       if ($_SESSION['user_type'] == "franchise") {
-        $studentDetailArr =  $GlobalControllerInterfaceObj->fetch_Detail_Single_Student($formDataArr['student_id']);
+        $studentDetailArr =  $GlobalInterfaceControllerObj->fetch_Detail_Single_Student($formDataArr['student_id']);
 
         if ($studentDetailArr->franchise_id != $_SESSION['user_id']) {
           echo json_encode(array('check' => 'failure', 'message' => "You don't have the permission to perform this action!"));
@@ -969,7 +969,7 @@ switch ($action) {
       //print_r($formDataArr);exit;
 
       //Call manage receipt hotel method
-      $returnArr = $GlobalControllerInterfaceObj->manage_Student_Receipt($formDataArr);
+      $returnArr = $GlobalInterfaceControllerObj->manage_Student_Receipt($formDataArr);
 
       if ($returnArr['check'] == 'success') {
 
@@ -980,7 +980,7 @@ switch ($action) {
         }
 
         //Receipt details
-        $receiptDetails = $GlobalControllerInterfaceObj->fetch_Single_Receipt_Data($receipt_id);
+        $receiptDetails = $GlobalInterfaceControllerObj->fetch_Single_Receipt_Data($receipt_id);
 
         if ($send_mail == "yes") {
 
@@ -988,7 +988,7 @@ switch ($action) {
           $receiptPdfRslt = $GlobalLibraryHandlerObj->createStudentReceiptPdf($receipt_id);
 
           //Fetching student receipt detail
-          $studentReceiptData = $GlobalControllerInterfaceObj->fetch_Single_Receipt_Data($receipt_id);
+          $studentReceiptData = $GlobalInterfaceControllerObj->fetch_Single_Receipt_Data($receipt_id);
 
           //Configuring email param array
           $emailParamArr['invoice_date']  = date('jS F, Y', time());
@@ -1083,7 +1083,7 @@ switch ($action) {
 
       //print_r($formDataArr);exit;
       //Call create global hotel method
-      $returnArr = $GlobalControllerInterfaceObj->manage_Profile_Data($formDataArr);
+      $returnArr = $GlobalInterfaceControllerObj->manage_Profile_Data($formDataArr);
     } else {
       $returnArr = array('check' => 'failure', 'message' => "You don't have the permission to perform this action!");
     }
@@ -1152,7 +1152,7 @@ switch ($action) {
       //print_r($formDataArr);exit;
 
       //fetching receipt data
-      $receiptDataArr = json_decode(json_encode($GlobalControllerInterfaceObj->fetch_Receipt_Collection($formDataArr)), true);
+      $receiptDataArr = json_decode(json_encode($GlobalInterfaceControllerObj->fetch_Receipt_Collection($formDataArr)), true);
       $returnArr = array('check' => 'success', 'receiptData' => $receiptDataArr, 'message' => "Receipt Collection was successfully fetched!");
     } else {
       $returnArr = array('check' => 'failure', 'message' => "You don't have the permission to perform this action!");
@@ -1220,7 +1220,7 @@ switch ($action) {
 
       //print_r($formDataArr);exit; 
       //Call manage email template method
-      $returnArr = $GlobalControllerInterfaceObj->manage_Global_Exam($formDataArr);
+      $returnArr = $GlobalInterfaceControllerObj->manage_Global_Exam($formDataArr);
 
       if ($returnArr['check'] == 'success') {
 
@@ -1263,7 +1263,7 @@ switch ($action) {
 
     if ($checkActionPermission) {
       //Call to save exam questions ordering
-      $questions = $GlobalControllerInterfaceObj->fetch_Exam_Questions($exam_id);
+      $questions = $GlobalInterfaceControllerObj->fetch_Exam_Questions($exam_id);
 
       $returnArr = array('check' => 'success', 'questions' => $questions);
     } else {
@@ -1293,7 +1293,7 @@ switch ($action) {
       $question_count = count($_POST['questions']);
 
       //Call save exam questions
-      $returnArr = $GlobalControllerInterfaceObj->update_Exam_Questions($postData);
+      $returnArr = $GlobalInterfaceControllerObj->update_Exam_Questions($postData);
 
       echo json_encode($returnArr);
     } else {
@@ -1322,7 +1322,7 @@ switch ($action) {
 
     if ($checkActionPermission) {
       //Formatting current qustions ordering
-      $current_questions = $GlobalControllerInterfaceObj->fetch_Exam_Questions($formDataArr['exam_id']);
+      $current_questions = $GlobalInterfaceControllerObj->fetch_Exam_Questions($formDataArr['exam_id']);
 
       foreach ($current_questions as $cindex => $question) {
         $crntOrdrin = (int)$question->ordering - 1;
@@ -1336,7 +1336,7 @@ switch ($action) {
         $formDataArr['ordering'] = $index + 1;
 
         //Call to save exam questions ordering
-        $returnArr = $GlobalControllerInterfaceObj->save_Exam_Questions_Order($formDataArr);
+        $returnArr = $GlobalInterfaceControllerObj->save_Exam_Questions_Order($formDataArr);
       }
     } else {
       $returnArr = array('check' => 'failure', 'message' => "You don't have the permission to perform this action!");
@@ -1363,7 +1363,7 @@ switch ($action) {
 
     if ($checkActionPermission) {
       //Call to save exam questions ordering
-      $returnArr = $GlobalControllerInterfaceObj->delete_All_Questions($exam_id);
+      $returnArr = $GlobalInterfaceControllerObj->delete_All_Questions($exam_id);
     } else {
       $returnArr = array('check' => 'failure', 'message' => "You don't have the permission to perform this action!");
     }
@@ -1389,7 +1389,7 @@ switch ($action) {
       $formDataArr['exam_id'] = mysqli_real_escape_string(DB::$WRITELINK, trim($_POST['exam_id']));
 
       //Call save exam questions
-      $returnArr = $GlobalControllerInterfaceObj->update_Exam_Validation_Log($formDataArr);
+      $returnArr = $GlobalInterfaceControllerObj->update_Exam_Validation_Log($formDataArr);
     } else {
       $returnArr = array('check' => 'failure', 'message' => "You don't have the permission to perform this action!");
     }
@@ -1411,7 +1411,7 @@ switch ($action) {
     if ($_SESSION['user_type'] == "student") {
 
       //Call save exam questions
-      $returnArr = $GlobalControllerInterfaceObj->update_Exam_Answer($postData);
+      $returnArr = $GlobalInterfaceControllerObj->update_Exam_Answer($postData);
     } else {
       $returnArr = array('check' => 'failure', 'message' => "You don't have the permission to perform this action!");
     }
@@ -1438,7 +1438,7 @@ switch ($action) {
       $formDataArr['ques_id'] = mysqli_real_escape_string(DB::$WRITELINK, trim($_POST['qId']));
 
       //Call save exam questions
-      $returnArr = $GlobalControllerInterfaceObj->update_Flag_Question_Exam($formDataArr);
+      $returnArr = $GlobalInterfaceControllerObj->update_Flag_Question_Exam($formDataArr);
     } else {
       $returnArr = array('check' => 'failure', 'message' => "You don't have the permission to perform this action!");
     }
@@ -1465,7 +1465,7 @@ switch ($action) {
       $formDataArr['ques_id'] = mysqli_real_escape_string(DB::$WRITELINK, trim($_POST['qId']));
 
       //Call save exam questions
-      $returnArr = $GlobalControllerInterfaceObj->update_Viewed_Question_Exam($formDataArr);
+      $returnArr = $GlobalInterfaceControllerObj->update_Viewed_Question_Exam($formDataArr);
     } else {
       $returnArr = array('check' => 'failure', 'message' => "You don't have the permission to perform this action!");
     }
@@ -1507,7 +1507,7 @@ switch ($action) {
       //print_r($formDataArr);exit;
 
       //Call change student status method
-      $returnArr = $GlobalControllerInterfaceObj->manage_Student_Status($formDataArr);
+      $returnArr = $GlobalInterfaceControllerObj->manage_Student_Status($formDataArr);
     } else {
       $returnArr = array('check' => 'failure', 'message' => "You don't have the permission to perform this action!");
     }
@@ -1590,7 +1590,7 @@ switch ($action) {
       //print_r($formDataArr);exit;
 
       //Call create global hotel method
-      $returnArr = $GlobalControllerInterfaceObj->manage_Global_Media($formDataArr);
+      $returnArr = $GlobalInterfaceControllerObj->manage_Global_Media($formDataArr);
 
       if ($returnArr['check'] == 'success') {
         if (!$returnArr['last_insert_id'] > 0) {
@@ -1635,7 +1635,7 @@ switch ($action) {
       $updateCategoryArr['category_id'] = $_POST['category_id'];
       //print_r($updateCategoryArr);exit;
       //Calling insert array method from globalinterface controller
-      $GlobalControllerInterfaceObj->edit_Post_Category($updateCategoryArr);
+      $GlobalInterfaceControllerObj->edit_Post_Category($updateCategoryArr);
     } else {
       $returnArr = array('check' => 'failure', 'message' => "You don't have the permission to perform this action!");
     }
@@ -1669,7 +1669,7 @@ switch ($action) {
       $formDataArr['title'] = 'Gallery-' . rand();
 
       //Fetch all category list
-      $categoryListArr = json_decode(json_encode($GlobalControllerInterfaceObj->fetch_Single_Parent_Category($dir)), true);
+      $categoryListArr = json_decode(json_encode($GlobalInterfaceControllerObj->fetch_Single_Parent_Category($dir)), true);
 
       $shuffeledCatArr = array_values($GlobalLibraryHandlerObj->shuffle_assoc($categoryListArr));
 
@@ -1699,7 +1699,7 @@ switch ($action) {
       //print_r($formDataArr);exit;
 
       //Call create global hotel method
-      $returnArr = $GlobalControllerInterfaceObj->manage_Global_Media($formDataArr);
+      $returnArr = $GlobalInterfaceControllerObj->manage_Global_Media($formDataArr);
 
       if ($returnArr['check'] == 'success') {
         //Inserting category id for this current post
@@ -1707,7 +1707,7 @@ switch ($action) {
         $updateCategoryArr['post_id'] = $returnArr['last_insert_id'];
         $updateCategoryArr['category_id'] = $categoryIdArr;
         //Calling insert array method from globalinterface controller
-        $GlobalControllerInterfaceObj->edit_Post_Category($updateCategoryArr);
+        $GlobalInterfaceControllerObj->edit_Post_Category($updateCategoryArr);
 
         $message = $formDataArr['title'] . " has been successfully uploaded!";
         $returnArr = array('check' => 'success', 'message' => $message);
@@ -1750,7 +1750,7 @@ switch ($action) {
 
       //print_r($formDataArr);exit;
       //Call create global hotel method
-      $returnArr = $GlobalControllerInterfaceObj->manage_Parent_Category($formDataArr);
+      $returnArr = $GlobalInterfaceControllerObj->manage_Parent_Category($formDataArr);
     } else {
       $returnArr = array('check' => 'failure', 'message' => "You don't have the permission to perform this action!");
     }
@@ -1782,7 +1782,7 @@ switch ($action) {
 
       //print_r($formDataArr);exit;
       //Call create global hotel method
-      $returnArr = $GlobalControllerInterfaceObj->manage_Global_City($formDataArr);
+      $returnArr = $GlobalInterfaceControllerObj->manage_Global_City($formDataArr);
     } else {
       $returnArr = array('check' => 'failure', 'message' => "You don't have the permission to perform this action!");
     }
@@ -1832,7 +1832,7 @@ switch ($action) {
 
       //print_r($formDataArr);exit;
       //Call create global hotel method
-      $returnArr = $GlobalControllerInterfaceObj->manage_Profile_Data($formDataArr);
+      $returnArr = $GlobalInterfaceControllerObj->manage_Profile_Data($formDataArr);
     } else {
       $returnArr = array('check' => 'failure', 'message' => "You don't have the permission to perform this action!");
     }
@@ -1915,7 +1915,7 @@ switch ($action) {
 
       //print_r($formDataArr);exit; 
       //Call manage email template method
-      $returnArr = $GlobalControllerInterfaceObj->manage_Global_Email_Template($formDataArr);
+      $returnArr = $GlobalInterfaceControllerObj->manage_Global_Email_Template($formDataArr);
     } else {
       $returnArr = array('check' => 'failure', 'message' => "You don't have the permission to perform this action!");
     }
@@ -1979,7 +1979,7 @@ switch ($action) {
 
       //print_r($formDataArr);exit; 
       //Call manage email template method
-      $returnArr = $GlobalControllerInterfaceObj->manage_Home_Slider($formDataArr);
+      $returnArr = $GlobalInterfaceControllerObj->manage_Home_Slider($formDataArr);
 
       if ($returnArr['check'] == 'success') {
 
@@ -2066,7 +2066,7 @@ switch ($action) {
 
       //print_r($formDataArr);exit; 
       //Call manage email template method
-      $returnArr = $GlobalControllerInterfaceObj->manage_Global_News($formDataArr);
+      $returnArr = $GlobalInterfaceControllerObj->manage_Global_News($formDataArr);
 
       if ($returnArr['check'] == 'success') {
 
@@ -2125,7 +2125,7 @@ switch ($action) {
 
           $paramArr['row_id'] = $row_id;
 
-          $returnArr = $GlobalControllerInterfaceObj->update_Bulk_Student_Status($paramArr);
+          $returnArr = $GlobalInterfaceControllerObj->update_Bulk_Student_Status($paramArr);
 
           if ($returnArr["responseArr"]["check"] == "success") {
             $returnArr = array("check" => "success", "message" => "Query has been successfully executed!");
@@ -2225,7 +2225,7 @@ switch ($action) {
 
         //Call update global status modify method
         foreach ($rowIdArr as $index => $row_id) {
-          $returnArr = $GlobalControllerInterfaceObj->update_Global_Record_Status($type, $row_id, $record_status);
+          $returnArr = $GlobalInterfaceControllerObj->update_Global_Record_Status($type, $row_id, $record_status);
           if ($returnArr["responseArr"]["check"] == "success") {
             $returnArr = array("check" => "success", "message" => "Query has been successfully executed!");
           }
@@ -2277,7 +2277,7 @@ switch ($action) {
 
     if ($checkActionPermission) {
       //Call update global status modify method
-      $returnArr = $GlobalControllerInterfaceObj->update_Global_Featured_Status($type, $row_id, $featured_status);
+      $returnArr = $GlobalInterfaceControllerObj->update_Global_Featured_Status($type, $row_id, $featured_status);
       if ($returnArr["responseArr"]["check"] == "success") {
         $returnArr = array("check" => "success", "message" => "Query has been successfully executed!");
       }
@@ -2306,7 +2306,7 @@ switch ($action) {
 
     if ($checkActionPermission) {
       //Call update global status modify method
-      $returnArr = $GlobalControllerInterfaceObj->update_Tmp_Student_Verified_Status($tmp_id, $verified_status);
+      $returnArr = $GlobalInterfaceControllerObj->update_Tmp_Student_Verified_Status($tmp_id, $verified_status);
     } else {
       $returnArr = array('check' => 'failure', 'message' => "You don't have the permission to perform this action!");
     }
@@ -2332,7 +2332,7 @@ switch ($action) {
 
     if ($checkActionPermission) {
       //Call update global status modify method
-      $returnArr = $GlobalControllerInterfaceObj->update_Receipt_Verified_Status($receipt_id, $verified_status);
+      $returnArr = $GlobalInterfaceControllerObj->update_Receipt_Verified_Status($receipt_id, $verified_status);
     } else {
       $returnArr = array('check' => 'failure', 'message' => "You don't have the permission to perform this action!");
     }
@@ -2358,7 +2358,7 @@ switch ($action) {
 
     if ($checkActionPermission) {
       //Call update global status modify method
-      $returnArr = $GlobalControllerInterfaceObj->update_Student_Verified_Status($student_id, $verified_status);
+      $returnArr = $GlobalInterfaceControllerObj->update_Student_Verified_Status($student_id, $verified_status);
     } else {
       $returnArr = array('check' => 'failure', 'message' => "You don't have the permission to perform this action!");
     }
@@ -2397,7 +2397,7 @@ switch ($action) {
 
           $receipt_id = $row_id;
           //Fetching student receipt detail
-          $studentReceiptData = $GlobalControllerInterfaceObj->fetch_Single_Receipt_Data($receipt_id);
+          $studentReceiptData = $GlobalInterfaceControllerObj->fetch_Single_Receipt_Data($receipt_id);
           //Configuring email param array
           $emailParamArr['invoice_date']  = date('jS F, Y', time());
           $emailParamArr['receiver_name'] = $studentReceiptData->stu_name;
@@ -2535,7 +2535,7 @@ switch ($action) {
               //Call update global carousel method
               $GlobalLibraryHandlerObj->remove_File_From_Server($type, $row_id);
               //Call delete current record method
-              $returnArr = $GlobalControllerInterfaceObj->delete_Global_Data($deleteParam);
+              $returnArr = $GlobalInterfaceControllerObj->delete_Global_Data($deleteParam);
 
               if ($returnArr["responseArr"]["check"] == "success") {
                 $returnArr = array("check" => "success", "message" => "Query has been successfully executed!");
@@ -2546,7 +2546,7 @@ switch ($action) {
               //Call update global carousel method
               $GlobalLibraryHandlerObj->remove_File_From_Server($type, $row_id);
               //Call delete current record method
-              $returnArr = $GlobalControllerInterfaceObj->delete_Global_Data($deleteParam);
+              $returnArr = $GlobalInterfaceControllerObj->delete_Global_Data($deleteParam);
 
               if ($returnArr["responseArr"]["check"] == "success") {
                 $returnArr = array("check" => "success", "message" => "Query has been successfully executed!");
@@ -2557,7 +2557,7 @@ switch ($action) {
               //Call update global carousel method
               $GlobalLibraryHandlerObj->remove_File_From_Server($type, $row_id);
               //Call update global carousel method
-              $returnArr = $GlobalControllerInterfaceObj->delete_Global_Data($deleteParam);
+              $returnArr = $GlobalInterfaceControllerObj->delete_Global_Data($deleteParam);
 
               if ($returnArr["responseArr"]["check"] == "success") {
                 $returnArr = array("check" => "success", "message" => "Query has been successfully executed!");
@@ -2566,7 +2566,7 @@ switch ($action) {
 
             case 'temp_student':
               //Call update global carousel method
-              $returnArr = $GlobalControllerInterfaceObj->delete_Global_Data($deleteParam);
+              $returnArr = $GlobalInterfaceControllerObj->delete_Global_Data($deleteParam);
 
               if ($returnArr["responseArr"]["check"] == "success") {
                 $returnArr = array("check" => "success", "message" => "Query has been successfully executed!");
@@ -2577,7 +2577,7 @@ switch ($action) {
               //Call update global carousel method
               $GlobalLibraryHandlerObj->remove_File_From_Server($type, $row_id);
               //Call update global carousel method
-              $returnArr = $GlobalControllerInterfaceObj->delete_Global_Data($deleteParam);
+              $returnArr = $GlobalInterfaceControllerObj->delete_Global_Data($deleteParam);
 
               if ($returnArr["responseArr"]["check"] == "success") {
                 $returnArr = array("check" => "success", "message" => "Query has been successfully executed!");
@@ -2588,7 +2588,7 @@ switch ($action) {
               //Call update global carousel method
               $GlobalLibraryHandlerObj->remove_File_From_Server($type, $row_id);
               //Call update global carousel method
-              $returnArr = $GlobalControllerInterfaceObj->delete_Global_Data($deleteParam);
+              $returnArr = $GlobalInterfaceControllerObj->delete_Global_Data($deleteParam);
 
               if ($returnArr["responseArr"]["check"] == "success") {
                 $returnArr = array("check" => "success", "message" => "Query has been successfully executed!");
@@ -2598,7 +2598,7 @@ switch ($action) {
             case 'student_receipts':
               //Call update global carousel method
               $GlobalLibraryHandlerObj->remove_File_From_Server($type, $row_id);
-              $returnArr = $GlobalControllerInterfaceObj->delete_Global_Data($deleteParam);
+              $returnArr = $GlobalInterfaceControllerObj->delete_Global_Data($deleteParam);
 
               if ($returnArr["responseArr"]["check"] == "success") {
                 $returnArr = array("check" => "success", "message" => "Query has been successfully executed!");
@@ -2606,7 +2606,7 @@ switch ($action) {
 
             case 'parent_category':
               //Call update global carousel method
-              $returnArr = $GlobalControllerInterfaceObj->delete_Global_Data($deleteParam);
+              $returnArr = $GlobalInterfaceControllerObj->delete_Global_Data($deleteParam);
 
               if ($returnArr["responseArr"]["check"] == "success") {
                 $returnArr = array("check" => "success", "message" => "Query has been successfully executed!");
@@ -2615,7 +2615,7 @@ switch ($action) {
 
             case 'cities':
               //Call update global carousel method
-              $returnArr = $GlobalControllerInterfaceObj->delete_Global_Data($deleteParam);
+              $returnArr = $GlobalInterfaceControllerObj->delete_Global_Data($deleteParam);
 
               if ($returnArr["responseArr"]["check"] == "success") {
                 $returnArr = array("check" => "success", "message" => "Query has been successfully executed!");
@@ -2624,7 +2624,7 @@ switch ($action) {
 
             case 'email_template':
               //Call update global carousel method
-              $returnArr = $GlobalControllerInterfaceObj->delete_Global_Data($deleteParam);
+              $returnArr = $GlobalInterfaceControllerObj->delete_Global_Data($deleteParam);
 
               if ($returnArr["responseArr"]["check"] == "success") {
                 $returnArr = array("check" => "success", "message" => "Query has been successfully executed!");
@@ -2635,7 +2635,7 @@ switch ($action) {
               //Call update global carousel method
               $GlobalLibraryHandlerObj->remove_File_From_Server($type, $row_id);
               //Call update global carousel method
-              $returnArr = $GlobalControllerInterfaceObj->delete_Global_Data($deleteParam);
+              $returnArr = $GlobalInterfaceControllerObj->delete_Global_Data($deleteParam);
 
               if ($returnArr["responseArr"]["check"] == "success") {
                 $returnArr = array("check" => "success", "message" => "Query has been successfully executed!");
@@ -2644,7 +2644,7 @@ switch ($action) {
 
             case 'enquiry':
               //Call update global carousel method
-              $returnArr = $GlobalControllerInterfaceObj->delete_Global_Data($deleteParam);
+              $returnArr = $GlobalInterfaceControllerObj->delete_Global_Data($deleteParam);
 
               if ($returnArr["responseArr"]["check"] == "success") {
                 $returnArr = array("check" => "success", "message" => "Query has been successfully executed!");
@@ -2749,7 +2749,7 @@ switch ($action) {
 
       //print_r($formDataArr);exit; 
       //Call create global hotel method
-      $returnArr = $GlobalControllerInterfaceObj->edit_Franchise_Profile($formDataArr);
+      $returnArr = $GlobalInterfaceControllerObj->edit_Franchise_Profile($formDataArr);
     } else {
       $returnArr = array('check' => 'failure', 'message' => "You don't have the permission to perform this action!");
     }
@@ -2792,7 +2792,7 @@ switch ($action) {
     if ($checkActionPermission) {
 
       //Fetch reecipt detail
-      $tmpStudentDetails = $GlobalControllerInterfaceObj->fetch_Tmp_Single_Student($tmp_id);
+      $tmpStudentDetails = $GlobalInterfaceControllerObj->fetch_Tmp_Single_Student($tmp_id);
 
       $file_upload_dir =  USER_UPLOAD_DIR . 'runtime_upload/' . "TEMPRCPT_" . $tmpStudentDetails->tmp_stu_id . '.pdf';
       $file_url = USER_UPLOAD_URL . 'runtime_upload/' . "TEMPRCPT_" . $tmpStudentDetails->tmp_stu_id . '.pdf';
@@ -2899,7 +2899,7 @@ switch ($action) {
     if ($checkActionPermission) {
 
       //Fetching student receipt detail
-      $studentDataArr = $GlobalControllerInterfaceObj->fetch_Single_Profile_Student($student_id);
+      $studentDataArr = $GlobalInterfaceControllerObj->fetch_Single_Profile_Student($student_id);
       //Configuring email param array
       $pdfParamArr = array();
       $pdfParamArr['email_code'] = 'student-result-pdf';
@@ -3092,7 +3092,7 @@ switch ($action) {
       } else {
         $formDataArr['site_caching'] = 'inactive';
       }
-      $returnArr = $GlobalControllerInterfaceObj->update_Site_Caching_Status($formDataArr);
+      $returnArr = $GlobalInterfaceControllerObj->update_Site_Caching_Status($formDataArr);
     } else {
       $returnArr = array('check' => 'failure', 'message' => "You don't have the permission to perform this action!");
     }
@@ -3111,14 +3111,14 @@ switch ($action) {
     $checkActionPermission = $GlobalLibraryHandlerObj->checkUserRolePermission("manage_site_backup");
     $cookie_name = "backupCount";
 
-    setcookie("backupCount", "", time() - 3600, "/");
+    //setcookie("backupCount", "", time() - 3600, "/");
 
     if ($checkActionPermission) {
 
       if (!empty($_COOKIE[$cookie_name])) {
         $backupCount = $_COOKIE[$cookie_name];
       } else {
-        $backupCount = null;
+        $backupCount = 0;
       }
 
       $backupLimit = $_SESSION['user_type'] == "developer" ? true : ($backupCount == 2 ? false : true);
@@ -3179,19 +3179,21 @@ switch ($action) {
     $checkActionPermission = $GlobalLibraryHandlerObj->checkUserRolePermission("manage_site_backup");
     $cookie_name = "backupCount";
 
-    setcookie("backupCount", "", time() - 3600, "/");
+    //setcookie("backupCount", "", time() - 3600, "/");
 
     if ($checkActionPermission) {
 
       // Check if there is already a pending task in db
-      $checkPendingTask = $GlobalControllerInterfaceObj->check_Task_Status();
+      $checkPendingTask = $GlobalInterfaceControllerObj->check_Task_Status();
+      // Check if there's a running task
+      $checkRunningTask = $GlobalInterfaceControllerObj->check_Task_Status("running");
 
-      if (!$checkPendingTask) {
+      if (empty($checkPendingTask) && empty($checkRunningTask)) {
 
         if (!empty($_COOKIE[$cookie_name])) {
           $backupCount = $_COOKIE[$cookie_name];
         } else {
-          $backupCount = null;
+          $backupCount = 0;
         }
 
         $backupLimit = $_SESSION['user_type'] == "developer" ? true : ($backupCount == 2 ? false : true);
@@ -3205,9 +3207,16 @@ switch ($action) {
           $formDataArr['job_type'] = "site_backup_creation";
 
           //Call create queue job method
-          $createRspns = $GlobalControllerInterfaceObj->manage_Queue_Jobs($formDataArr);
+          $createRspns = $GlobalInterfaceControllerObj->manage_Queue_Jobs($formDataArr);
 
           if ($createRspns['check'] == "success") {
+
+            if ($setCookie) {
+              //Set backup count in cookies
+              $newBackupCount = intval($backupCount + 1);
+              setcookie($cookie_name, $newBackupCount, time() + (86400 * 1), "/");
+            }
+            
             $returnArr = array('check' => 'success', "message" => "Backup job is successfully queued!");
           } else {
             $returnArr = array('check' => 'failure', "message" => "Something went wrong, please try later!");
@@ -3234,7 +3243,7 @@ switch ($action) {
     $formDataArr['user_type'] = mysqli_real_escape_string(DB::$WRITELINK, trim($_POST['user_type']));
     $formDataArr['user_id'] = mysqli_real_escape_string(DB::$WRITELINK, trim($_POST['user_id']));
     //Call check user email method
-    $returnArr = $GlobalControllerInterfaceObj->check_User_Email_Availability($formDataArr);
+    $returnArr = $GlobalInterfaceControllerObj->check_User_Email_Availability($formDataArr);
     echo json_encode($returnArr);
     break;
 
@@ -3247,7 +3256,7 @@ switch ($action) {
     $receipt_row_id = $_POST['receipt_row_id'];
 
     //Fetch reecipt detail
-    $receiptDetailArr = $GlobalControllerInterfaceObj->fetch_Single_Receipt_Data($receipt_row_id);
+    $receiptDetailArr = $GlobalInterfaceControllerObj->fetch_Single_Receipt_Data($receipt_row_id);
 
     $sdate = date("y-m-d", strtotime($receiptDetailArr->receipt_season_start));
     $edate = date("y-m-d", strtotime($receiptDetailArr->receipt_season_end));
@@ -3435,7 +3444,7 @@ switch ($action) {
 
       //print_r($formDataArr);exit; 
       //Call create global hotel method
-      $returnArr = $GlobalControllerInterfaceObj->update_Global_Site_Setting($formDataArr);
+      $returnArr = $GlobalInterfaceControllerObj->update_Global_Site_Setting($formDataArr);
     } else {
       $returnArr = array('check' => 'failure', 'message' => "You don't have the permission to perform this action!");
     }
@@ -3447,7 +3456,7 @@ switch ($action) {
   case "fetchStudentDetailInModal":
     $student_id = mysqli_real_escape_string(DB::$WRITELINK, trim($_POST['student_id']));
 
-    $studentDetailArr = json_decode(json_encode($GlobalControllerInterfaceObj->fetch_Global_Single_Student($student_id)), true);
+    $studentDetailArr = json_decode(json_encode($GlobalInterfaceControllerObj->fetch_Global_Single_Student($student_id)), true);
 
     $student_image_path = USER_UPLOAD_DIR . 'student/' . $studentDetailArr['image_file_name'];
 
@@ -3485,7 +3494,7 @@ switch ($action) {
 
     //print_r($_POST);exit;
 
-    //$GlobalControllerInterfaceObj->restore_Student_From_Archive(5046);exit;
+    //$GlobalInterfaceControllerObj->restore_Student_From_Archive(5046);exit;
 
     $idData = mysqli_real_escape_string(DB::$WRITELINK, trim($_POST['row_id']));
     $type = mysqli_real_escape_string(DB::$WRITELINK, trim($_POST['type']));
@@ -3516,9 +3525,9 @@ switch ($action) {
         //Call update global status modify method
         foreach ($rowIdArr as $index => $row_id) {
           if ($type == "current") {
-            $responseArr[$index] = $GlobalControllerInterfaceObj->archive_Global_Student($row_id);
+            $responseArr[$index] = $GlobalInterfaceControllerObj->archive_Global_Student($row_id);
           } else {
-            $responseArr[$index] = $GlobalControllerInterfaceObj->restore_Student_From_Archive($row_id);
+            $responseArr[$index] = $GlobalInterfaceControllerObj->restore_Student_From_Archive($row_id);
           }
         }
 
@@ -3611,7 +3620,7 @@ switch ($action) {
 
       //print_r($formDataArr);exit; 
       //Call create global hotel method
-      $returnArr = $GlobalControllerInterfaceObj->manage_Student_Profile($formDataArr);
+      $returnArr = $GlobalInterfaceControllerObj->manage_Student_Profile($formDataArr);
 
       if ($returnArr['check'] == 'success' && $user_role_slug == "update_student") {
         if ($formDataArr['file_upload_type'] == "cdn" || $_FILES["local_stu_image"]["size"] > 0) {

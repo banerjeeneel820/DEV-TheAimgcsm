@@ -9,7 +9,7 @@ defined('ROOTPATH') or exit('No direct script access allowed');
 
 $import_table = $_POST['import_table'];
 //Creating object for global controller
-$GlobalControllerInterfaceObj = new GlobalInterfaceController();
+$GlobalInterfaceControllerObj = new GlobalInterfaceController();
 //Creating object for global library
 $GlobalLibraryHandlerObj = new GlobalLibraryHandler();
 
@@ -62,7 +62,7 @@ switch ($import_table) {
             $exam_id = $line[0];
 
             //Fetch last questions ordering
-            $questionOrderData = $GlobalControllerInterfaceObj->fetch_Last_Question_Ordering($exam_id);
+            $questionOrderData = $GlobalInterfaceControllerObj->fetch_Last_Question_Ordering($exam_id);
 
             $paramArr['exam_id'] = $line[0];
             $paramArr['ques'] = $line[1];
@@ -77,7 +77,7 @@ switch ($import_table) {
 
             //print_r($paramArr);exit;
             //Insert student data into student table
-            $GlobalControllerInterfaceObj->import_Exam_Questions($paramArr);
+            $GlobalInterfaceControllerObj->import_Exam_Questions($paramArr);
          } else {
             echo json_encode(array('check' => 'failure', 'message' => 'Improper format of the uploaded file'));
          }
@@ -95,7 +95,7 @@ switch ($import_table) {
             $paramArr['record_status'] = "blocked";
 
             //Insert category data into category table
-            $GlobalControllerInterfaceObj->import_Global_City($paramArr);
+            $GlobalInterfaceControllerObj->import_Global_City($paramArr);
          }
       }
       unlink($targetPath);
@@ -119,7 +119,7 @@ switch ($import_table) {
                $monthly_course_fees = $line[1];
 
                //Fetching student details from db
-               $studentDetailArr = json_decode(json_encode($GlobalControllerInterfaceObj->fetch_Global_Single_Student($stu_id)),true);
+               $studentDetailArr = json_decode(json_encode($GlobalInterfaceControllerObj->fetch_Global_Single_Student($stu_id)),true);
 
                if($currentUserType == "franchise" && $studentDetailArr['franchise_id'] != $currentUserID){
                   continue;
@@ -129,7 +129,7 @@ switch ($import_table) {
                $paramArr['monthly_course_fees'] = $monthly_course_fees;
 
                //Update student monthly course fees
-               $GlobalControllerInterfaceObj->update_student_monthly_course_fees($paramArr);
+               $GlobalInterfaceControllerObj->update_student_monthly_course_fees($paramArr);
             }   
          }
          unlink($targetPath);

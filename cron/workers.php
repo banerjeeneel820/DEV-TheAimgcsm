@@ -8,7 +8,7 @@ if (php_sapi_name() !== 'cli') {
     exit('Access forbidden.');
 }
 
-include_once(__DIR__ . "/admin/constants.php");
+include_once(__DIR__ . "/../admin/constants.php");
 
 class SiteBackupWorker
 {
@@ -32,7 +32,7 @@ class SiteBackupWorker
     {
         // Check if there's a running task
         $checkRunningTask = $this->globalController->check_Task_Status("running");
-        if ($checkRunningTask) {
+        if (!empty($checkRunningTask)) {
             echo "ℹ️ There is already a running task on the process.\n";
             exit;
         }
@@ -56,7 +56,17 @@ class SiteBackupWorker
         $formDataArr['job_type'] = "site_backup_creation";
 
         //Call create queue job method
-        $this->globalController->manage_Queue_Jobs($formDataArr);
+        $createRspns = $this->globalController->manage_Queue_Jobs($formDataArr);
+
+        if ($createRspns['check'] == "success") {
+            echo "✔️ Backup process has been successfully queued.\n";
+            $cronLogArr = array('check' => 'success', "message" => "Backup job is successfully queued!");
+        } else {
+            $cronLogArr = array('check' => 'failure', "message" => "Something went wrong, please try later!");
+        }
+
+        // Log cron response into file
+        $this->globalLibrary->logServerData($this->logFile, $cronLogArr);
     }
 
     public function run()
@@ -64,11 +74,11 @@ class SiteBackupWorker
         try {
             // Check if there's a pending task
             $checkPendingTask = $this->globalController->check_Task_Status();
-            if (!$checkPendingTask) {
-                echo "ℹ️ No pending backup tasks.\n";
 
+            if (empty($checkPendingTask)) {
+                echo "ℹ️ No pending backup tasks.\n";
                 // Queue a backup job for future
-                $this->create_Site_Backup_Queue_Job();
+                //$this->create_Site_Backup_Queue_Job();
                 return;
             }
 
@@ -80,7 +90,7 @@ class SiteBackupWorker
             $dbFilePath = SITE_BACKUP_DIR . 'theaimgcsm_' . date('Y-m-d_H-i-s') . '_' . time() . '_db_backup.sql';
 
             //Upload file path
-            $uploadsFilePath = SITE_BACKUP_DIR . 'uploads_' . date('Y-m-d_H-i-s') .'_'. time(). '_backup.zip';
+            $uploadsFilePath = SITE_BACKUP_DIR . 'uploads_' . date('Y-m-d_H-i-s') . '_' . time() . '_backup.zip';
 
             // Updating status of cuurent task to running
             $updateCronArr = [
@@ -105,18 +115,21 @@ class SiteBackupWorker
 
                     $cronLogArr = [
                         'status' => 'success',
+                        'task__id' => $checkPendingTask->id,
                         'message' => "Backup successfully created between: {$this->startTime} to {$endTime}"
                     ];
                 } else {
                     unlink($dbFilePath);
                     $cronLogArr = [
                         'status' => 'failure',
+                        'task__id' => $checkPendingTask->id,
                         'message' => "Backup failed: uploads backup failed between: {$this->startTime} to {$endTime}"
                     ];
                 }
             } else {
                 $cronLogArr = [
                     'status' => 'failure',
+                    'task__id' => $checkPendingTask->id,
                     'message' => "Backup failed: DB backup failed between: {$this->startTime} to {$endTime}"
                 ];
             }
@@ -127,6 +140,7 @@ class SiteBackupWorker
             // Update task status in DB
             $updateCronArr = [
                 'action' => "update",
+                'task__id' => $checkPendingTask->id,
                 'status' => $cronLogArr['status'] == "success" ? "completed" : "failed",
                 'response' => $cronLogArr['message']
             ];
