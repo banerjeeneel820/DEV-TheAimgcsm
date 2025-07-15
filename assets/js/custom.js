@@ -7,62 +7,74 @@
 //Declaring Global Varibales and Objects
 
 //Google recaptcha variables
-var captchaWidgetId;
+var enquiryCaptchaWidget, stuVerCaptchaWidget;
 var countAddShowClassContact = 0;
-var onloadCallback = function() {
-   // Renders the HTML element with id 'example1' as a reCAPTCHA widget.
-   // The id of the reCAPTCHA widget is assigned to 'widgetId1'.
-   captchaWidgetId = grecaptcha.render('form_recaptcha_div', {
-     'sitekey' : '6LdJ398UAAAAALCcgKy69mXlTjI4sfz682uHR0_e',
-     'theme' : 'light'
-   });
- } 
+var onloadCallback = function () {
+  // Renders the HTML element with id 'example1' as a reCAPTCHA widget.
+  enquiryCaptchaWidget = grecaptcha.render("form_recaptcha_div", {
+    sitekey: "6LdJ398UAAAAALCcgKy69mXlTjI4sfz682uHR0_e",
+    theme: "light",
+  });
 
- /*Site cookie Handler*/
- //deleteCookie('cookieaccepted');
+  stuVerCaptchaWidget = grecaptcha.render("stu_verification_recaptcha_div", {
+    sitekey: "6LdJ398UAAAAALCcgKy69mXlTjI4sfz682uHR0_e",
+    theme: "light",
+  });
+};
 
- function acceptCookie() {
-   document.cookie = "cookieaccepted=1; expires=Thu, 18 Dec 2030 12:00:00 UTC; path=/", document.getElementById("cookie-notice").style.visibility = "hidden"
- }
+/*Site cookie Handler*/
+//deleteCookie('cookieaccepted');
 
- function deleteCookie(name) {
-   document.cookie = name +'=; Path=/; Expires=Thu, 01 Jan 1970 00:00:01 GMT;';
- }
+function acceptCookie() {
+  (document.cookie =
+    "cookieaccepted=1; expires=Thu, 18 Dec 2030 12:00:00 UTC; path=/"),
+    (document.getElementById("cookie-notice").style.visibility = "hidden");
+}
 
- document.cookie.indexOf("cookieaccepted") < 0 && (document.getElementById("cookie-notice").style.visibility = "visible");
+function deleteCookie(name) {
+  document.cookie = name + "=; Path=/; Expires=Thu, 01 Jan 1970 00:00:01 GMT;";
+}
 
- function myFunction() {
-    document.getElementById("cookie-notice").style.visibility = "hidden";
- }
- /*End here*/  
+document.cookie.indexOf("cookieaccepted") < 0 &&
+  (document.getElementById("cookie-notice").style.visibility = "visible");
+
+function myFunction() {
+  document.getElementById("cookie-notice").style.visibility = "hidden";
+}
+/*End here*/
 
 //User city autofill variables
-var searchInput = 'user_city';  
+var searchInput = "user_city";
 
 function getLocation() {
   if (navigator.geolocation) {
     navigator.geolocation.getCurrentPosition(serUserLocation);
-  } else { 
+  } else {
     x.innerHTML = "Geolocation is not supported by this browser.";
   }
 }
 
-function serUserLocation(position){
-  //Pouplating user location value on hidden fields  
-  $('#user_latitude').val(position.coords.latitude);
-  $('#user_longitude').val(position.coords.longitude);
+function serUserLocation(position) {
+  //Pouplating user location value on hidden fields
+  $("#user_latitude").val(position.coords.latitude);
+  $("#user_longitude").val(position.coords.longitude);
 }
 
 function autocomplete(inp, arr) {
-/*the autocomplete function takes two arguments,
+  /*the autocomplete function takes two arguments,
 the text field element and an array of possible autocompleted values:*/
-var currentFocus;
-/*execute a function when someone writes in the text field:*/
-inp.addEventListener("input", function(e) {
-    var a, b, i, val = this.value;
+  var currentFocus;
+  /*execute a function when someone writes in the text field:*/
+  inp.addEventListener("input", function (e) {
+    var a,
+      b,
+      i,
+      val = this.value;
     /*close any already open lists of autocompleted values*/
     closeAllLists();
-    if (!val) { return false;}
+    if (!val) {
+      return false;
+    }
     currentFocus = -1;
     /*create a DIV element that will contain the items (values):*/
     a = document.createElement("DIV");
@@ -82,19 +94,19 @@ inp.addEventListener("input", function(e) {
         /*insert a input field that will hold the current array item's value:*/
         b.innerHTML += "<input type='hidden' value='" + arr[i] + "'>";
         /*execute a function when someone clicks on the item value (DIV element):*/
-        b.addEventListener("click", function(e) {
-            /*insert the value for the autocomplete text field:*/
-            inp.value = this.getElementsByTagName("input")[0].value;
-            /*close the list of autocompleted values,
+        b.addEventListener("click", function (e) {
+          /*insert the value for the autocomplete text field:*/
+          inp.value = this.getElementsByTagName("input")[0].value;
+          /*close the list of autocompleted values,
             (or any other open lists of autocompleted values:*/
-            closeAllLists();
+          closeAllLists();
         });
         a.appendChild(b);
       }
     }
-});
-/*execute a function presses a key on the keyboard:*/
-inp.addEventListener("keydown", function(e) {
+  });
+  /*execute a function presses a key on the keyboard:*/
+  inp.addEventListener("keydown", function (e) {
     var x = document.getElementById(this.id + "autocomplete-list");
     if (x) x = x.getElementsByTagName("div");
     if (e.keyCode == 40) {
@@ -103,7 +115,8 @@ inp.addEventListener("keydown", function(e) {
       currentFocus++;
       /*and and make the current item more visible:*/
       addActive(x);
-    } else if (e.keyCode == 38) { //up
+    } else if (e.keyCode == 38) {
+      //up
       /*If the arrow UP key is pressed,
       decrease the currentFocus variable:*/
       currentFocus--;
@@ -117,173 +130,179 @@ inp.addEventListener("keydown", function(e) {
         if (x) x[currentFocus].click();
       }
     }
-});
-function addActive(x) {
-  /*a function to classify an item as "active":*/
-  if (!x) return false;
-  /*start by removing the "active" class on all items:*/
-  removeActive(x);
-  if (currentFocus >= x.length) currentFocus = 0;
-  if (currentFocus < 0) currentFocus = (x.length - 1);
-  /*add class "autocomplete-active":*/
-  x[currentFocus].classList.add("autocomplete-active");
-}
-function removeActive(x) {
-  /*a function to remove the "active" class from all autocomplete items:*/
-  for (var i = 0; i < x.length; i++) {
-    x[i].classList.remove("autocomplete-active");
+  });
+  function addActive(x) {
+    /*a function to classify an item as "active":*/
+    if (!x) return false;
+    /*start by removing the "active" class on all items:*/
+    removeActive(x);
+    if (currentFocus >= x.length) currentFocus = 0;
+    if (currentFocus < 0) currentFocus = x.length - 1;
+    /*add class "autocomplete-active":*/
+    x[currentFocus].classList.add("autocomplete-active");
   }
-}
-function closeAllLists(elmnt) {
-  /*close all autocomplete lists in the document,
-  except the one passed as an argument:*/
-  var x = document.getElementsByClassName("autocomplete-items");
-  for (var i = 0; i < x.length; i++) {
-    if (elmnt != x[i] && elmnt != inp) {
-      x[i].parentNode.removeChild(x[i]);
+  function removeActive(x) {
+    /*a function to remove the "active" class from all autocomplete items:*/
+    for (var i = 0; i < x.length; i++) {
+      x[i].classList.remove("autocomplete-active");
     }
   }
-}
-/*execute a function when someone clicks in the document:*/
-document.addEventListener("click", function (e) {
+  function closeAllLists(elmnt) {
+    /*close all autocomplete lists in the document,
+  except the one passed as an argument:*/
+    var x = document.getElementsByClassName("autocomplete-items");
+    for (var i = 0; i < x.length; i++) {
+      if (elmnt != x[i] && elmnt != inp) {
+        x[i].parentNode.removeChild(x[i]);
+      }
+    }
+  }
+  /*execute a function when someone clicks in the document:*/
+  document.addEventListener("click", function (e) {
     closeAllLists(e.target);
-});
+  });
 }
 
-$(window).load(function() {
-    $(".book_preload").delay(2000).fadeOut(200);
-    $(".book").on('click', function() {
-        $(".book_preload").fadeOut(200);
-    })
+$(window).load(function () {
+  $(".book_preload").delay(2000).fadeOut(200);
+  $(".book").on("click", function () {
+    $(".book_preload").fadeOut(200);
+  });
 });
 
-$(document).on('ready',function(e){
-  
-  if($(".sticky_sidebar").length > 0){
-      //STICKY SIDEBAR HANDLER
-      $.stickysidebarscroll(".sticky_sidebar",{offset: {top: 70, bottom: 700}});  
-  } 
-  
-  setTimeout(function(){
-      if($("#page_content").length > 0){
-          $('html,body').animate({
-             scrollTop: $("#page_content").offset().top
-          }, 'slow');   
-      }    
-  },500);
+$(document).on("ready", function (e) {
+  if ($(".sticky_sidebar").length > 0) {
+    //STICKY SIDEBAR HANDLER
+    $.stickysidebarscroll(".sticky_sidebar", {
+      offset: { top: 70, bottom: 700 },
+    });
+  }
+
+  setTimeout(function () {
+    if ($("#page_content").length > 0) {
+      $("html,body").animate(
+        {
+          scrollTop: $("#page_content").offset().top,
+        },
+        "slow"
+      );
+    }
+  }, 500);
 
   //Calling geo location function to collect user location
   //getLocation();
-  
+
   //Actiating tooltip for dom
-  $('[data-toggle="tooltip"]').tooltip();  
+  $('[data-toggle="tooltip"]').tooltip();
 
   //applying select 2 js for course dropdown
   //$('.course').select2({'width': "100%",'border-radius':'50px'});
 
-  setTimeout(function(){
-     if($('.shimmer-preview').length>0 && $('.div-content').length>0){
-       $('.shimmer-preview').addClass('d-none');
-       $('.div-content').removeClass('d-none');
-     }
-    
-     //Loading datatable specifications
-     if($('.dataTables').length>0){
-        $('.dataTables').DataTable({
-          "pageLength": 10,
-          "lengthChange": false,
-          "paging":true,
-          "responsive": true,
-          "info":false,
-          "ordering": false,
-          language: {"searchPlaceholder": "Search by name...",},
-          //sDom: 'lrtip'
-        });
-     }    
-   },2000);
-
-   if($('#user_enquiry_form').length){
-        $('#user_enquiry_form').validate();
+  setTimeout(function () {
+    if ($(".shimmer-preview").length > 0 && $(".div-content").length > 0) {
+      $(".shimmer-preview").addClass("d-none");
+      $(".div-content").removeClass("d-none");
     }
-        
+
+    //Loading datatable specifications
+    if ($(".dataTables").length > 0) {
+      $(".dataTables").DataTable({
+        pageLength: 10,
+        lengthChange: false,
+        paging: true,
+        responsive: true,
+        info: false,
+        ordering: false,
+        language: { searchPlaceholder: "Search by name..." },
+        //sDom: 'lrtip'
+      });
+    }
+  }, 2000);
+
+  if ($("#user_enquiry_form").length) {
+    $("#user_enquiry_form").validate();
+  }
 });
 
 //User enquiry form city autosuggestion
-$(document).on('keyup','#user_city',function(e){
-   e.preventDefault();
-   
-   var city = $(this).val();
-   var formData = {action:"findUserCity",city:city}
+$(document).on("keyup", "#user_city", function (e) {
+  e.preventDefault();
 
-   $.ajax({
-        type: "POST",
-        url: ajaxCallUrl,
-        data: formData,
-        beforeSend: function() {
-            //$("#search-box").css("background", "#FFF url(LoaderIcon.gif) no-repeat 165px");
-        },
-        success: function(responseData) {
-           var data = JSON.parse(responseData);
+  var city = $(this).val();
+  var formData = { action: "findUserCity", city: city };
 
-           if(data.check == 'success'){
-              /*initiate the autocomplete function on the "myInput" element, and pass along the countries array as possible autocomplete values:*/
-              autocomplete(document.getElementById("user_city"), data.cities);
-              //$("#search-box").css("background", "#FFF"); 
-           }else{
-              return false; 
-           }
-        }
-    });
+  $.ajax({
+    type: "POST",
+    url: ajaxCallUrl,
+    data: formData,
+    beforeSend: function () {
+      //$("#search-box").css("background", "#FFF url(LoaderIcon.gif) no-repeat 165px");
+    },
+    success: function (responseData) {
+      var data = JSON.parse(responseData);
+
+      if (data.check == "success") {
+        /*initiate the autocomplete function on the "myInput" element, and pass along the countries array as possible autocomplete values:*/
+        autocomplete(document.getElementById("user_city"), data.cities);
+        //$("#search-box").css("background", "#FFF");
+      } else {
+        return false;
+      }
+    },
+  });
 });
 
 //Clean cache files from server
-$(document).on("click",".clearSiteCache",function(e){
-    e.preventDefault();
+$(document).on("click", ".clearSiteCache", function (e) {
+  e.preventDefault();
 
-    var currentCacheFile = $('#currentCacheFile').val();
+  var currentCacheFile = $("#currentCacheFile").val();
 
-    var warningTxt = "Are you sure to delete current page cache?"; 
-    var formData = {action:"clearCacheFolder",currentCacheFile:currentCacheFile}; 
+  var warningTxt = "Are you sure to delete current page cache?";
+  var formData = {
+    action: "clearCacheFolder",
+    currentCacheFile: currentCacheFile,
+  };
 
-    $.ajax({
-      url:ajaxCallUrl,
-      method:'POST',
-      data: formData,
-      beforeSend: function() {
-         //$('.tooltip').hide();
-      },
-      success:function(responseData){
-          var result = JSON.parse(responseData);
-          //console.log(result);
-          swal("Success!",result.message, "success");
-          return true; 
-       }
-    });
+  $.ajax({
+    url: ajaxCallUrl,
+    method: "POST",
+    data: formData,
+    beforeSend: function () {
+      //$('.tooltip').hide();
+    },
+    success: function (responseData) {
+      var result = JSON.parse(responseData);
+      //console.log(result);
+      swal("Success!", result.message, "success");
+      return true;
+    },
+  });
 });
 
-function check_user_email(user_email){
-    if(user_email.length >0){
-      var regularExp = /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,4}$/;
-      var chkEmail = regularExp.test(user_email);
+function check_user_email(user_email) {
+  if (user_email.length > 0) {
+    var regularExp = /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,4}$/;
+    var chkEmail = regularExp.test(user_email);
 
-    if(!chkEmail){
-        swal({
-           title: "Oops!",
-           text: "Enter a proper email!",
-           type: "error"
-        });
-        $('#create').attr('disabled',true);
-        return false;
-     }
-    }else{
+    if (!chkEmail) {
       swal({
-         title: "Oops!",
-         text: "This field is required!",
-         type: "error"
+        title: "Oops!",
+        text: "Enter a proper email!",
+        type: "error",
       });
-      $('#create').attr('disabled',true);
+      $("#create").attr("disabled", true);
       return false;
     }
+  } else {
+    swal({
+      title: "Oops!",
+      text: "This field is required!",
+      type: "error",
+    });
+    $("#create").attr("disabled", true);
+    return false;
+  }
 }
 
 /*What'sapp Widget*/
@@ -338,126 +357,157 @@ $('#minimize_contact_form').on('click',function(){
     countAddShowClassContact = 0;
 });*/
 
-var wa_btnSetting = {"btnColor":"#16BE45","ctaText":"Contact Us for Franchise","cornerRadius":40,"marginBottom":20,"marginLeft":20,"marginRight":20,"btnPosition":"left","whatsAppNumber":"919831649099","welcomeMessage":"Hi, how can we help you?\nWe normally reply reply within a day.","zIndex":999999,"btnColorScheme":"light"};
-  window.onload = () => {
-    _waEmbed(wa_btnSetting);
+var wa_btnSetting = {
+  btnColor: "#16BE45",
+  ctaText: "Contact Us for Franchise",
+  cornerRadius: 40,
+  marginBottom: 20,
+  marginLeft: 20,
+  marginRight: 20,
+  btnPosition: "left",
+  whatsAppNumber: "919831649099",
+  welcomeMessage:
+    "Hi, how can we help you?\nWe normally reply reply within a day.",
+  zIndex: 999999,
+  btnColorScheme: "light",
+};
+window.onload = () => {
+  _waEmbed(wa_btnSetting);
 };
 
 //Hndling enquiry type of the contact form
-$(document).on('change','#enquiry_type',function(){
-      var enquiry_type = $(this).val();
-      if(enquiry_type == "course"){
-         $('#course_div').removeClass('d-none').attr('disabled',false);
-         $('#subject_div').addClass('d-none').attr('disabled',true);
-         $('#course_id').attr('required',true);
-         $('#subject').attr('required',false);
-      }else{
-         $('#subject_div').removeClass('d-none').attr('disabled',false);
-         $('#course_div').addClass('d-none').attr('disabled',true);
-         $('#course_id').attr('required',false);
-         $('#subject').attr('required',true);
+$(document).on("change", "#enquiry_type", function () {
+  var enquiry_type = $(this).val();
+  if (enquiry_type == "course") {
+    $("#course_div").removeClass("d-none").attr("disabled", false);
+    $("#subject_div").addClass("d-none").attr("disabled", true);
+    $("#course_id").attr("required", true);
+    $("#subject").attr("required", false);
+  } else {
+    $("#subject_div").removeClass("d-none").attr("disabled", false);
+    $("#course_div").addClass("d-none").attr("disabled", true);
+    $("#course_id").attr("required", false);
+    $("#subject").attr("required", true);
+  }
+  return true;
+});
+
+//handling user enquiry form
+$(document).on("submit", "#user_enquiry_form", function (event) {
+  event.preventDefault();
+
+  var response = grecaptcha.getResponse(enquiryCaptchaWidget);
+
+  if (response.length === 0) {
+    // reCAPTCHA not checked
+    swal("Error!", "Please verify that you are not a robot.", "error");
+  } else {
+    var enquiry_type = $("#enquiry_type").val();
+
+    var course_id = $("#course_id").val();
+    var course_name = $("#course_" + course_id).text();
+    //putting course name for further use
+    $("#course_name").val(course_name);
+
+    //var user_email = $('#user_email').val();
+    //validate user email
+    //check_user_email(user_email);
+
+    if (enquiry_type == "course") {
+      var course_id = $("#course_id").val();
+      if (!course_id > 0) {
+        swal("Error!", "Please select a course to proceed!", "error");
+        return false;
       }
-      return true;
-     });
+    } else {
+      var subject = $("#subject").val();
+      if (!subject.length > 0) {
+        swal("Error!", "Please write a subject to proceed!", "error");
+        return false;
+      }
+    }
 
-     //handling user enquiry form
-     $(document).on('submit', '#user_enquiry_form', function(event){
-       event.preventDefault();  
+    $.ajax({
+      url: ajaxCallUrl,
+      method: "POST",
+      data: new FormData(this),
+      contentType: false,
+      processData: false,
+      beforeSend: function () {
+        $("#contact_submit")
+          .html('Processing <i class="fa fa-spinner fa-spin"></i>')
+          .attr("disabled", true);
+      },
+      success: function (responseData) {
+        var data = JSON.parse(responseData);
+        $("#contact_submit").html("Send Now").attr("disabled", false);
+        
+        //reseting captcha
+        grecaptcha.reset(enquiryCaptchaWidget);
+       
+        //hiding subject div
+        $("#subject_div").addClass("d-none").attr("disabled", true);
+        $("#course_div").addClass("d-none").attr("disabled", true);
+       
+        //reseting form data
+        $("#user_enquiry_form")[0].reset();
 
-       var enquiry_type = $("#enquiry_type").val();
-     
-       var course_id = $('#course_id').val();
-       var course_name = $('#course_'+course_id).text();
-       //putting course name for further use   
-       $('#course_name').val(course_name);
-           
-       //var user_email = $('#user_email').val();
-       //validate user email
-       //check_user_email(user_email);
-
-       if(enquiry_type == "course"){
-           var course_id = $("#course_id").val();
-           if(!course_id>0){
-            swal("Error!","Please select a course to proceed!", "error");
-            return false;
-           }
-       }else{
-           var subject = $("#subject").val(); 
-           if(!subject.length>0){
-            swal("Error!","Please write a subject to proceed!", "error");
-            return false;
-           }
-       }
-
-       $.ajax({
-          url:ajaxCallUrl,
-          method:'POST',
-          data: new FormData(this),
-          contentType:false,
-          processData:false,
-          beforeSend: function() {
-             $('#contact_submit').html('Connecting <i class="fa fa-spinner fa-spin"></i>').attr('disabled',true); 
-          },
-          success:function(responseData){
-              var data = JSON.parse(responseData);
-              $('#contact_submit').html('Send Now').attr('disabled',false); 
-              //reseting captcha
-              grecaptcha.reset(captchaWidgetId);
-              //hiding subject div
-              $('#subject_div').addClass('d-none').attr('disabled',true);
-              $('#course_div').addClass('d-none').attr('disabled',true);
-              //reseting form data
-              $('#user_enquiry_form')[0].reset();
-             //console.log(responseData);
-             if(data.check == 'success'){
-                //show sweetalert success
-                swal("Success!", "Your enquiry is reached to us successfully! We shall contact you shortly.", "success");
-                return true; 
-             }else{
-                //show sweetalert success
-                 if(data.message.length>0){
-                   var message = data.message;
-                }else{
-                   var message = "Something went wrong";
-                }
-                swal("Error!",message, "error");
-                return false;
-             }
+        //console.log(responseData);
+        if (data.check == "success") {
+          //show sweetalert success
+          swal(
+            "Success!",
+            "Your enquiry is reached to us successfully! We shall contact you shortly.",
+            "success"
+          );
+          return true;
+        } else {
+          //show sweetalert success
+          if (data.message.length > 0) {
+            var message = data.message;
+          } else {
+            var message = "Something went wrong";
           }
-           });
-     });  
+          swal("Error!", message, "error");
+          return false;
+        }
+      },
+    });
+  }
+});
 
-     //UNSUBSCRIBE USER NEWSLETTER FORM HANDLER 
-     $(document).on('submit', '#unsubscribe_newsletter_form', function(event){
-          event.preventDefault();
+//UNSUBSCRIBE USER NEWSLETTER FORM HANDLER
+$(document).on("submit", "#unsubscribe_newsletter_form", function (event) {
+  event.preventDefault();
 
-           var user_email = $('#unsubscribe_email').val();
-         //validate user email
-         check_user_email(user_email);
-           
-           $.ajax({
-            url:ajaxCallUrl,
-            method:'POST',
-            data: new FormData(this),
-            contentType:false,
-            processData:false,
-            beforeSend: function() {
-               //$('#unsubscribe_user_btn').html('<i class="fa fa-spinner fa-spin"></i>').attr('disabled',true); 
-            },
-            success:function(responseData){
-                //console.log(responseData);return false;
-                var data = JSON.parse(responseData);
-                $('#unsubscribe_user_btn').html('Submit').attr('disabled',false); 
-                if(data.check == 'success'){
-                 $('#unsubscribe_newsletter_form')[0].reset(); 
-                 swal("Success!", "An email is sent to your inbox containing link to unsubscribe.");
-                 return true; 
-               }else{
-                  swal("Error!", "Something went wrong!", "error");
-                  return false;
-               }
-            }
-           });
-       });  
+  var user_email = $("#unsubscribe_email").val();
+  //validate user email
+  check_user_email(user_email);
 
-    
+  $.ajax({
+    url: ajaxCallUrl,
+    method: "POST",
+    data: new FormData(this),
+    contentType: false,
+    processData: false,
+    beforeSend: function () {
+      //$('#unsubscribe_user_btn').html('<i class="fa fa-spinner fa-spin"></i>').attr('disabled',true);
+    },
+    success: function (responseData) {
+      //console.log(responseData);return false;
+      var data = JSON.parse(responseData);
+      $("#unsubscribe_user_btn").html("Submit").attr("disabled", false);
+      if (data.check == "success") {
+        $("#unsubscribe_newsletter_form")[0].reset();
+        swal(
+          "Success!",
+          "An email is sent to your inbox containing link to unsubscribe."
+        );
+        return true;
+      } else {
+        swal("Error!", "Something went wrong!", "error");
+        return false;
+      }
+    },
+  });
+});

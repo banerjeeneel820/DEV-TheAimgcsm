@@ -167,7 +167,7 @@
                                     </select>
                                 </div>
 
-                                 <div class="form-group mt-4">
+                                <div class="form-group mt-4">
                                     <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12 pl-0">
                                       <div class="g-recaptcha" id="form_recaptcha_div"></div>
                                     </div>

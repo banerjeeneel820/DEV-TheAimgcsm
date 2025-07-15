@@ -1,6 +1,6 @@
 <div class="footer">
         <div class="float-right">
-            Software Version: <strong>2.5.1</strong>
+            Software Version: <strong>2.5.2</strong>
         </div>
         <div>
         <strong>Copyright</strong> Neel Banerjee &copy; 2019-2023

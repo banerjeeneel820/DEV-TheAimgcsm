@@ -183,7 +183,7 @@
         } else {
             return false;
         }
-     }
+    }
 
 	function send_mail($formData){
 
@@ -595,6 +595,4 @@
      	}
 	    
 	    return $string;
-	} 
- 
-?>
+	}

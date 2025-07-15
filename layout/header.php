@@ -34,7 +34,7 @@
 <!-- Including mother js library for avail it for others -->
 <script src="<?=RESOURCE_URL?>js/jquery.js"></script>
 
-<script src="https://www.google.com/recaptcha/api.js?onload=onloadCallback&render=explicit"></script>
+<script src="https://www.google.com/recaptcha/api.js?onload=onloadCallback&render=explicit" async defer></script>
 
 <script type="text/javascript">
   //Decalring global variables

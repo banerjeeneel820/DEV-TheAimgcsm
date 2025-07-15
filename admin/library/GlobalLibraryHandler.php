@@ -2860,4 +2860,39 @@ class GlobalLibraryHandler
       echo "Failed to open the file for logging.";
     }
   }
+
+  //Curl call method
+  protected function curl_request($url, $post_data = array())
+  {
+    //echo $url;exit; 
+    $curl = curl_init($url);
+    curl_setopt($curl, CURLOPT_HTTPHEADER, array('Accept: application/json'));
+    curl_setopt($curl, CURLOPT_RETURNTRANSFER, 1);
+    $json = curl_exec($curl);
+    $returnArr = json_decode($json, true);
+    return $returnArr;
+  }
+
+  // Check if captcha response is a valid one:
+  public function checkCaptchaResponse($recaptcha_response)
+  {
+    //echo $recaptcha_response;exit;
+
+    // Build POST request:
+    $recaptcha_source = 'https://www.google.com/recaptcha/api/siteverify';
+    $recaptcha_secret = '6LdJ398UAAAAAHAe4Dr1HVo7OtUkop4FsV0FNvKJ';
+
+    //Make and decode POST request:
+    $recaptcha_url = $recaptcha_source . '?secret=' . $recaptcha_secret . '&response=' . $recaptcha_response;
+    $recaptchaServerResponseArr = $this->curl_request($recaptcha_url);
+
+    //print_r($recaptchaServerResponseArr);exit;
+
+    // Take action based on the score returned:
+    if ($recaptchaServerResponseArr['success'] == 1) {
+      return true;
+    } else {
+      return false;
+    }
+  }
 }
