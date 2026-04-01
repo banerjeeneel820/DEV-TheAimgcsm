@@ -1,4 +1,4 @@
-<?php
+. <?php
     class DB {
         public static $connected = false;
         public static $WRITELINK;

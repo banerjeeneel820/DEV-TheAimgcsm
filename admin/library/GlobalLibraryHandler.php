@@ -1579,7 +1579,7 @@ class GlobalLibraryHandler
       $this->globalReturnArr['franchise_data'] = $activeCourseFranchiseList['franchise'];
       $this->globalReturnArr['course_data'] = $activeCourseFranchiseList['course'];
 
-      if (!isset($_GET['fetchType']) && $_GET['fetchType'] == "dueList") {
+      if (!isset($_GET['fetchType']) || $_GET['fetchType'] == "dueList") {
         //Student details
         $this->globalReturnArr['student_data'] = $this->GlobalInterfaceControllerObj->fetch_Due_Students_Data($dataArr);
       } else {

@@ -1,21 +1,22 @@
 <?php
-//if($_GET['route'] != "logout"){ 
-session_start();
-//}
-error_reporting(0);
+error_reporting(1);
 //ini_set("display_errors", 1);
+ 
+//if ($_GET['route'] != "logout") {
+	session_start();
+//}
 
 if (!defined("HOST")) {
 	define("HOST", "localhost");
 }
 if (!defined("MYSQL_USER")) {
-	define("MYSQL_USER", "theaimgc_user");
+	define("MYSQL_USER", "root");
 }
 if (!defined("MYSQL_PASS")) {
-	define("MYSQL_PASS", "EPWW?-*HQU1w");
+	define("MYSQL_PASS", "");
 }
 if (!defined("DB_AIMGCSM")) {
-	define("DB_AIMGCSM", "theaimgc__computers");
+	define("DB_AIMGCSM", "dbs5583308");
 }
 if (!defined("TABLEPREFIX")) {
 	define("TABLEPREFIX", "theaimgc_dev_");
@@ -44,7 +45,7 @@ function is_ssl()
 
 /**Auto configuring required PATH & URL constants for app environment*/
 if (!defined("SERVER_ENV")) {
-	define("SERVER_ENV", "PRODUCTION"); //set this into `PRODUCTION` when deployed in live
+	define("SERVER_ENV", "STAGING"); //set this into `STAGING`/`PRODUCTION` when deployed in live
 }
 if (!defined("SERVER_PROTOCOL")) {
 	define("SERVER_PROTOCOL", is_ssl() == true ? 'https://' : 'http://');
@@ -62,11 +63,11 @@ if (!defined("FRONT_ROOT_URI")) {
 	define('FRONT_ROOT_URI',  str_replace('admin/', '', ROOT_URI));
 }
 if (!defined("SITE_URL")) {
-	define("SITE_URL", SERVER_PROTOCOL . "theaimgcsm.com/admin/");
+	define("SITE_URL", SERVER_PROTOCOL . "localhost/theaimgcsm/admin/");
 	//define("SITE_URL",SERVER_PROTOCOL.HOST_NAME.ROOT_URI);
 }
 if (!defined("FRONT_SITE_URL")) {
-	define("FRONT_SITE_URL", SERVER_PROTOCOL . "theaimgcsm.com/");
+	define("FRONT_SITE_URL", SERVER_PROTOCOL . "localhost/theaimgcsm/");
 	//define("FRONT_SITE_URL",SERVER_PROTOCOL.HOST_NAME.FRONT_ROOT_URI);
 }
 if (!defined("RESOURCE_URL")) {
@@ -139,10 +140,10 @@ require_once(ROOTPATH . "/controller/GlobalViewController.php");
 require ROOTPATH . '/../vendor/autoload.php';
 
 //Library loader included
-require_once(ROOTPATH . "/library/GlobalLibraryHandler.php");  
+require_once(ROOTPATH . "/library/GlobalLibraryHandler.php");
 
-	//define("MAIL_USERNAME", "");
-	//define("MAIL_PASSWORD", "");
-	//define("MAIL_HOST", "smtp.gmail.com");
-	//define("EMAIL_FROM", "");
-	//Sdefine("ACCOUNTS_EMAIL", "");	
+//define("MAIL_USERNAME", "");
+//define("MAIL_PASSWORD", "");
+//define("MAIL_HOST", "smtp.gmail.com");
+//define("EMAIL_FROM", "");
+//define("ACCOUNTS_EMAIL", "");	

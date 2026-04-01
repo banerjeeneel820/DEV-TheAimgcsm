@@ -28,7 +28,7 @@ switch ($action) {
     try {
       send_mail($_POST);
       echo json_encode(array('check' => 'success'));
-    }
+    } 
 
     //catch exception
     catch (Exception $e) {

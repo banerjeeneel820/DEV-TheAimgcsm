@@ -58,9 +58,16 @@
 
                                 <div class="form-group row">
                                     <label class="col-sm-2 col-form-label text-right">Course Fees <span class="cursor-pointer" data-toggle="tooltip" data-placement="bottom" title="Enter Course Fees"><i class="fa fa-question-circle"></i></span></label>
-                                    <div class="col-sm-10">
+                                    <div class="col-sm-4">
                                       <div class="input-group">
                                         <input type="number" class="form-control" name="course_fees" placeholder="Enter Course Fees..." value="<?=(isset($courseDetailArr)?$courseDetailArr->course_fees:'')?>" required>
+                                     </div>   
+                                    </div>
+
+                                    <label class="col-sm-2 col-form-label text-right">Course Duration <span class="cursor-pointer" data-toggle="tooltip" data-placement="bottom" title="Enter Course Duration"><i class="fa fa-question-circle"></i></span></label>
+                                    <div class="col-sm-4">
+                                      <div class="input-group">
+                                        <input type="text" class="form-control" name="course_duration" placeholder="Enter Course Duration..." value="<?=(isset($courseDetailArr)?$courseDetailArr->course_duration:'')?>" required>
                                      </div>   
                                     </div>
                                 </div>                               
@@ -99,16 +106,6 @@
                                     <div class="col-sm-1 pl-5">
                                   </div>
                                 </div>
-                                <div class="hr-line-dashed"></div>
-
-                                <div class="form-group row">
-                                    <label class="col-sm-2 col-form-label text-right">Course Duration <span class="cursor-pointer" data-toggle="tooltip" data-placement="bottom" title="Enter Course Duration"><i class="fa fa-question-circle"></i></span></label>
-                                    <div class="col-sm-10">
-                                      <div class="input-group">
-                                        <input type="text" class="form-control" name="course_duration" placeholder="Enter Course Duration..." value="<?=(isset($courseDetailArr)?$courseDetailArr->course_duration:'')?>" required>
-                                     </div>   
-                                    </div>
-                                </div>                               
                                 <div class="hr-line-dashed"></div>
 
                                 <div class="form-group row"><label class="col-sm-2 col-form-label text-right">Course Detail Pdf <span class="cursor-pointer" data-toggle="tooltip" data-placement="bottom" title="Choose a pdf file if you wish to upload one.">

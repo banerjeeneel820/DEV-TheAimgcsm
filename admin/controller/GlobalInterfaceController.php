@@ -9,7 +9,6 @@ class GlobalInterfaceController
    public function __construct()
    {
       $this->conn = new GlobalInterfaceModel();
-      $this->conn->__construct();
    }
 
    public function check_User_Login($paramArr = array())
@@ -653,62 +652,127 @@ class GlobalInterfaceController
 
    public function fetch_Due_Students_Data($dataArr)
    {
-      //pagination property
+      // pagination property
       $limit = $dataArr['limit'];
       $pageNo = $dataArr['pageNo'];
       $offset = ($pageNo - 1) * $limit;
-
+   
       $record_status = $dataArr['record_status'];
-
-      // $where_Clause = " WHERE stu.student_status IN ('admitted', 'continue') AND stu.stu_result = 'unqualified' AND stu.stu_course_fees > 0 AND stu.monthly_course_fees > 0
-      // AND frn.owned_status = 'yes' AND NOW() >= DATE_ADD(DATE_SUB(DATE_FORMAT(CONCAT(YEAR(NOW()), '-', MONTH(NOW()), '-', DAY(stu.created_at)), '%Y-%m-%d'),
-      // INTERVAL 1 MONTH), INTERVAL 30 DAY) AND (( SELECT IFNULL(SUM(r.receipt_amount), 0) FROM " . DB_AIMGCSM . "." . TABLEPREFIX . "student_receipts r WHERE 
-      // r.stu_id = stu.stu_id AND r.record_status = 'active') < ( ROUND((DATEDIFF(NOW(), stu.created_at) / 30.44) - stu.month_exclude_receipt) * stu.monthly_course_fees )) AND stu.record_status = '$record_status'";
-
-      $where_Clause = " WHERE stu.student_status IN ('admitted', 'continue') AND stu.stu_result = 'unqualified' AND stu.stu_course_fees > 0 AND stu.monthly_course_fees > 0
-      AND frn.owned_status = 'yes' AND (( SELECT IFNULL(SUM(r.receipt_amount), 0) FROM " . DB_AIMGCSM . "." . TABLEPREFIX . "student_receipts r WHERE 
-      r.stu_id = stu.stu_id AND r.record_status = 'active') < ( CEIL((DATEDIFF(NOW(), stu.created_at) / 30.44) - stu.month_exclude_receipt) * stu.monthly_course_fees )) AND stu.record_status = '$record_status'";
-
+   
+      // OPTIONAL FILTERS
+      $extra_filters = "";
+   
       if (isset($dataArr['student_id']) && $dataArr['student_id'] !== null) {
-         $student_id = $dataArr['student_id'];
-         $where_Clause .= " AND stu.stu_id = '" . $student_id . "'";
+         $extra_filters .= " AND stu.stu_id = '" . $dataArr['student_id'] . "'";
       }
-
-      if ($dataArr['course_id'] > 0) {
-         $course_id = $dataArr['course_id'];
-         $where_Clause .= " AND stu.course_id = '$course_id'";
+   
+      if (!empty($dataArr['course_id']) && $dataArr['course_id'] > 0) {
+         $extra_filters .= " AND stu.course_id = '" . $dataArr['course_id'] . "'";
       }
-
-      if ($dataArr['franchise_id'] > 0) {
-         $franchise_id = $dataArr['franchise_id'];
-         $where_Clause .= " AND stu.franchise_id = '$franchise_id'";
+   
+      if (!empty($dataArr['franchise_id']) && $dataArr['franchise_id'] > 0) {
+         $extra_filters .= " AND stu.franchise_id = '" . $dataArr['franchise_id'] . "'";
       }
-
-      //$sql = "SELECT * FROM ".DB_AIMGCSM.".".TABLEPREFIX."students WHERE `record_status` = '$record_status' ORDER BY id DESC";
-
-      $sql_fetch_student = "SELECT stu.id,stu.stu_id,stu.stu_name,stu.stu_phone,stu.stu_dob,stu.record_status,stu.verified_status,stu.image_file_name,stu.student_status,
-      stu.stu_result,stu.created_at,frn.center_name,crs.course_title FROM " . DB_AIMGCSM . "." . TABLEPREFIX . "students stu LEFT JOIN " . DB_AIMGCSM . "." . TABLEPREFIX .
-         "franchise frn ON stu.franchise_id = frn.id LEFT JOIN " . DB_AIMGCSM . "." . TABLEPREFIX . "course crs ON stu.course_id = crs.id LEFT JOIN " . DB_AIMGCSM . "." . TABLEPREFIX .
-         "student_receipts rcpt ON stu.stu_id = rcpt.stu_id" . $where_Clause . " GROUP BY stu.id ORDER BY stu.id DESC";
-
+   
+      // MAIN QUERY WITH DERIVED TABLE
+      $base_query = "
+   
+      FROM (
+         SELECT 
+            stu.*,
+            frn.center_name,
+            crs.course_title,
+   
+            LEAST(
+               (
+                  GREATEST(
+                     CEIL(
+                        (
+                           DATEDIFF(NOW(), stu.created_at) / 30.44
+                           - COALESCE(stu.month_exclude_receipt, 0)
+                        )
+                     ),
+                     0
+                  )
+                  * COALESCE(stu.monthly_course_fees, 0)
+               ),
+               (
+                  COALESCE(stu.stu_course_fees, 0)
+                  - COALESCE(stu.stu_course_discount, 0)
+               )
+            ) AS expected_amount
+   
+         FROM " . DB_AIMGCSM . "." . TABLEPREFIX . "students stu
+   
+         INNER JOIN " . DB_AIMGCSM . "." . TABLEPREFIX . "franchise frn 
+            ON stu.franchise_id = frn.id
+   
+         INNER JOIN " . DB_AIMGCSM . "." . TABLEPREFIX . "course crs 
+            ON stu.course_id = crs.id
+   
+         WHERE 
+            stu.student_status IN ('admitted', 'continue') 
+            AND stu.stu_result = 'unqualified' 
+            AND COALESCE(stu.stu_course_fees, 0) > 0
+            AND COALESCE(stu.monthly_course_fees, 0) > 0
+            AND frn.owned_status = 'yes'
+            AND stu.record_status = '$record_status'
+            $extra_filters
+   
+      ) base
+   
+      INNER JOIN (
+         SELECT 
+            stu_id, 
+            SUM(COALESCE(receipt_amount, 0)) AS total_paid
+         FROM " . DB_AIMGCSM . "." . TABLEPREFIX . "student_receipts
+         WHERE record_status = 'active'
+         GROUP BY stu_id
+      ) rcpt 
+         ON base.stu_id = rcpt.stu_id
+   
+      WHERE 
+         rcpt.total_paid < base.expected_amount
+      ";
+   
+      // MAIN FETCH QUERY
+      $sql_fetch_student = "SELECT 
+         base.id,
+         base.stu_id,
+         base.stu_name,
+         base.stu_phone,
+         base.stu_dob,
+         base.record_status,
+         base.verified_status,
+         base.image_file_name,
+         base.student_status,
+         base.stu_result,
+         base.created_at,
+         base.center_name,
+         base.course_title,
+   
+         GREATEST(base.expected_amount - rcpt.total_paid, 0) AS total_due
+   
+      " . $base_query . "
+   
+      ORDER BY base.id DESC";
+   
+      // PAGINATION
       if (!array_key_exists('student_id', $dataArr) || $dataArr['student_id'] == null) {
-         $sql_fetch_student = $sql_fetch_student . " LIMIT $offset, $limit";
+         $sql_fetch_student .= " LIMIT $offset, $limit";
       }
-
-      $sql_count_rec = "SELECT stu.id,stu.stu_id,stu.stu_name,stu.stu_phone,stu.stu_dob,stu.record_status,stu.verified_status,stu.image_file_name,stu.student_status,
-      stu.stu_result,stu.created_at,frn.center_name,crs.course_title FROM " . DB_AIMGCSM . "." . TABLEPREFIX . "students stu LEFT JOIN " . DB_AIMGCSM . "." . TABLEPREFIX .
-         "franchise frn ON stu.franchise_id = frn.id LEFT JOIN " . DB_AIMGCSM . "." . TABLEPREFIX . "course crs ON stu.course_id = crs.id LEFT JOIN " . DB_AIMGCSM . "." . TABLEPREFIX .
-         "student_receipts rcpt ON stu.stu_id = rcpt.stu_id" . $where_Clause . " GROUP BY stu.id ORDER BY stu.id DESC";
-
-      //echo $sql_fetch_student;exit();
-
-      //$resultArr = $this->conn->global_Fetch_All_DB($sql); 
-
+   
+      // COUNT QUERY
+      $sql_count_rec = "SELECT COUNT(*) as total " . $base_query;
+   
+      // Debug
+      // echo $sql_fetch_student; exit;
+   
       $resultArr['data'] = $this->conn->global_Fetch_All_DB($sql_fetch_student);
-      $resultArr['row_count'] = $this->conn->global_Rows_Count_DB($sql_count_rec);
+      $resultArr['row_count'] = $this->conn->global_Count_Value_DB($sql_count_rec);
       $resultArr['pageNo'] = $dataArr['pageNo'];
       $resultArr['limit'] = $dataArr['limit'];
-
+   
       return $resultArr;
    }
 
@@ -2843,14 +2907,15 @@ class GlobalInterfaceController
       return $resultArr;
    }
 
-   public function check_Task_Status($status=null){
+   public function check_Task_Status($status = null)
+   {
 
-      if($status){
+      if ($status) {
          $sql_count_jobs = "SELECT * FROM " . DB_AIMGCSM . "." . TABLEPREFIX . "queue_jobs WHERE `status` = '$status'";
-      }else{
+      } else {
          $sql_count_jobs = "SELECT * FROM " . DB_AIMGCSM . "." . TABLEPREFIX . "queue_jobs WHERE `status` IN ('pending', 'failed')";
       }
-      
+
       //echo $sql_count_flagged;exit();
 
       $resultArr = $this->conn->global_Fetch_Single_DB($sql_count_jobs);
@@ -2860,12 +2925,12 @@ class GlobalInterfaceController
 
    public function manage_Queue_Jobs($cronDetailArr)
    {
-      
+
       $action = $cronDetailArr['action'];
       $job_type = $cronDetailArr['job_type'];
 
       if ($action == "update") {
-         
+
          $status = $cronDetailArr['status'];
          $response = $cronDetailArr['response'];
 

@@ -28,6 +28,18 @@
                 
             return $row_count;
         }
+
+        public function global_Count_Value_DB($sql){
+    
+          $result = $this->db->query($sql);
+          
+          if ($result && $result->num_rows > 0) {
+            $row = $result->fetch_assoc(); // get as array
+            return (int) reset($row);    // first column value
+          }
+      
+          return 0;
+       }
         
         public function global_CRUD_DB($sql){
 
@@ -71,4 +83,3 @@
             return $single_row;
         }
  }
-?>

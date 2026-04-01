@@ -242,16 +242,12 @@ if(!empty($_GET['fetchType'])){
                                     <th class="sorting_desc_disabled">Student Info</th>
                                     <th class="sorting_desc_disabled">Franchise/Course</th>
 
-                                    <?php if ($resultUpdatePermission == false ? ($showResultData == false ? true : false) : true) { ?>
-                                        <th class="sorting_desc_disabled">Result</th>
-                                    <?php } ?>
-
-                                    <?php //if($updatePermission == false?($showStatusColumn == true ? true:false):true){ 
-                                    ?>
-                                    <th class="sorting_desc_disabled notexport">Status</th>
-                                    <?php //} 
-                                    ?>
-
+                                    <th class="sorting_desc_disabled">Status/Result</th>
+                                    
+                                    <?php if(!isset($_GET['fetchType']) || $_GET['fetchType'] == "dueList") { ?>
+                                        <th class="sorting_desc_disabled notexport">Total Due</th>
+                                    <?php } ?>    
+                                   
                                     <th class="sorting_desc_disabled notexport">Action</th>
                                 </tr>
                             </thead>
@@ -308,14 +304,14 @@ if(!empty($_GET['fetchType'])){
 
                                             <td>
                                                 <span class="cursor-pointer" data-toggle="tooltip" data-placement="bottom" title="Student Result: <?= ucfirst($content->stu_result) ?>"><strong><?= ucfirst($content->stu_result) ?></strong></span>
+                                                /<span class="cursor-pointer" data-toggle="tooltip" data-placement="bottom" title="Student Status: <?= $student_status ?>"><strong><?= $student_status ?></strong></span>
                                             </td>
 
-                                            <td>
-                                                <span class="cursor-pointer" data-toggle="tooltip" data-placement="bottom" title="Student Status: <?= $student_status ?>"><strong><?= $student_status ?></strong></span>
-                                                <?php if ($showResultData) { ?>
-                                                    <br><small><strong>Student Result: <?= ucfirst($content->stu_result) ?></strong></small>
-                                                <?php } ?>
-                                            </td>
+                                            <?php if (property_exists($content, 'total_due')) { ?>
+                                                <td>
+                                                    <span class="cursor-pointer" data-toggle="tooltip" data-placement="bottom" title="Total Due: Rs. <?= $content->total_due ?>"><strong>Total Due: Rs. <?= $content->total_due ?></strong></span>
+                                                </td>
+                                            <?php } ?>    
 
                                             <td class="project-status" style="width: 10%;">
                                                 <span class="dropdown">
