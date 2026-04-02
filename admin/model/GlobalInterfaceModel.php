@@ -1,85 +1,112 @@
 <?php
- defined('ROOTPATH') OR exit('No direct script access allowed');
+defined('ROOTPATH') OR exit('No direct script access allowed');
 
-    class GlobalInterfaceModel {
-        
-        private $db;
-        
-        public function __construct(){
-          $this->db = DB::$WRITELINK;
+class GlobalInterfaceModel {
+
+    private $db;
+
+    public function __construct(){
+        $this->db = DB::$WRITELINK;
+    }
+
+    private function getTypes($params){
+        $types = '';
+        foreach ($params as $p) {
+            if (is_int($p)) $types .= 'i';
+            elseif (is_double($p)) $types .= 'd';
+            else $types .= 's';
+        }
+        return $types;
+    }
+
+    public function global_Fetch_All_DB($sql, $params = []){
+        $rows = [];
+
+        if (!empty($params)) {
+            $stmt = $this->db->prepare($sql);
+            $types = $this->getTypes($params);
+            $stmt->bind_param($types, ...$params);
+            $stmt->execute();
+            $result = $stmt->get_result();
+        } else {
+            $result = $this->db->query($sql);
         }
 
-        public function global_Fetch_All_DB($sql){
-            $rows = array();
+        while($row = $result->fetch_object()) {
+            $rows[] = $row;
+        }
+        return $rows;
+    }
 
+    public function global_Fetch_Single_DB($sql, $params = []){
+        if (!empty($params)) {
+            $stmt = $this->db->prepare($sql);
+            $types = $this->getTypes($params);
+            $stmt->bind_param($types, ...$params);
+            $stmt->execute();
+            $result = $stmt->get_result();
+        } else {
             $result = $this->db->query($sql);
-            
-            while($row = $result->fetch_object()) {
-                $rows[] = $row;
-            }
-            return $rows;
         }
 
-        public function global_Rows_Count_DB($sql){
-            
+        return $result->fetch_object();
+    }
+
+    public function global_Rows_Count_DB($sql, $params = []){
+        if (!empty($params)) {
+            $stmt = $this->db->prepare($sql);
+            $types = $this->getTypes($params);
+            $stmt->bind_param($types, ...$params);
+            $stmt->execute();
+            $result = $stmt->get_result();
+        } else {
             $result = $this->db->query($sql);
-            
-            $row_count = $result->num_rows;
-                
-            return $row_count;
         }
 
-        public function global_Count_Value_DB($sql){
-    
-          $result = $this->db->query($sql);
-          
-          if ($result && $result->num_rows > 0) {
-            $row = $result->fetch_assoc(); // get as array
-            return (int) reset($row);    // first column value
-          }
-      
-          return 0;
-       }
-        
-        public function global_CRUD_DB($sql){
+        return $result->num_rows;
+    }
 
-            // Turn autocommit off
-            /*$this->db->autocommit(FALSE);
+    public function global_Count_Value_DB($sql, $params = [])
+    {
+        if (!empty($params)) {
+            $stmt = $this->db->prepare($sql);
 
-            $returnArr = array();
+            $types = $this->getTypes($params);
+            $stmt->bind_param($types, ...$params);
+
+            $stmt->execute();
+            $result = $stmt->get_result();
+
+        } else {
+            // fallback for old queries
             $result = $this->db->query($sql);
-            
-            // Commit transaction
-            if($this->db->commit() == false) {
-               // Rollback transaction
-               $this->db->rollback(); 
-               $returnArr = array("check" => "failure", "message" => "Something went wrong!");    
-            }else{
-               $last_insert_id = $this->db->insert_id;  
-               $returnArr = array("check" => "success", "message" => "Query has been successfully excuted!","last_insert_id"=>$last_insert_id);
-            }
-            //$this->db->close(); 
-            return $returnArr;*/
-
-            $returnArr = array();
-            $result = $this->db->query($sql);
-            
-            if($result){
-              $last_insert_id = $this->db->insert_id;  
-              $returnArr = array("check" => "success", "message" => "Query has been successfully excuted!","last_insert_id"=>$last_insert_id);    
-            }else{
-              $returnArr = array("check" => "failure", "message" => "Something went wrong!");  
-            }
-            return $returnArr;
         }
 
-        public function global_Fetch_Single_DB($sql){
-            
-            //$rows = array();
-            $result = $this->db->query($sql);
-            
-            $single_row = $result->fetch_object();
-            
-            return $single_row;
+        if ($result && $result->num_rows > 0) {
+            $row = $result->fetch_assoc();
+            return (int) reset($row);
         }
- }
+
+        return 0;
+    }
+
+    public function global_CRUD_DB($sql, $params = []){
+        if (!empty($params)) {
+            $stmt = $this->db->prepare($sql);
+            $types = $this->getTypes($params);
+            $stmt->bind_param($types, ...$params);
+            $result = $stmt->execute();
+        } else {
+            $result = $this->db->query($sql);
+        }
+
+        if($result){
+            return [
+                "check" => "success",
+                "last_insert_id" => $this->db->insert_id
+            ];
+        } else {
+            return ["check" => "failure"];
+        }
+    }
+}

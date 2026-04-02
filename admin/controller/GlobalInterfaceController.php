@@ -11,10 +11,34 @@ class GlobalInterfaceController
       $this->conn = new GlobalInterfaceModel();
    }
 
+   private function debugQuery($sql, $params = [])
+   {
+      if (!empty($params)) {
+         foreach ($params as $param) {
+            if (is_null($param)) {
+               $value = "NULL";
+            } elseif (is_numeric($param)) {
+               $value = $param;
+            } else {
+               $value = "'" . addslashes($param) . "'";
+            }
+
+            $sql = preg_replace('/\?/', $value, $sql, 1);
+         }
+      }
+
+      echo "<pre>";
+      echo $sql;
+      echo "</pre>";
+      exit; // stop execution after debug
+   }
+
    public function check_User_Login($paramArr = array())
    {
-
       $user_type = $paramArr['user_type'];
+      $params = [];
+      $params_email = [];
+      $params_email_pass = [];
 
       switch ($user_type) {
 
@@ -23,9 +47,14 @@ class GlobalInterfaceController
             $user_email = $paramArr['user_email'];
             $user_pswd = $paramArr['user_pswd'];
 
-            $query_conditional_clause = "`user_email`='$user_email' AND `user_pass`='$user_pswd' AND `user_type`='developer' AND `user_status` = 'active'";
-            $query_email_caluse = "`user_email`='$user_email' AND `user_type`='developer'";
-            $query_email_pass_caluse = "`user_email`='$user_email' AND `user_type`='developer' AND `user_pass`='$user_pswd'";
+            $query_conditional_clause = "user_email = ? AND user_pass = ? AND user_type = 'developer' AND user_status = 'active'";
+            $params = [$user_email, $user_pswd];
+
+            $query_email_caluse = "user_email = ? AND user_type = 'developer'";
+            $params_email = [$user_email];
+
+            $query_email_pass_caluse = "user_email = ? AND user_type = 'developer' AND user_pass = ?";
+            $params_email_pass = [$user_email, $user_pswd];
             break;
 
          case 'admin':
@@ -33,9 +62,15 @@ class GlobalInterfaceController
             $user_email = $paramArr['user_email'];
             $user_pswd = $paramArr['user_pswd'];
 
-            $query_conditional_clause = "`user_email`='$user_email' OR `user_type`='$user_email' AND `user_pass`='$user_pswd' AND `user_type`='admin' AND `user_status` = 'active'";
-            $query_email_caluse = "`user_email`='$user_email' AND `user_type`='admin'";
-            $query_email_pass_caluse = "`user_email`='$user_email' AND `user_type`='admin' AND `user_pass`='$user_pswd'";
+            // ✅ FIXED LOGIC (important)
+            $query_conditional_clause = "(user_email = ? OR user_type = ?) AND user_pass = ? AND user_type = 'admin' AND user_status = 'active'";
+            $params = [$user_email, $user_email, $user_pswd];
+
+            $query_email_caluse = "user_email = ? AND user_type = 'admin'";
+            $params_email = [$user_email];
+
+            $query_email_pass_caluse = "user_email = ? AND user_type = 'admin' AND user_pass = ?";
+            $params_email_pass = [$user_email, $user_pswd];
             break;
 
          case 'franchise':
@@ -43,9 +78,15 @@ class GlobalInterfaceController
             $user_email = $paramArr['user_email'];
             $user_pswd = $paramArr['user_pswd'];
 
-            $query_conditional_clause = "`fran_email`='$user_email' OR `fran_id`='$user_email' AND `fran_pass`='$user_pswd' AND `record_status` = 'active'";
-            $query_email_caluse = "`fran_email`='$user_email'";
-            $query_email_pass_caluse = "`fran_email`='$user_email' AND `fran_pass`='$user_pswd'";
+            // ✅ FIXED LOGIC
+            $query_conditional_clause = "(fran_email = ? OR fran_id = ?) AND fran_pass = ? AND record_status = 'active'";
+            $params = [$user_email, $user_email, $user_pswd];
+
+            $query_email_caluse = "fran_email = ?";
+            $params_email = [$user_email];
+
+            $query_email_pass_caluse = "fran_email = ? AND fran_pass = ?";
+            $params_email_pass = [$user_email, $user_pswd];
             break;
 
          case 'exam':
@@ -53,9 +94,14 @@ class GlobalInterfaceController
             $stu_id = $paramArr['user_email'];
             $user_type = "student";
 
-            $query_conditional_clause = "`stu_id`='$stu_id' AND `student_status` = 'continue' AND `stu_result` = 'unqualified' AND `record_status` = 'active'";
-            $query_email_caluse = "`stu_id`='$stu_id'";
-            $query_email_pass_caluse = "`stu_id`='$stu_id' AND `record_status`='active' AND `stu_result` = 'unqualified' AND `record_status` = 'active'";
+            $query_conditional_clause = "stu_id = ? AND student_status = 'continue' AND stu_result = 'unqualified' AND record_status = 'active'";
+            $params = [$stu_id];
+
+            $query_email_caluse = "stu_id = ?";
+            $params_email = [$stu_id];
+
+            $query_email_pass_caluse = "stu_id = ? AND record_status = 'active' AND stu_result = 'unqualified'";
+            $params_email_pass = [$stu_id];
             break;
 
          default:
@@ -63,105 +109,84 @@ class GlobalInterfaceController
             $user_type = "admin";
             $user_email = $paramArr['user_email'];
             $user_pswd = $paramArr['user_pswd'];
-            $user_platform = "current";
 
-            $query_conditional_clause = "`user_email`='$user_email' AND `user_pass`='$user_pswd'";
+            $query_conditional_clause = "user_email = ? AND user_pass = ?";
+            $params = [$user_email, $user_pswd];
             break;
       }
 
+      // MAIN QUERY
       $sql_check_user = "SELECT * FROM " . DB_AIMGCSM . "." . TABLEPREFIX . $user_table . " WHERE " . $query_conditional_clause;
-      $resultArr['row_count'] = $this->conn->global_Rows_Count_DB($sql_check_user);
 
-      //echo $sql_check_user;exit; 
+      $resultArr['row_count'] = $this->conn->global_Rows_Count_DB($sql_check_user, $params);
 
       if ($resultArr['row_count'] > 0) {
-         session_regenerate_id();
-         //Fetching user detail
-         $userDetail = $this->conn->global_Fetch_Single_DB($sql_check_user);
-         //print_r($userDetail);exit;
-         $_SESSION['user_id']    = $userDetail->id;
 
-         //Fetch site setting detail
+         session_regenerate_id();
+
+         $userDetail = $this->conn->global_Fetch_Single_DB($sql_check_user, $params);
+
+         $_SESSION['user_id'] = $userDetail->id;
+
          $siteSettingArr = $this->fetch_Global_Site_Setting_Detail();
 
          if ($user_type == 'admin' || $user_type == 'developer') {
-            $_SESSION['user_id']  = $userDetail->id;
             $_SESSION['user_name']  = $userDetail->user_nicename;
             $_SESSION['user_email'] = $userDetail->user_email;
             $_SESSION['user_profile_pic'] = USER_UPLOAD_URL . 'others/' . $siteSettingArr->logo;
-            $_SESSION['user_role'] =  unserialize($userDetail->user_role);
+            $_SESSION['user_role'] = unserialize($userDetail->user_role);
          } elseif ($user_type == 'franchise') {
-            $_SESSION['user_id']  = $userDetail->id;
             $_SESSION['user_name']  = $userDetail->center_name;
             $_SESSION['user_email'] = $userDetail->fran_email;
             $_SESSION['owned_status'] = $userDetail->owned_status;
             $_SESSION['user_profile_pic'] = USER_UPLOAD_URL . 'franchise/' . $userDetail->fran_image;
-            $_SESSION['user_role'] =  unserialize($userDetail->user_role);
+            $_SESSION['user_role'] = unserialize($userDetail->user_role);
          } elseif ($user_type == 'student') {
-            $_SESSION['user_id']  = $userDetail->id;
             $_SESSION['stu_id']  = $userDetail->stu_id;
             $_SESSION['user_name']  = $userDetail->stu_name;
             $_SESSION['user_email'] = $userDetail->stu_email;
             $_SESSION['record_status'] = $userDetail->record_status;
             $_SESSION['user_profile_pic'] = USER_UPLOAD_URL . 'student/' . $userDetail->image_file_name;
          }
-         $_SESSION['user_type']  = $user_type;
 
-         //Check runtime folder existance
+         $_SESSION['user_type'] = $user_type;
+
+         // runtime folder
          $runtime_upload_dir_path = USER_UPLOAD_DIR . 'runtime_upload/';
          if (!file_exists($runtime_upload_dir_path)) {
-            mkdir("$runtime_upload_dir_path");
-            chmod("$runtime_upload_dir_path", 0755);
+            mkdir($runtime_upload_dir_path);
+            chmod($runtime_upload_dir_path, 0755);
          }
 
-         //$_SESSION['user_profile_pic'] = USER_UPLOAD_URL.'others/'.$siteSettingArr->logo;
-         //configuring return array
-         $resultArr = array('check' => 'success', 'user_detail' => $userDetail, 'msg' => 'You have successfully logged in!');
+         return ['check' => 'success', 'user_detail' => $userDetail, 'msg' => 'You have successfully logged in!'];
       } else {
-         //Check error cause
-         if ($user_table != "students") {
-            $sql_validate_user_email = "SELECT * FROM " . DB_AIMGCSM . "." . TABLEPREFIX . $user_table . " WHERE " . $query_email_caluse;
-            //echo $sql_validate_user_email;exit;
-            $row_count = $this->conn->global_Rows_Count_DB($sql_validate_user_email);
+
+         // VALIDATION CHECK
+         $sql_validate_user_email = "SELECT * FROM " . DB_AIMGCSM . "." . TABLEPREFIX . $user_table . " WHERE " . $query_email_caluse;
+         $row_count = $this->conn->global_Rows_Count_DB($sql_validate_user_email, $params_email);
+
+         if ($row_count > 0) {
+
+            $sql_validate_user_email_pass = "SELECT * FROM " . DB_AIMGCSM . "." . TABLEPREFIX . $user_table . " WHERE " . $query_email_pass_caluse;
+            $row_count = $this->conn->global_Rows_Count_DB($sql_validate_user_email_pass, $params_email_pass);
 
             if ($row_count > 0) {
-               $sql_validate_user_email_pass = "SELECT * FROM " . DB_AIMGCSM . "." . TABLEPREFIX . $user_table . " WHERE " . $query_email_pass_caluse;
-               //echo $sql_validate_user_email;exit;
-               $row_count = $this->conn->global_Rows_Count_DB($sql_validate_user_email_pass);
-
-               if ($row_count > 0) {
-                  $authErrorMsg = "Your account has been blocked, Please contact the administrator for further help!";
-               } else {
-                  $authErrorMsg = "You have entered a wrong password!";
-               }
+               $authErrorMsg = "Your account has been blocked, Please contact the administrator for further help!";
             } else {
-               $authErrorMsg = "This email isn't registered with us!";
+               $authErrorMsg = "You have entered a wrong password!";
             }
          } else {
-            $sql_validate_user_email = "SELECT * FROM " . DB_AIMGCSM . "." . TABLEPREFIX . "students WHERE " . $query_email_caluse;
-            //echo $sql_validate_user_email;exit;
-            $row_count = $this->conn->global_Rows_Count_DB($sql_validate_user_email);
 
-            if ($row_count > 0) {
-               $sql_validate_user_email_pass = "SELECT * FROM " . DB_AIMGCSM . "." . TABLEPREFIX . "students WHERE " . $query_email_pass_caluse;
-               //echo $sql_validate_user_email_pass;exit;
-               $row_count = $this->conn->global_Rows_Count_DB($sql_validate_user_email_pass);
-
-               if ($row_count > 0) {
-                  $authErrorMsg = "Your account has been blocked, Please contact the administrator for further help!";
-               } else {
-                  $authErrorMsg = "You have entered a wrong password!";
-               }
-            } else {
+            // EXTRA CASE FOR STUDENTS ARCHIVE
+            if ($user_table == "students") {
 
                $sql_validate_user_email = "SELECT * FROM " . DB_AIMGCSM . "." . TABLEPREFIX . "students_archive WHERE " . $query_email_caluse;
-               //echo $sql_validate_user_email;exit;
-               $row_count = $this->conn->global_Rows_Count_DB($sql_validate_user_email);
+               $row_count = $this->conn->global_Rows_Count_DB($sql_validate_user_email, $params_email);
 
                if ($row_count > 0) {
+
                   $sql_validate_user_email_pass = "SELECT * FROM " . DB_AIMGCSM . "." . TABLEPREFIX . "students_archive WHERE " . $query_email_pass_caluse;
-                  //echo $sql_validate_user_email_pass;exit;
-                  $row_count = $this->conn->global_Rows_Count_DB($sql_validate_user_email_pass);
+                  $row_count = $this->conn->global_Rows_Count_DB($sql_validate_user_email_pass, $params_email_pass);
 
                   if ($row_count > 0) {
                      $authErrorMsg = "Your account has been blocked, Please contact the administrator for further helps!";
@@ -171,11 +196,13 @@ class GlobalInterfaceController
                } else {
                   $authErrorMsg = "This email isn't registered with us!";
                }
+            } else {
+               $authErrorMsg = "This email isn't registered with us!";
             }
          }
-         $resultArr = array('check' => 'failure', 'msg' => $authErrorMsg);
+
+         return ['check' => 'failure', 'msg' => $authErrorMsg];
       }
-      return $resultArr;
    }
 
    public function check_User_Email_Availability($paramArr)
@@ -334,73 +361,141 @@ class GlobalInterfaceController
       return $resultArr;
    }
 
-   public function fetch_Global_Receipt($dataArr = array())
+   public function fetch_Global_Receipt($dataArr = [])
    {
+      $where = [];
+      $params = [];
 
-      $student_id = $dataArr['student_id'];
-      $record_status = $dataArr['record_status'];
-      $where_Clause = " WHERE rcpt.record_status = '" . $record_status . "'";
+      // Mandatory filter
+      $where[] = "rcpt.record_status = ?";
+      $params[] = $dataArr['record_status'];
 
-      //pagination property
-      $limit = $dataArr['limit'];
-      $pageNo = $dataArr['pageNo'];
+      // Verified status
+      if (!empty($dataArr['verified_status'])) {
+         $where[] = "rcpt.verified_status = ?";
+         $params[] = ($dataArr['verified_status'] === 'y') ? 1 : 0;
+      }
+
+      // Student filter
+      if (!empty($dataArr['student_id'])) {
+         $where[] = "rcpt.stu_id = ?";
+         $params[] = $dataArr['student_id'];
+      }
+
+      // Course filter
+      if (!empty($dataArr['course_id']) && $dataArr['course_id'] > 0) {
+         $where[] = "crs.id = ?";
+         $params[] = $dataArr['course_id'];
+      }
+
+      // Franchise filter
+      if (!empty($dataArr['franchise_id']) && $dataArr['franchise_id'] > 0) {
+         $where[] = "stu.franchise_id = ?";
+         $params[] = $dataArr['franchise_id'];
+      }
+
+      // Single date filter (index-friendly)
+      if (!empty($dataArr['created'])) {
+         $date = date('Y-m-d', strtotime($dataArr['created']));
+         $where[] = "rcpt.created_at >= ? AND rcpt.created_at < ?";
+         $params[] = $date . " 00:00:00";
+         $params[] = $date . " 23:59:59";
+      }
+
+      // Date range filters
+      if (!empty($dataArr['receipt_season_start'])) {
+         $where[] = "rcpt.created_at >= ?";
+         $params[] = $dataArr['receipt_season_start'] . " 00:00:00";
+      }
+
+      if (!empty($dataArr['receipt_season_end'])) {
+         $where[] = "rcpt.created_at <= ?";
+         $params[] = $dataArr['receipt_season_end'] . " 23:59:59";
+      }
+
+      $whereSql = "WHERE " . implode(" AND ", $where);
+
+      // Pagination
+      $limit = (int) $dataArr['limit'];
+      $pageNo = (int) $dataArr['pageNo'];
       $offset = ($pageNo - 1) * $limit;
 
-      if (!empty($dataArr['verified_status'])) {
-         if ($dataArr['verified_status'] == 'y') {
-            $verified_status = '1';
-         } else {
-            $verified_status = '0';
-         }
-         $where_Clause .= " AND rcpt.verified_status = '$verified_status'";
-      }
+      // Base query
+      $baseSql = "
+         FROM theaimgc_dev_student_receipts rcpt
 
-      if ($student_id) {
-         $franchise_id = $dataArr['franchise_id'];
-         $where_Clause .= " AND rcpt.stu_id = '" . $student_id . "'";
-      }
+         INNER JOIN theaimgc_dev_students stu 
+               ON rcpt.stu_id = stu.stu_id
 
-      if ($dataArr['course_id'] > 0) {
-         $course_id = $dataArr['course_id'];
-         $where_Clause .= " AND crs.id = '$course_id'";
-      }
+         LEFT JOIN theaimgc_dev_franchise frn 
+               ON stu.franchise_id = frn.id
 
-      if ($dataArr['franchise_id'] > 0) {
-         $franchise_id = $dataArr['franchise_id'];
-         $where_Clause .= " AND stu.franchise_id = '$franchise_id'";
-      }
+         LEFT JOIN theaimgc_dev_course crs 
+               ON stu.course_id = crs.id
 
-      if ($dataArr['created'] > 0) {
-         $created_at = date('Y-m-d', strtotime($dataArr['created']));
-         $where_Clause .= " AND DATE(rcpt.created_at) = '$created_at'";
-      }
+         LEFT JOIN theaimgc_dev_parent_category pc 
+               ON rcpt.category_id = pc.id
 
-      if (!empty($dataArr['receipt_season_start']) && empty($dataArr['receipt_season_end'])) {
-         $receipt_season_start = $dataArr['receipt_season_start'];
-         $where_Clause .= " AND DATE(rcpt.created_at) >='$receipt_season_start'";
-      } else if (empty($dataArr['receipt_season_start']) && !empty($dataArr['receipt_season_end'])) {
-         $receipt_season_end = $dataArr['receipt_season_end'];
-         $where_Clause .= " AND DATE(rcpt.created_at) <='$receipt_season_end'";
-      } else if (!empty($dataArr['receipt_season_start']) && !empty($dataArr['receipt_season_end'])) {
-         $receipt_season_start = $dataArr['receipt_season_start'];
-         $receipt_season_end = $dataArr['receipt_season_end'];
-         $where_Clause .= " AND DATE(rcpt.created_at) BETWEEN '$receipt_season_start' AND '$receipt_season_end'";
-      }
+         $whereSql
+      ";
 
-      $sql = "SELECT rcpt.id,rcpt.receipt_id,rcpt.category_id,rcpt.receipt_amount,rcpt.late_fine,rcpt.extra_fees,rcpt.created_at,rcpt.record_status as receipt_status,rcpt.verified_status,rcpt.edit_description,stu.id as student_record_id,stu.stu_id,stu.stu_name,stu.stu_phone,stu.stu_email,stu.image_file_name,stu.stu_qualification,stu.stu_course_fees,stu.stu_course_discount,stu.fees_paid_before_dr,stu.student_status,stu.stu_result,stu.record_status,stu.created_at as student_created_at,frn.center_name,crs.course_title,pc.name as category FROM " . DB_AIMGCSM . "." . TABLEPREFIX . "students stu LEFT JOIN " . DB_AIMGCSM . "." . TABLEPREFIX . "student_receipts rcpt ON rcpt.stu_id = stu.stu_id LEFT JOIN " . DB_AIMGCSM . "." . TABLEPREFIX . "franchise frn ON stu.franchise_id = frn.id LEFT JOIN " . DB_AIMGCSM . "." . TABLEPREFIX . "course crs ON stu.course_id = crs.id LEFT JOIN " . DB_AIMGCSM . "." . TABLEPREFIX . "parent_category pc ON rcpt.category_id = pc.id " . $where_Clause . " ORDER BY rcpt.id DESC";
+      // Data query
+      $dataSql = "
+         SELECT 
+               rcpt.id,
+               rcpt.receipt_id,
+               rcpt.category_id,
+               rcpt.receipt_amount,
+               rcpt.late_fine,
+               rcpt.extra_fees,
+               rcpt.created_at,
+               rcpt.record_status AS receipt_status,
+               rcpt.verified_status,
+               rcpt.edit_description,
 
-      $sql_fetch_receipt_limit = $sql . " LIMIT $offset, $limit";
+               stu.id AS student_record_id,
+               stu.stu_id,
+               stu.stu_name,
+               stu.stu_phone,
+               stu.stu_email,
+               stu.image_file_name,
+               stu.stu_qualification,
+               stu.stu_course_fees,
+               stu.stu_course_discount,
+               stu.fees_paid_before_dr,
+               stu.student_status,
+               stu.stu_result,
+               stu.record_status,
+               stu.created_at AS student_created_at,
 
-      //echo $sql;exit();
+               frn.center_name,
+               crs.course_title,
+               pc.name AS category
 
-      $resultArr = $this->conn->global_Fetch_All_DB($sql);
+         $baseSql
 
-      $resultArr['data'] = $this->conn->global_Fetch_All_DB($sql_fetch_receipt_limit);
-      $resultArr['row_count'] = $this->conn->global_Rows_Count_DB($sql);
-      $resultArr['pageNo'] = $dataArr['pageNo'];
-      $resultArr['limit'] = $dataArr['limit'];
+         ORDER BY rcpt.id DESC
+         LIMIT ?, ?
+      ";
 
-      return $resultArr;
+      // Count query
+      $countSql = "SELECT COUNT(*) as total $baseSql";
+
+      // Execute queries
+      $dataParams = array_merge($params, [$offset, $limit]);
+
+      // Debug
+      //$this->debugQuery($dataSql, $dataParams);
+
+      $data = $this->conn->global_Fetch_All_DB($dataSql, $dataParams);
+      $total = $this->conn->global_Count_Value_DB($countSql, $params);
+
+      return [
+         'data' => $data,
+         'row_count' => $total,
+         'pageNo' => $pageNo,
+         'limit' => $limit
+      ];
    }
 
    public function fetch_Single_Student_Receipt($student_id, $dataArr = array())
@@ -548,24 +643,77 @@ class GlobalInterfaceController
 
    public function fetch_Student_Receipt_Summary($dataArr)
    {
+      $where = [];
+      $params = [];
 
-      $student_id = $dataArr['student_id'];
-      $record_status = $dataArr['record_status'];
+      // Mandatory filters
+      $where[] = "stu.record_status = ?";
+      $params[] = $dataArr['record_status'];
 
-      $where_Clause = "WHERE stu.record_status = '$record_status' AND stu.stu_id = '$student_id'";
+      $where[] = "stu.stu_id = ?";
+      $params[] = $dataArr['student_id'];
 
+      // Optional filter
       if (!empty($dataArr['franchise_id'])) {
-         $franchise_id = $dataArr['franchise_id'];
-         $where_Clause .= "AND stu.franchise_id = '$franchise_id'";
+         $where[] = "stu.franchise_id = ?";
+         $params[] = $dataArr['franchise_id'];
       }
 
-      $sql = "SELECT stu.id,stu.stu_id,stu.stu_name,stu.stu_phone,stu.stu_course_fees,stu.stu_course_discount,stu.fees_paid_before_dr,stu.stu_email,stu.image_file_name,stu.created_at,tmp_stu.advanced_fees,tmp_stu.created_at as advance_fees_date,frn.center_name,crs.course_title,crs.course_fees as course_default_fees,COUNT(DISTINCT rcpt.id) as receipt_count,SUM(rcpt.receipt_amount) as course_fees_paid FROM " . DB_AIMGCSM . "." . TABLEPREFIX . "students stu LEFT JOIN " . DB_AIMGCSM . "." . TABLEPREFIX . "temp_students tmp_stu ON stu.tmp_stu_record_id = tmp_stu.tmp_id LEFT JOIN " . DB_AIMGCSM . "." . TABLEPREFIX . "student_receipts rcpt ON stu.stu_id = rcpt.stu_id LEFT JOIN " . DB_AIMGCSM . "." . TABLEPREFIX . "franchise frn ON stu.franchise_id = frn.id LEFT JOIN " . DB_AIMGCSM . "." . TABLEPREFIX . "course crs ON stu.course_id = crs.id " . $where_Clause . " GROUP BY stu.stu_id ORDER BY stu.created_at DESC";
+      $whereSql = "WHERE " . implode(" AND ", $where);
 
-      //echo $sql;exit();
+      // Pre-aggregated receipts (BIG performance win)
+      $receiptSubQuery = "
+         SELECT 
+               stu_id,
+               COUNT(id) AS receipt_count,
+               SUM(receipt_amount) AS total_paid
+         FROM " . DB_AIMGCSM . "." . TABLEPREFIX . "student_receipts
+         GROUP BY stu_id
+      ";
 
-      $resultArr = $this->conn->global_Fetch_Single_DB($sql);
+      $sql = "
+         SELECT 
+               stu.id,
+               stu.stu_id,
+               stu.stu_name,
+               stu.stu_phone,
+               stu.stu_course_fees,
+               stu.stu_course_discount,
+               stu.fees_paid_before_dr,
+               stu.stu_email,
+               stu.image_file_name,
+               stu.created_at,
 
-      return $resultArr;
+               tmp_stu.advanced_fees,
+               tmp_stu.created_at AS advance_fees_date,
+
+               frn.center_name,
+               crs.course_title,
+               crs.course_fees AS course_default_fees,
+
+               IFNULL(rcpt.receipt_count, 0) AS receipt_count,
+               IFNULL(rcpt.total_paid, 0) AS course_fees_paid
+
+         FROM " . DB_AIMGCSM . "." . TABLEPREFIX . "students stu
+
+         LEFT JOIN " . DB_AIMGCSM . "." . TABLEPREFIX . "temp_students tmp_stu 
+               ON stu.tmp_stu_record_id = tmp_stu.tmp_id
+
+         LEFT JOIN ($receiptSubQuery) rcpt 
+               ON stu.stu_id = rcpt.stu_id
+
+         LEFT JOIN " . DB_AIMGCSM . "." . TABLEPREFIX . "franchise frn 
+               ON stu.franchise_id = frn.id
+
+         LEFT JOIN " . DB_AIMGCSM . "." . TABLEPREFIX . "course crs 
+               ON stu.course_id = crs.id
+
+         $whereSql
+
+         ORDER BY stu.created_at DESC
+      ";
+
+      return $this->conn->global_Fetch_Single_DB($sql, $params);
    }
 
    public function fetch_Global_Student($dataArr)
@@ -656,24 +804,24 @@ class GlobalInterfaceController
       $limit = $dataArr['limit'];
       $pageNo = $dataArr['pageNo'];
       $offset = ($pageNo - 1) * $limit;
-   
+
       $record_status = $dataArr['record_status'];
-   
+
       // OPTIONAL FILTERS
       $extra_filters = "";
-   
+
       if (isset($dataArr['student_id']) && $dataArr['student_id'] !== null) {
          $extra_filters .= " AND stu.stu_id = '" . $dataArr['student_id'] . "'";
       }
-   
+
       if (!empty($dataArr['course_id']) && $dataArr['course_id'] > 0) {
          $extra_filters .= " AND stu.course_id = '" . $dataArr['course_id'] . "'";
       }
-   
+
       if (!empty($dataArr['franchise_id']) && $dataArr['franchise_id'] > 0) {
          $extra_filters .= " AND stu.franchise_id = '" . $dataArr['franchise_id'] . "'";
       }
-   
+
       // MAIN QUERY WITH DERIVED TABLE
       $base_query = "
    
@@ -734,7 +882,7 @@ class GlobalInterfaceController
       WHERE 
          rcpt.total_paid < base.expected_amount
       ";
-   
+
       // MAIN FETCH QUERY
       $sql_fetch_student = "SELECT 
          base.id,
@@ -756,23 +904,23 @@ class GlobalInterfaceController
       " . $base_query . "
    
       ORDER BY base.id DESC";
-   
+
       // PAGINATION
       if (!array_key_exists('student_id', $dataArr) || $dataArr['student_id'] == null) {
          $sql_fetch_student .= " LIMIT $offset, $limit";
       }
-   
+
       // COUNT QUERY
       $sql_count_rec = "SELECT COUNT(*) as total " . $base_query;
-   
+
       // Debug
       // echo $sql_fetch_student; exit;
-   
+
       $resultArr['data'] = $this->conn->global_Fetch_All_DB($sql_fetch_student);
       $resultArr['row_count'] = $this->conn->global_Count_Value_DB($sql_count_rec);
       $resultArr['pageNo'] = $dataArr['pageNo'];
       $resultArr['limit'] = $dataArr['limit'];
-   
+
       return $resultArr;
    }
 
@@ -1303,12 +1451,12 @@ class GlobalInterfaceController
 
    public function fetch_Single_Parent_Category($parent_category)
    {
+      $sql = "SELECT pc.id, pc.parent_category, pc.name 
+               FROM " . DB_AIMGCSM . "." . TABLEPREFIX . "parent_category pc 
+               WHERE pc.parent_category = ?
+               ORDER BY pc.id DESC";
 
-      $sql = "SELECT * FROM " . DB_AIMGCSM . "." . TABLEPREFIX . "parent_category WHERE `parent_category`='$parent_category' ORDER BY id DESC";
-
-      //echo $sql;exit();
-
-      $resultArr = $this->conn->global_Fetch_All_DB($sql);
+      $resultArr = $this->conn->global_Fetch_All_DB($sql, [$parent_category]);
 
       return $resultArr;
    }
@@ -2254,16 +2402,58 @@ class GlobalInterfaceController
 
    public function fetch_Global_Single_Student($student_id, $receipt_timestamp = null)
    {
+      $params = [];
 
-      if (!empty($receipt_timestamp)) :
-         $sql = "SELECT stu.*,SUM(rcpt.receipt_amount) as course_fees_paid,tmp_stu.advanced_fees,tmp_stu.created_at as advance_fees_date,crs.course_title,crs.course_fees as course_default_fees,fran.center_name,fran.fran_email,fran.fran_phone,fran.fran_address FROM " . DB_AIMGCSM . "." . TABLEPREFIX . "students stu LEFT JOIN " . DB_AIMGCSM . "." . TABLEPREFIX . "temp_students tmp_stu ON stu.tmp_stu_record_id = tmp_stu.tmp_id LEFT JOIN " . DB_AIMGCSM . "." . TABLEPREFIX . "course crs ON stu.course_id = crs.id LEFT JOIN " . DB_AIMGCSM . "." . TABLEPREFIX . "franchise fran ON stu.franchise_id = fran.id LEFT JOIN " . DB_AIMGCSM . "." . TABLEPREFIX . "student_receipts rcpt ON stu.stu_id = rcpt.stu_id WHERE stu.id = '$student_id' OR stu.stu_id = '$student_id' AND rcpt.created_at <= '$receipt_timestamp'";
-      else :
-         $sql = "SELECT stu.*,SUM(rcpt.receipt_amount) as course_fees_paid,tmp_stu.advanced_fees,tmp_stu.created_at as advance_fees_date,crs.course_title,crs.course_fees as course_default_fees,fran.center_name,fran.fran_email,fran.fran_phone,fran.fran_address FROM " . DB_AIMGCSM . "." . TABLEPREFIX . "students stu LEFT JOIN " . DB_AIMGCSM . "." . TABLEPREFIX . "temp_students tmp_stu ON stu.tmp_stu_record_id = tmp_stu.tmp_id LEFT JOIN " . DB_AIMGCSM . "." . TABLEPREFIX . "course crs ON stu.course_id = crs.id LEFT JOIN " . DB_AIMGCSM . "." . TABLEPREFIX . "franchise fran ON stu.franchise_id = fran.id LEFT JOIN " . DB_AIMGCSM . "." . TABLEPREFIX . "student_receipts rcpt ON stu.stu_id = rcpt.stu_id WHERE stu.id = '$student_id' OR stu.stu_id = '$student_id'";
-      endif;
+      // ✅ Decide condition in PHP (better than OR)
+      if (is_numeric($student_id)) {
+         $where_clause = "stu.id = ?";
+         $params[] = $student_id;
+      } else {
+         $where_clause = "stu.stu_id = ?";
+         $params[] = $student_id;
+      }
 
-      //echo $sql;exit();
+      // ✅ Receipt subquery condition
+      $receipt_condition = "";
+      if (!empty($receipt_timestamp)) {
+         $receipt_condition = "WHERE created_at <= ?";
+         $params[] = $receipt_timestamp;
+      }
 
-      $resultArr = $this->conn->global_Fetch_Single_DB($sql);
+      $sql = "SELECT 
+                   stu.*,
+                   COALESCE(rcpt.total_paid, 0) as course_fees_paid,
+                   tmp_stu.advanced_fees,
+                   tmp_stu.created_at as advance_fees_date,
+                   crs.course_title,
+                   crs.course_fees as course_default_fees,
+                   fran.center_name,
+                   fran.fran_email,
+                   fran.fran_phone,
+                   fran.fran_address
+   
+               FROM " . DB_AIMGCSM . "." . TABLEPREFIX . "students stu
+   
+               LEFT JOIN " . DB_AIMGCSM . "." . TABLEPREFIX . "temp_students tmp_stu 
+                   ON stu.tmp_stu_record_id = tmp_stu.tmp_id
+   
+               LEFT JOIN " . DB_AIMGCSM . "." . TABLEPREFIX . "course crs 
+                   ON stu.course_id = crs.id
+   
+               LEFT JOIN " . DB_AIMGCSM . "." . TABLEPREFIX . "franchise fran 
+                   ON stu.franchise_id = fran.id
+   
+               LEFT JOIN (
+                   SELECT stu_id, SUM(receipt_amount) AS total_paid
+                   FROM " . DB_AIMGCSM . "." . TABLEPREFIX . "student_receipts
+                   $receipt_condition
+                   GROUP BY stu_id
+               ) rcpt ON stu.stu_id = rcpt.stu_id
+   
+               WHERE $where_clause
+               LIMIT 1";
+
+      $resultArr = $this->conn->global_Fetch_Single_DB($sql, $params);
 
       return $resultArr;
    }
@@ -2318,12 +2508,28 @@ class GlobalInterfaceController
 
    public function fetch_Single_Receipt_Data($row_id)
    {
+      $sql = "SELECT 
+                  rcpt.id,
+                  rcpt.stu_id,
+                  rcpt.receipt_id,
+                  rcpt.receipt_amount,
+                  rcpt.late_fine,
+                  rcpt.extra_fees,
+                  rcpt.extra_fees_description,
+                  rcpt.category_id,
+                  rcpt.record_status as receipt_status,
+                  rcpt.created_at,
+                  pc.name as category
 
-      $sql = "SELECT rcpt.id,rcpt.stu_id,rcpt.receipt_id,rcpt.receipt_amount,rcpt.late_fine,rcpt.extra_fees,rcpt.late_fine,rcpt.extra_fees,rcpt.extra_fees_description,rcpt.category_id,rcpt.record_status as receipt_status,rcpt.created_at,pc.name as category FROM " . DB_AIMGCSM . "." . TABLEPREFIX . "student_receipts rcpt LEFT JOIN " . DB_AIMGCSM . "." . TABLEPREFIX . "parent_category pc ON rcpt.category_id = pc.id WHERE rcpt.id = '$row_id'";
+               FROM " . DB_AIMGCSM . "." . TABLEPREFIX . "student_receipts rcpt
 
-      //echo $sql;exit();
+               LEFT JOIN " . DB_AIMGCSM . "." . TABLEPREFIX . "parent_category pc 
+                  ON rcpt.category_id = pc.id
 
-      $resultArr = $this->conn->global_Fetch_Single_DB($sql);
+               WHERE rcpt.id = ?
+               LIMIT 1";
+
+      $resultArr = $this->conn->global_Fetch_Single_DB($sql, [$row_id]);
 
       return $resultArr;
    }
