@@ -30,7 +30,7 @@ switch ($action) {
 
       $validate_captcha = $GlobalLibraryHandlerObj->checkCaptchaResponse($recaptcha_response);
 
-      if($validate_captcha){
+      if ($validate_captcha) {
         $returnArr = $GlobalLibraryHandlerObj->checkUserLogin($paramArr);
 
         if ($returnArr['check'] == 'success') {
@@ -43,9 +43,9 @@ switch ($action) {
             setcookie('user_pswd', '', time() + 86400 * 30);
           }
         }
-      }else{
-        $returnArr = array('check'=>'failure','msg'=>'Not a valid captcha response; Please try again.');
-      }  
+      } else {
+        $returnArr = array('check' => 'failure', 'msg' => 'Not a valid captcha response; Please try again.');
+      }
       echo json_encode($returnArr);
     }
     break;
@@ -878,103 +878,147 @@ switch ($action) {
     if ($checkActionPermission) {
 
       //Fetch receipt details
-      $receiptDetailArr =  $GlobalInterfaceControllerObj->fetch_Receipt_Detail($formDataArr['receipt_row_id']);
+      // =========================
+      // FETCH EXISTING RECEIPT (if update)
+      // =========================
+      $receiptDetailArr = !empty($formDataArr['receipt_row_id'])
+        ? $GlobalInterfaceControllerObj->fetch_Receipt_Detail($formDataArr['receipt_row_id'])
+        : null;
 
+      // =========================
+      // SANITIZE INPUT
+      // =========================
       $formDataArr['student_id'] = mysqli_real_escape_string(DB::$WRITELINK, trim($_POST['stu_id']));
-
       $formDataArr['record_status'] = mysqli_real_escape_string(DB::$WRITELINK, trim($_POST['record_status']));
-      $formDataArr['receipt_amount'] = mysqli_real_escape_string(DB::$WRITELINK, trim($_POST['receipt_amount']));
-      $formDataArr['late_fine'] = mysqli_real_escape_string(DB::$WRITELINK, trim($_POST['late_fine']));
-      $formDataArr['extra_fees'] = mysqli_real_escape_string(DB::$WRITELINK, trim($_POST['extra_fees']));
 
-      //Fetch student course fees details
+      $receipt_amount = (int)trim($_POST['receipt_amount']);
+      $late_fine = (int)trim($_POST['late_fine']);
+      $extra_fees = (int)trim($_POST['extra_fees']);
+
+      $formDataArr['receipt_amount'] = $receipt_amount;
+      $formDataArr['late_fine'] = $late_fine;
+      $formDataArr['extra_fees'] = $extra_fees;
+
+      // =========================
+      // SET ORIGINAL VALUES (ONLY ON CREATE)
+      // =========================
+      if (empty($formDataArr['receipt_row_id'])) {
+        $formDataArr['original_receipt_amount'] = $receipt_amount;
+        $formDataArr['original_late_fine'] = $late_fine;
+        $formDataArr['original_extra_fees'] = $extra_fees;
+      }
+
+      // =========================
+      // FETCH STUDENT DETAILS
+      // =========================
       $stuReceiptDetails = $GlobalInterfaceControllerObj->fetch_Global_Single_Student($formDataArr['student_id']);
 
-      if (!empty($_POST['receipt_row_id'])) {
+      // =========================
+      // COURSE FEE SELECTION (FIXED)
+      // =========================
+      $course_fee = isset($stuReceiptDetails->stu_course_fees) && $stuReceiptDetails->stu_course_fees !== ''
+        ? (int)$stuReceiptDetails->stu_course_fees
+        : (int)$stuReceiptDetails->course_default_fees;
 
-        if (!empty($stuReceiptDetails->stu_course_fees)) {
-          $course_due_fees = (int)$stuReceiptDetails->stu_course_fees - (int)$stuReceiptDetails->stu_course_discount - (int)$stuReceiptDetails->course_fees_paid - (int)$stuReceiptDetails->advanced_fees - (int)$stuReceiptDetails->fees_paid_before_dr + (int)$receiptDetailArr->receipt_amount;
-        } else {
-          $course_due_fees = (int)$stuReceiptDetails->course_default_fees - (int)$stuReceiptDetails->stu_course_discount - (int)$stuReceiptDetails->course_fees_paid - (int)$stuReceiptDetails->advanced_fees - (int)$stuReceiptDetails->fees_paid_before_dr + (int)$receiptDetailArr->receipt_amount;
-        }
-      } else {
+      // =========================
+      // CALCULATE DUE FEES
+      // =========================
+      $course_due_fees = $course_fee
+        - (int)$stuReceiptDetails->stu_course_discount
+        - (int)$stuReceiptDetails->course_fees_paid
+        - (int)$stuReceiptDetails->advanced_fees
+        - (int)$stuReceiptDetails->fees_paid_before_dr;
 
-        if (!empty($stuReceiptDetails->stu_course_fees)) {
-          $course_due_fees = (int)$stuReceiptDetails->stu_course_fees - (int)$stuReceiptDetails->stu_course_discount - (int)$stuReceiptDetails->course_fees_paid - (int)$stuReceiptDetails->advanced_fees - (int)$stuReceiptDetails->fees_paid_before_dr;
-        } else {
-          $course_due_fees = (int)$stuReceiptDetails->course_default_fees - (int)$stuReceiptDetails->stu_course_discount - (int)$stuReceiptDetails->course_fees_paid - (int)$stuReceiptDetails->advanced_fees - (int)$stuReceiptDetails->fees_paid_before_dr;
-        }
+      // Add back old receipt if updating
+      if (!empty($formDataArr['receipt_row_id'])) {
+        $course_due_fees += (int)$receiptDetailArr->receipt_amount;
       }
 
-      if ($formDataArr['receipt_amount'] > $course_due_fees) {
-        echo json_encode(array('check' => 'failure', 'message' => 'Receipt amount is greater than due course fees!'));
-        exit;
-      } elseif ($course_due_fees == 0 && $formDataArr["category_id"] != 109501) {
-        echo json_encode(array('check' => 'failure', 'message' => 'This student has cleared their fees!'));
+      // Prevent negative
+      $course_due_fees = max(0, $course_due_fees);
+
+      // =========================
+      // VALIDATION
+      // =========================
+      if ($course_due_fees == 0 && $formDataArr["category_id"] != 109501) {
+        echo json_encode(['check' => 'failure', 'message' => 'This student has cleared their fees!']);
         exit;
       }
 
-      //Fetching student detail to check if this is a valid action
+      if ($receipt_amount <= 0) {
+        echo json_encode(['check' => 'failure', 'message' => 'Invalid receipt amount!']);
+        exit;
+      }
+
+      if ($receipt_amount > $course_due_fees) {
+        echo json_encode(['check' => 'failure', 'message' => 'Receipt amount is greater than due course fees!']);
+        exit;
+      }
+
+      // =========================
+      // FRANCHISE PERMISSION CHECK
+      // =========================
       if ($_SESSION['user_type'] == "franchise") {
-        $studentDetailArr =  $GlobalInterfaceControllerObj->fetch_Detail_Single_Student($formDataArr['student_id']);
+        $studentDetailArr = $GlobalInterfaceControllerObj->fetch_Detail_Single_Student($formDataArr['student_id']);
 
         if ($studentDetailArr->franchise_id != $_SESSION['user_id']) {
-          echo json_encode(array('check' => 'failure', 'message' => "You don't have the permission to perform this action!"));
+          echo json_encode(['check' => 'failure', 'message' => "You don't have the permission to perform this action!"]);
           exit;
         }
       }
 
-      if (!empty($formDataArr['extra_fees'])) {
-        $formDataArr['extra_fees_description'] = mysqli_real_escape_string(DB::$WRITELINK, trim($_POST['extra_fees_description']));
-      } else {
-        $formDataArr['extra_fees_description'] = null;
-      }
+      // =========================
+      // EXTRA FEES DESCRIPTION
+      // =========================
+      $formDataArr['extra_fees_description'] = !empty($extra_fees)
+        ? mysqli_real_escape_string(DB::$WRITELINK, trim($_POST['extra_fees_description']))
+        : null;
 
+      // =========================
+      // EDIT DESCRIPTION LOGIC (UPDATE ONLY)
+      // =========================
       if (!empty($formDataArr['receipt_row_id'])) {
 
-        $receipt_edit_desc = array();
+        $receipt_edit_desc = [];
 
-        $current_receipt_amount = $receiptDetailArr->receipt_amount;
-        $current_late_fine = $receiptDetailArr->late_fine;
-        $current_extra_fees = $receiptDetailArr->extra_fees;
+        // ORIGINAL VALUES (fixed reference)
+        $original_receipt_amount = (int)$receiptDetailArr->og_receipt_amount;
+        $original_late_fine = (int)$receiptDetailArr->og_late_fine;
+        $original_extra_fees = (int)$receiptDetailArr->og_extra_fees;
 
-        $updated_receipt_amount = !empty($formDataArr['receipt_amount']) ? $formDataArr['receipt_amount'] : 0;
-        $updated_late_fine = !empty($formDataArr['late_fine']) ? $formDataArr['late_fine'] : 0;
-        $updated_extra_fees = !empty($formDataArr['extra_fees']) ? $formDataArr['extra_fees'] : 0;
-
-        //echo $updated_receipt_amount."***".$updated_late_fine."***".$updated_extra_fees;exit;
-
-
-        if ($updated_receipt_amount < $current_receipt_amount) {
-          $receipt_edit_desc[0] = "Receipt amount reduced from Rs. " . $current_receipt_amount . " to Rs. " . $updated_receipt_amount . ".";
+        // =========================
+        // RECEIPT AMOUNT
+        // =========================
+        if ($receipt_amount < $original_receipt_amount) {
+          $receipt_edit_desc[] = "Receipt amount reduced from Rs. $original_receipt_amount to Rs. $receipt_amount.";
         }
 
-        if ($updated_late_fine < $current_late_fine) {
-          $receipt_edit_desc[1] = "Late fine reduced from Rs. " . $current_late_fine . " to Rs. " . $updated_late_fine . ".";
+        // =========================
+        // LATE FINE
+        // =========================
+        if ($late_fine < $original_late_fine) {
+          $receipt_edit_desc[] = "Late fine reduced from Rs. $original_late_fine to Rs. $late_fine.";
         }
 
-        if ($updated_extra_fees < $current_extra_fees) {
-          $receipt_edit_desc[2] = "Additional fine reduced from Rs. " . $current_extra_fees . " to Rs. " . $updated_extra_fees . ".";
+        // =========================
+        // EXTRA FEES
+        // =========================
+        if ($extra_fees < $original_extra_fees) {
+          $receipt_edit_desc[] = "Additional fees reduced from Rs. $original_extra_fees to Rs. $extra_fees.";
         }
 
-        if (!empty($receipt_edit_desc) || $receiptDetailArr->verified_status == '0') {
-          $formDataArr['verified_status'] = '0';
-        } else {
-          $formDataArr['verified_status'] = '1';
-        }
+        // =========================
+        // VERIFIED STATUS
+        // =========================
+        $formDataArr['verified_status'] = !empty($receipt_edit_desc) ? '0' : '1';
 
-        if (!empty($receipt_edit_desc)) {
-          $formDataArr['edit_description'] = serialize(array_values($receipt_edit_desc));
-        } else {
-          if ($receiptDetailArr->verified_status == '1') {
-            $formDataArr['edit_description'] = serialize(array_values($receipt_edit_desc));
-          } else {
-            $formDataArr['edit_description'] = $receiptDetailArr->edit_description;
-          }
-        }
+        // =========================
+        // EDIT DESCRIPTION
+        // =========================
+        $formDataArr['edit_description'] = !empty($receipt_edit_desc)
+          ? serialize($receipt_edit_desc)
+          : null; // cleared if restored
       }
-
-      //print_r($formDataArr);exit;
 
       //Call manage receipt hotel method
       $returnArr = $GlobalInterfaceControllerObj->manage_Student_Receipt($formDataArr);
@@ -995,31 +1039,23 @@ switch ($action) {
           //Create student receipt pdf
           $receiptPdfRslt = $GlobalLibraryHandlerObj->createStudentReceiptPdf($receipt_id);
 
-          //Fetching student receipt detail
-          $studentReceiptData = $GlobalInterfaceControllerObj->fetch_Single_Receipt_Data($receipt_id);
-
           //Configuring email param array
-          $emailParamArr['invoice_date']  = date('jS F, Y', time());
-          $emailParamArr['receiver_name'] = $studentReceiptData->stu_name;
-          $emailParamArr['receiver_email'] = $studentReceiptData->stu_email;
-          $emailParamArr['stu_phone'] = $studentReceiptData->stu_phone;
-          $emailParamArr['stu_id'] = $studentReceiptData->stu_id;
+          $emailParamArr['receiver_name'] = $stuReceiptDetails->stu_name;
+          $emailParamArr['receiver_email'] = $stuReceiptDetails->stu_email;
 
-          $emailParamArr['course'] = $studentReceiptData->course_title;
-          $emailParamArr['franchise'] = $studentReceiptData->center_name;
+          //$emailParamArr['receipt_season'] = date('Y', time());
+          //$emailParamArr['receipt_status'] = ucfirst($receiptDetails->receipt_status);
+          //$emailParamArr['email_code'] = "student-receipt-invoice";
 
-          $emailParamArr['receipt_id'] = $studentReceiptData->receipt_id;
-          $emailParamArr['receipt_season'] = $receipt_season;
-          $emailParamArr['receipt_status'] = ucfirst($studentReceiptData->receipt_status);
-          $emailParamArr['receipt_amount'] = '<i class="fa fa-inr" aria-hidden="true"></i> ' . $studentReceiptData->receipt_amount;
-
-          if ($formDataArr['receipt_pdf'] !== null) {
-            $emailParamArr['attachment_path'] = USER_UPLOAD_DIR . $dir . '/' . $formDataArr['receipt_pdf'];
+          if ($receiptPdfRslt['file_upload_dir'] !== null) {
+            $emailParamArr['attachment_path'] = $receiptPdfRslt['file_upload_dir'];
           } else {
             $emailParamArr['attachment_path'] = null;
           }
+          $emailReturnParamArr['attachment_type'] = "dynamic";
 
-          $emailParamArr['email_code'] = 'student-monthly-receipt-invoice';
+          $emailParamArr['email_subject'] = "Student Monthly Receipt Invoice";
+          $emailParamArr['email_template'] = $receiptPdfRslt['email_template'];
           //print_r($emailParamArr);exit;
           $sendMailResult = $GlobalLibraryHandlerObj->php_mailer_send_mail($emailParamArr);
 
@@ -3143,7 +3179,7 @@ switch ($action) {
         $dbFilePath = SITE_BACKUP_DIR . 'theaimgcsm_' . date('Y-m-d_H-i-s') . '_' . time() . '_db_backup.sql';
 
         //Upload file path
-        $uploadsFilePath = SITE_BACKUP_DIR . 'uploads_' . date('Y-m-d_H-i-s') .'_'. time(). '_backup.zip';
+        $uploadsFilePath = SITE_BACKUP_DIR . 'uploads_' . date('Y-m-d_H-i-s') . '_' . time() . '_backup.zip';
 
         //Creating database backup file 
         $dbFileCreated = $GlobalLibraryHandlerObj->createDBBak($dbFilePath);
@@ -3224,7 +3260,7 @@ switch ($action) {
               $newBackupCount = intval($backupCount + 1);
               setcookie($cookie_name, $newBackupCount, time() + (86400 * 1), "/");
             }
-            
+
             $returnArr = array('check' => 'success', "message" => "Backup job is successfully queued!");
           } else {
             $returnArr = array('check' => 'failure', "message" => "Something went wrong, please try later!");

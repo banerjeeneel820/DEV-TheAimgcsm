@@ -339,26 +339,78 @@ class GlobalInterfaceController
 
    public function fetch_Global_Franchise($record_status = 'active')
    {
+      $params = [];
+      $where = [];
 
-      $sql = "SELECT fran.*,COUNT(DISTINCT stu.id) as enrolled_student_count FROM " . DB_AIMGCSM . "." . TABLEPREFIX . "franchise fran LEFT JOIN " . DB_AIMGCSM . "." . TABLEPREFIX . "students stu ON fran.id = stu.franchise_id  WHERE fran.record_status = '$record_status' GROUP BY fran.id ORDER BY COUNT(DISTINCT stu.id) DESC";
+      // Filter
+      $where[] = "fran.record_status = ?";
+      $params[] = $record_status;
 
-      //echo $sql;exit();
+      $whereSql = "WHERE " . implode(" AND ", $where);
 
-      $resultArr = $this->conn->global_Fetch_All_DB($sql);
+      // Pre-aggregated student count (better performance)
+      $studentCountSubquery = "
+        SELECT 
+            franchise_id,
+            COUNT(*) AS enrolled_student_count
+        FROM " . DB_AIMGCSM . "." . TABLEPREFIX . "students
+        GROUP BY franchise_id
+    ";
 
-      return $resultArr;
+      $sql = "
+        SELECT 
+            fran.*,
+            IFNULL(stu_count.enrolled_student_count, 0) AS enrolled_student_count
+
+        FROM " . DB_AIMGCSM . "." . TABLEPREFIX . "franchise fran
+
+        LEFT JOIN ($studentCountSubquery) stu_count
+            ON fran.id = stu_count.franchise_id
+
+        $whereSql
+
+        ORDER BY enrolled_student_count DESC
+    ";
+
+      return $this->conn->global_Fetch_All_DB($sql, $params);
    }
 
    public function fetch_Global_Course($record_status = 'active')
    {
+      $params = [];
+      $where = [];
 
-      $sql = "SELECT crs.*, COUNT(DISTINCT stu.id) as no_of_stu_enrld FROM " . DB_AIMGCSM . "." . TABLEPREFIX . "course crs LEFT JOIN " . DB_AIMGCSM . "." . TABLEPREFIX . "students stu ON crs.id = stu.course_id WHERE crs.record_status = '$record_status' GROUP BY crs.id  ORDER BY COUNT(DISTINCT stu.id) DESC";
+      // Filter
+      $where[] = "crs.record_status = ?";
+      $params[] = $record_status;
 
-      //echo $sql;exit();
+      $whereSql = "WHERE " . implode(" AND ", $where);
 
-      $resultArr = $this->conn->global_Fetch_All_DB($sql);
+      // Pre-aggregated student count
+      $studentCountSubquery = "
+         SELECT 
+               course_id,
+               COUNT(*) AS no_of_stu_enrld
+         FROM " . DB_AIMGCSM . "." . TABLEPREFIX . "students
+         GROUP BY course_id
+      ";
 
-      return $resultArr;
+      $sql = "
+         SELECT 
+               crs.*,
+               IFNULL(stu_count.no_of_stu_enrld, 0) AS no_of_stu_enrld
+
+         FROM " . DB_AIMGCSM . "." . TABLEPREFIX . "course crs
+
+         LEFT JOIN ($studentCountSubquery) stu_count
+               ON crs.id = stu_count.course_id
+
+         $whereSql
+
+         ORDER BY no_of_stu_enrld DESC
+      ";
+
+      return $this->conn->global_Fetch_All_DB($sql, $params);
    }
 
    public function fetch_Global_Receipt($dataArr = [])
@@ -668,7 +720,7 @@ class GlobalInterfaceController
                COUNT(id) AS receipt_count,
                SUM(receipt_amount) AS total_paid
          FROM " . DB_AIMGCSM . "." . TABLEPREFIX . "student_receipts
-         GROUP BY stu_id
+         WHERE record_status = 'active' GROUP BY stu_id
       ";
 
       $sql = "
@@ -2197,32 +2249,86 @@ class GlobalInterfaceController
 
    public function manage_Student_Receipt($receiptDataArr)
    {
+      $receipt_row_id = $receiptDataArr['receipt_row_id'] ?? null;
 
-      $receipt_row_id = $receiptDataArr['receipt_row_id'];
-      $receipt_id = $receiptDataArr['receipt_id'];
-
-      $student_id = $receiptDataArr['student_id'];
-      $category_id = $receiptDataArr['category_id'];
-
-      $receipt_amount = $receiptDataArr['receipt_amount'];
-      $record_status = $receiptDataArr['record_status'];
-
-      $late_fine = $receiptDataArr['late_fine'];
-      $extra_fees = $receiptDataArr['extra_fees'];
-      $extra_fees_description = $receiptDataArr['extra_fees_description'];
-
-      $verified_status = $receiptDataArr['verified_status'];
-      $edit_description = $receiptDataArr['edit_description'];
+      // Common fields
+      $params = [];
 
       if (!empty($receipt_row_id)) {
-         $sql = "UPDATE " . DB_AIMGCSM . "." . TABLEPREFIX . "student_receipts SET `category_id` = '$category_id',`receipt_amount` = '$receipt_amount', `late_fine` = '$late_fine', `extra_fees` = '$extra_fees', `extra_fees_description` = '$extra_fees_description', `record_status` = '$record_status', `verified_status` = '$verified_status', `edit_description` = '$edit_description', `updated_at` = now() WHERE `id`='$receipt_row_id'";
+
+         // =========================
+         // UPDATE
+         // =========================
+         $sql = "UPDATE " . DB_AIMGCSM . "." . TABLEPREFIX . "student_receipts 
+                SET 
+                    category_id = ?,
+                    receipt_amount = ?,
+                    late_fine = ?,
+                    extra_fees = ?,
+                    extra_fees_description = ?,
+                    record_status = ?,
+                    verified_status = ?,
+                    edit_description = ?,
+                    updated_at = NOW()
+                WHERE id = ?";
+
+         $params = [
+            (int)$receiptDataArr['category_id'],
+            (int)$receiptDataArr['receipt_amount'],
+            (int)$receiptDataArr['late_fine'],
+            (int)$receiptDataArr['extra_fees'],
+            $receiptDataArr['extra_fees_description'] ?? null,
+            $receiptDataArr['record_status'],
+            $receiptDataArr['verified_status'],
+            $receiptDataArr['edit_description'],
+            (int)$receipt_row_id
+         ];
       } else {
-         $sql = "INSERT INTO " . DB_AIMGCSM . "." . TABLEPREFIX . "student_receipts SET `category_id` = '$category_id',`stu_id` = '$student_id', `receipt_id` = '$receipt_id', `receipt_amount` = '$receipt_amount', `late_fine` = '$late_fine', `extra_fees` = '$extra_fees', `extra_fees_description` = '$extra_fees_description', `record_status` = '$record_status',`created_at`= now()";
+
+         // =========================
+         // INSERT
+         // =========================
+         $sql = "INSERT INTO " . DB_AIMGCSM . "." . TABLEPREFIX . "student_receipts 
+                (
+                    category_id,
+                    stu_id,
+                    receipt_id,
+                    receipt_amount,
+                    late_fine,
+                    extra_fees,
+                    extra_fees_description,
+                    record_status,
+                    og_receipt_amount,
+                    og_late_fine,
+                    og_extra_fees,
+                    created_at
+                )
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW())";
+
+         $params = [
+            (int)$receiptDataArr['category_id'],
+            $receiptDataArr['student_id'],
+            $receiptDataArr['receipt_id'],
+            (int)$receiptDataArr['receipt_amount'],
+            (int)$receiptDataArr['late_fine'],
+            (int)$receiptDataArr['extra_fees'],
+            $receiptDataArr['extra_fees_description'] ?? null,
+            $receiptDataArr['record_status'],
+            (int)$receiptDataArr['original_receipt_amount'],
+            (int)$receiptDataArr['original_late_fine'],
+            (int)$receiptDataArr['original_extra_fees']
+         ];
       }
 
-      //echo $sql;exit;   
+      // =========================
+      // DEBUG (OPTIONAL)
+      // =========================
+      // echo $this->debugQuery($sql, $params); exit;
 
-      $resultArr = $this->conn->global_CRUD_DB($sql);
+      // =========================
+      // EXECUTE
+      // =========================
+      $resultArr = $this->conn->global_CRUD_DB($sql, $params);
 
       return $resultArr;
    }
@@ -2402,23 +2508,28 @@ class GlobalInterfaceController
 
    public function fetch_Global_Single_Student($student_id, $receipt_timestamp = null)
    {
+      $receiptParams = [];
+      $whereParams = [];
       $params = [];
 
-      // ✅ Decide condition in PHP (better than OR)
-      if (is_numeric($student_id)) {
-         $where_clause = "stu.id = ?";
-         $params[] = $student_id;
-      } else {
-         $where_clause = "stu.stu_id = ?";
-         $params[] = $student_id;
-      }
-
-      // ✅ Receipt subquery condition
+      // Receipt
       $receipt_condition = "";
       if (!empty($receipt_timestamp)) {
          $receipt_condition = "WHERE created_at <= ?";
-         $params[] = $receipt_timestamp;
+         $receiptParams[] = $receipt_timestamp;
       }
+
+      // Student
+      if (is_numeric($student_id)) {
+         $where_clause = "stu.id = ?";
+         $whereParams[] = $student_id;
+      } else {
+         $where_clause = "stu.stu_id = ?";
+         $whereParams[] = $student_id;
+      }
+
+      // Final order must match SQL
+      $params = array_merge($receiptParams, $whereParams);
 
       $sql = "SELECT 
                    stu.*,

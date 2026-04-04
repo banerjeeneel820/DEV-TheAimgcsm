@@ -2388,130 +2388,130 @@ class GlobalLibraryHandler
       $file_upload_dir =  USER_UPLOAD_DIR . 'runtime_upload/' . "Receipt_" . $receiptDetailArr->receipt_id . '.pdf';
       $file_url = USER_UPLOAD_URL . 'runtime_upload/' . "Receipt_" . $receiptDetailArr->receipt_id . '.pdf';
 
+      $pdfParamArr = array();
+
+      if ($receiptDetailArr->category == 'Admission Fees') {
+        $pdfParamArr['email_code'] = 'student-admission-receipt-invoice';
+      } elseif ($receiptDetailArr->category == 'Tuition Fees') {
+        $pdfParamArr['email_code'] = 'student-monthly-receipt-invoice';
+      } else {
+        $pdfParamArr['email_code'] = 'student-other-receipt-invoice';
+      }
+
+      $pdfParamArr['receiver_name'] = $studentDetails->stu_name;
+      $pdfParamArr['receiver_email'] = $studentDetails->stu_email;
+      $pdfParamArr['student_contact'] = $studentDetails->stu_phone;
+      $pdfParamArr['site_addr'] = FRONT_SITE_URL;
+      //fetching site setting detail
+      $siteSettingArr = $this->fetchSiteSettingDetail();
+      $pdfParamArr['company_name'] = $siteSettingArr->title;
+
+      //configure company logo        
+      $pdfParamArr['company_logo'] = USER_UPLOAD_URL . 'others/' . $siteSettingArr->logo;
+      $pdfParamArr['company_signature'] = USER_UPLOAD_URL . 'others/' . $siteSettingArr->signature;
+
+      $pdfParamArr['company_contact_email'] = $studentDetails->fran_email; //$siteSettingArr->contact_email;
+      $pdfParamArr['company_contact_no'] = $studentDetails->fran_phone; //$siteSettingArr->phone;
+      $pdfParamArr['company_address'] = $studentDetails->fran_address; //$siteSettingArr->address;
+
+      //fetching required email template detail
+      $emailTemplateArr = $this->fetchEmailTemplateDetail($pdfParamArr['email_code']);
+      $pdfParamArr['email_subject'] = $emailTemplateArr->subject;
+      $pdfParamArr['sender_name'] = $emailTemplateArr->from_name;
+      $pdfParamArr['sender_email'] = $emailTemplateArr->from_email;
+      $pdfParamArr['cc_email'] = $emailTemplateArr->cc_email;
+      $pdfParamArr['email_template'] = $emailTemplateArr->template;
+
+      if (!empty($studentDetails->stu_course_fees)) {
+        $courseFees = $studentDetails->stu_course_fees;
+      } else {
+        $courseFees = $studentDetails->course_fees;
+      }
+
+      if (!empty($receiptDetailArr->late_fine)) {
+        $late_fees = $receiptDetailArr->late_fine;
+      } else {
+        $late_fees = (int)0;
+      }
+
+      if (!empty($receiptDetailArr->extra_fees)) {
+        $extra_fees = $receiptDetailArr->extra_fees;
+      } else {
+        $extra_fees = (int)0;
+      }
+
+      if (!empty($studentDetails->stu_course_discount)) {
+        $discount_fees = $studentDetails->stu_course_discount;
+      } else {
+        $discount_fees = (int)0;
+      }
+
+      if (!empty($studentDetails->advanced_fees)) {
+        $advanceFeesTitle = "Advance Fees submited on " . date('jS F, Y', strtotime($studentDetails->advance_fees_date));
+        $advanced_fees = $studentDetails->advanced_fees;
+      } else {
+        $advanceFeesTitle = "No advance fees is available!";
+        $advanced_fees = (int)0;
+      }
+
+      $receiptAmount = round((int)$receiptDetailArr->receipt_amount + (int)$late_fees + (int)$extra_fees);
+
+      //$totalFeesCleared = round((int)$receiptDetailArr->course_fees_paid + (int)$receiptDetailArr->receipt_amount);
+      $dueAmount = round((int)$courseFees - (int)$studentDetails->fees_paid_before_dr - (int)$studentDetails->course_fees_paid - (int)$discount_fees - (int)$advanced_fees);
+
+      $receiptTitle = "Receipt of " . date('jS F, Y', strtotime(date('Y-m-d')));
+
+      $net_course_fees = (int)$courseFees - (int)$studentDetails->stu_course_discount;
+      $total_course_fees_paid = (int)$studentDetails->course_fees_paid + (int)$advanced_fees;
+
+      //create a list of the variables to be swapped in the html template
+      $swap_var = array(
+        "{SITE_ADDR}" => !empty($pdfParamArr['site_addr']) ? $pdfParamArr['site_addr'] : "Not available!",
+        "{COMPANY_NAME}" => !empty($pdfParamArr['company_name']) ? $pdfParamArr['company_name'] : "Not available!",
+        "{COMPANY_EMAIL}" => !empty($pdfParamArr['company_contact_email']) ? $pdfParamArr['company_contact_email'] : "Not available!",
+        "{CONTACT_NO}" => !empty($pdfParamArr['company_contact_no']) ? $pdfParamArr['company_contact_no'] : "Not available!",
+        "{COMPANY_ADDRESS}" => !empty($pdfParamArr['company_address']) ? $pdfParamArr['company_address'] : "Not available!",
+        "{COMPANY_LOGO}" => $pdfParamArr['company_logo'],
+        "{COMPANY_SIGNATURE}" => $pdfParamArr['company_signature'],
+        "{EMAIL_TITLE}" => !empty($pdfParamArr['email_subject']) ? $pdfParamArr['email_subject'] : "Not available!",
+        "{INVOICE_DATE}" => date('jS F, Y', strtotime($receiptDetailArr->created_at)),
+        "{STUDENT_NAME}" => !empty($pdfParamArr['receiver_name']) ? $pdfParamArr['receiver_name'] : "Not available!",
+        "{STUDENT_CONTACT}" => !empty($pdfParamArr['student_contact']) ? $pdfParamArr['student_contact'] : "Not available!",
+        "{STUDENT_ID}" => $studentDetails->stu_id,
+        "{CONVERSION_STATUS}" => $studentDetails->conversion_status == 1 ? 'Converted' : 'Recent',
+        "{COURSE}" => $studentDetails->course_title,
+        "{FRANCHISE}" => $studentDetails->center_name,
+        "{RECEIPT_TITLE}" => $receiptTitle,
+        "{RECEIPT_ID}" => $receiptDetailArr->receipt_id,
+        "{RECEIPT_TYPE}" => ucfirst($receiptDetailArr->category),
+        "{RECEIPT_AMOUNT}" => !empty($receiptDetailArr->receipt_amount) ? $receiptDetailArr->receipt_amount : "Not available!",
+        "{LATE_FEES}" => !empty($late_fees) ? $late_fees : "Not available!",
+        "{ADVANCE_FEES_TITLE}" => $advanceFeesTitle,
+        "{ADVANCE_FEES}" => $advanced_fees,
+        "{FEES_PAID_BFR_DR}" => !empty($studentDetails->fees_paid_before_dr) ? $studentDetails->fees_paid_before_dr : "0",
+        "{EXTRA_FEES}" => !empty($extra_fees) ? $extra_fees : "0",
+        "{EXTRA_FEES_DESC}" => !empty($receiptDetailArr->extra_fees_description) ? $receiptDetailArr->extra_fees_description : "No Additional Fees Applied",
+        "{DUE_BALANCE}" => !empty($dueAmount) ? $dueAmount : (int)0,
+        "{TOTAL_AMOUNT}" => !empty($receiptAmount) ? $receiptAmount : "Not available!",
+        "{COURSE_FEES}" => !empty($courseFees) ? $courseFees : "Not available!",
+        "{DISCOUNT_AMOUNT}" => !empty($studentDetails->stu_course_discount) ? $studentDetails->stu_course_discount : "Not available!",
+        "{NET_COURSE_FEES}" => !empty($net_course_fees) ? $net_course_fees : "Not available!",
+        "{COURSE_FEES_PAID}" => !empty($total_course_fees_paid) ? $total_course_fees_paid : "Not available!"
+      );
+
+      //print_r($swap_var);exit;
+
+      //search and replace for predefined variables, like SITE_ADDR, {NAME}, {lOGO}, {CUSTOM_URL} etc
+      foreach (array_keys($swap_var) as $key) {
+        if (strlen($key) > 2 && trim($swap_var[$key]) != '') {
+          $pdfParamArr['email_template'] = str_replace($key, $swap_var[$key], $pdfParamArr['email_template']);
+        }
+      }
+      //echo $pdfParamArr['email_template'];exit;
+
+      $html_code = $pdfParamArr['email_template'];
+
       if (!file_exists($file_upload_dir)) {
-
-        $pdfParamArr = array();
-
-        if ($receiptDetailArr->category == 'Admission Fees') {
-          $pdfParamArr['email_code'] = 'student-admission-receipt-invoice';
-        } elseif ($receiptDetailArr->category == 'Tuition Fees') {
-          $pdfParamArr['email_code'] = 'student-monthly-receipt-invoice';
-        } else {
-          $pdfParamArr['email_code'] = 'student-other-receipt-invoice';
-        }
-
-        $pdfParamArr['receiver_name'] = $studentDetails->stu_name;
-        $pdfParamArr['receiver_email'] = $studentDetails->stu_email;
-        $pdfParamArr['student_contact'] = $studentDetails->stu_phone;
-        $pdfParamArr['site_addr'] = FRONT_SITE_URL;
-        //fetching site setting detail
-        $siteSettingArr = $this->fetchSiteSettingDetail();
-        $pdfParamArr['company_name'] = $siteSettingArr->title;
-
-        //configure company logo        
-        $pdfParamArr['company_logo'] = USER_UPLOAD_URL . 'others/' . $siteSettingArr->logo;
-        $pdfParamArr['company_signature'] = USER_UPLOAD_URL . 'others/' . $siteSettingArr->signature;
-
-        $pdfParamArr['company_contact_email'] = $studentDetails->fran_email; //$siteSettingArr->contact_email;
-        $pdfParamArr['company_contact_no'] = $studentDetails->fran_phone; //$siteSettingArr->phone;
-        $pdfParamArr['company_address'] = $studentDetails->fran_address; //$siteSettingArr->address;
-
-        //fetching required email template detail
-        $emailTemplateArr = $this->fetchEmailTemplateDetail($pdfParamArr['email_code']);
-        $pdfParamArr['email_subject'] = $emailTemplateArr->subject;
-        $pdfParamArr['sender_name'] = $emailTemplateArr->from_name;
-        $pdfParamArr['sender_email'] = $emailTemplateArr->from_email;
-        $pdfParamArr['cc_email'] = $emailTemplateArr->cc_email;
-        $pdfParamArr['email_template'] = $emailTemplateArr->template;
-
-        if (!empty($studentDetails->stu_course_fees)) {
-          $courseFees = $studentDetails->stu_course_fees;
-        } else {
-          $courseFees = $studentDetails->course_fees;
-        }
-
-        if (!empty($receiptDetailArr->late_fine)) {
-          $late_fees = $receiptDetailArr->late_fine;
-        } else {
-          $late_fees = (int)0;
-        }
-
-        if (!empty($receiptDetailArr->extra_fees)) {
-          $extra_fees = $receiptDetailArr->extra_fees;
-        } else {
-          $extra_fees = (int)0;
-        }
-
-        if (!empty($studentDetails->stu_course_discount)) {
-          $discount_fees = $studentDetails->stu_course_discount;
-        } else {
-          $discount_fees = (int)0;
-        }
-
-        if (!empty($studentDetails->advanced_fees)) {
-          $advanceFeesTitle = "Advance Fees submited on " . date('jS F, Y', strtotime($studentDetails->advance_fees_date));
-          $advanced_fees = $studentDetails->advanced_fees;
-        } else {
-          $advanceFeesTitle = "No advance fees is available!";
-          $advanced_fees = (int)0;
-        }
-
-        $receiptAmount = round((int)$receiptDetailArr->receipt_amount + (int)$late_fees + (int)$extra_fees);
-
-        //$totalFeesCleared = round((int)$receiptDetailArr->course_fees_paid + (int)$receiptDetailArr->receipt_amount);
-        $dueAmount = round((int)$courseFees - (int)$studentDetails->fees_paid_before_dr - (int)$studentDetails->course_fees_paid - (int)$discount_fees - (int)$advanced_fees);
-
-        $receiptTitle = "Receipt of " . date('jS F, Y', strtotime(date('Y-m-d')));
-
-        $net_course_fees = (int)$courseFees - (int)$studentDetails->stu_course_discount;
-        $total_course_fees_paid = (int)$studentDetails->course_fees_paid + (int)$advanced_fees;
-
-        //create a list of the variables to be swapped in the html template
-        $swap_var = array(
-          "{SITE_ADDR}" => !empty($pdfParamArr['site_addr']) ? $pdfParamArr['site_addr'] : "Not available!",
-          "{COMPANY_NAME}" => !empty($pdfParamArr['company_name']) ? $pdfParamArr['company_name'] : "Not available!",
-          "{COMPANY_EMAIL}" => !empty($pdfParamArr['company_contact_email']) ? $pdfParamArr['company_contact_email'] : "Not available!",
-          "{CONTACT_NO}" => !empty($pdfParamArr['company_contact_no']) ? $pdfParamArr['company_contact_no'] : "Not available!",
-          "{COMPANY_ADDRESS}" => !empty($pdfParamArr['company_address']) ? $pdfParamArr['company_address'] : "Not available!",
-          "{COMPANY_LOGO}" => $pdfParamArr['company_logo'],
-          "{COMPANY_SIGNATURE}" => $pdfParamArr['company_signature'],
-          "{EMAIL_TITLE}" => !empty($pdfParamArr['email_subject']) ? $pdfParamArr['email_subject'] : "Not available!",
-          "{INVOICE_DATE}" => date('jS F, Y', strtotime($receiptDetailArr->created_at)),
-          "{STUDENT_NAME}" => !empty($pdfParamArr['receiver_name']) ? $pdfParamArr['receiver_name'] : "Not available!",
-          "{STUDENT_CONTACT}" => !empty($pdfParamArr['student_contact']) ? $pdfParamArr['student_contact'] : "Not available!",
-          "{STUDENT_ID}" => $studentDetails->stu_id,
-          "{CONVERSION_STATUS}" => $studentDetails->conversion_status == 1 ? 'Converted' : 'Recent',
-          "{COURSE}" => $studentDetails->course_title,
-          "{FRANCHISE}" => $studentDetails->center_name,
-          "{RECEIPT_TITLE}" => $receiptTitle,
-          "{RECEIPT_ID}" => $receiptDetailArr->receipt_id,
-          "{RECEIPT_TYPE}" => ucfirst($receiptDetailArr->category),
-          "{RECEIPT_AMOUNT}" => !empty($receiptDetailArr->receipt_amount) ? $receiptDetailArr->receipt_amount : "Not available!",
-          "{LATE_FEES}" => !empty($late_fees) ? $late_fees : "Not available!",
-          "{ADVANCE_FEES_TITLE}" => $advanceFeesTitle,
-          "{ADVANCE_FEES}" => $advanced_fees,
-          "{FEES_PAID_BFR_DR}" => !empty($studentDetails->fees_paid_before_dr) ? $studentDetails->fees_paid_before_dr : "0",
-          "{EXTRA_FEES}" => !empty($extra_fees) ? $extra_fees : "0",
-          "{EXTRA_FEES_DESC}" => !empty($receiptDetailArr->extra_fees_description) ? $receiptDetailArr->extra_fees_description : "No Additional Fees Applied",
-          "{DUE_BALANCE}" => !empty($dueAmount) ? $dueAmount : (int)0,
-          "{TOTAL_AMOUNT}" => !empty($receiptAmount) ? $receiptAmount : "Not available!",
-          "{COURSE_FEES}" => !empty($courseFees) ? $courseFees : "Not available!",
-          "{DISCOUNT_AMOUNT}" => !empty($studentDetails->stu_course_discount) ? $studentDetails->stu_course_discount : "Not available!",
-          "{NET_COURSE_FEES}" => !empty($net_course_fees) ? $net_course_fees : "Not available!",
-          "{COURSE_FEES_PAID}" => !empty($total_course_fees_paid) ? $total_course_fees_paid : "Not available!"
-        );
-
-        //print_r($swap_var);exit;
-
-        //search and replace for predefined variables, like SITE_ADDR, {NAME}, {lOGO}, {CUSTOM_URL} etc
-        foreach (array_keys($swap_var) as $key) {
-          if (strlen($key) > 2 && trim($swap_var[$key]) != '') {
-            $pdfParamArr['email_template'] = str_replace($key, $swap_var[$key], $pdfParamArr['email_template']);
-          }
-        }
-        //echo $pdfParamArr['email_template'];exit;
-
-        $html_code = $pdfParamArr['email_template'];
 
         $dompdf = new Pdf();
         $dompdf->set_option('isRemoteEnabled', true);
@@ -2523,12 +2523,13 @@ class GlobalLibraryHandler
         $dompdf->render();
         $file = $dompdf->output();
         file_put_contents($file_upload_dir, $file);
-
-        //Returning generated pdf
-        $returnArr = array('check' => 'success', 'file_upload_dir' => $file_upload_dir, 'file_url' => $file_url);
-      } else {
-        $returnArr = array('check' => 'success', 'file_upload_dir' => $file_upload_dir, 'file_url' => $file_url);
+        
       }
+
+      //Returning file path and email template for student receipt
+      $returnArr = array('check' => 'success', 'email_template' => $pdfParamArr['email_template'], 
+      'file_upload_dir' => $file_upload_dir, 'file_url' => $file_url);
+      
     } else {
       $returnArr = array('check' => 'failure', 'message' => "You don't have the permission to perform this action!");
     }
