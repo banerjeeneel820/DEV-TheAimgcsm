@@ -1549,10 +1549,23 @@ class GlobalInterfaceController
 
    public function fetch_Receipt_Detail($receipt_id)
    {
+      $sql = "SELECT 
+                  rcpt.*,
+                  pc.name AS category
+               FROM " . DB_AIMGCSM . "." . TABLEPREFIX . "student_receipts rcpt
+               LEFT JOIN " . DB_AIMGCSM . "." . TABLEPREFIX . "parent_category pc 
+                  ON rcpt.category_id = pc.id
+               WHERE rcpt.id = ?
+               LIMIT 1";
 
-      $sql = "SELECT rcpt.*,pc.name as category FROM " . DB_AIMGCSM . "." . TABLEPREFIX . "student_receipts rcpt LEFT JOIN " . DB_AIMGCSM . "." . TABLEPREFIX . "parent_category pc ON rcpt.category_id = pc.id WHERE rcpt.id='$receipt_id'";
-      //echo $sql;exit(); 
-      $resultArr = $this->conn->global_Fetch_Single_DB($sql);
+      $params = [
+         (int)$receipt_id
+      ];
+
+      // Optional debug
+      // echo $this->debugQuery($sql, $params); exit;
+
+      $resultArr = $this->conn->global_Fetch_Single_DB($sql, $params);
 
       return $resultArr;
    }

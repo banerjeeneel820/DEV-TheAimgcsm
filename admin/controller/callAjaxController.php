@@ -1027,12 +1027,21 @@ switch ($action) {
 
         if (!empty($_POST['receipt_row_id'])) {
           $receipt_id = $formDataArr['receipt_row_id'];
+          $receiptDetails = $receiptDetailArr;
+
+          //Remove old receipt pdf if any update on the receipt amount
+          if(!empty($formDataArr['edit_description'])){
+            $file_upload_dir =  USER_UPLOAD_DIR . 'runtime_upload/' . "Receipt_" . $receiptDetails->receipt_id . '.pdf';
+
+            if (file_exists($file_upload_dir)) {
+              unlink($file_upload_dir);
+            }
+          }
         } else {
           $receipt_id = $returnArr['last_insert_id'];
+          //Receipt details
+          $receiptDetails = $GlobalInterfaceControllerObj->fetch_Single_Receipt_Data($receipt_id);
         }
-
-        //Receipt details
-        $receiptDetails = $GlobalInterfaceControllerObj->fetch_Single_Receipt_Data($receipt_id);
 
         if ($send_mail == "yes") {
 
@@ -1054,7 +1063,7 @@ switch ($action) {
           }
           $emailReturnParamArr['attachment_type'] = "dynamic";
 
-          $emailParamArr['email_subject'] = "Student Monthly Receipt Invoice";
+          $emailParamArr['email_subject'] = $receiptPdfRslt['email_subject'];
           $emailParamArr['email_template'] = $receiptPdfRslt['email_template'];
           //print_r($emailParamArr);exit;
           $sendMailResult = $GlobalLibraryHandlerObj->php_mailer_send_mail($emailParamArr);
@@ -2573,128 +2582,19 @@ switch ($action) {
 
           $deleteParam['row_id'] = $row_id;
 
-          switch ($type) {
+          $resultArr = $GlobalInterfaceControllerObj->fetch_Global_Single_Data($type, $row_id);
 
-            case 'franchise':
-              //Call update global carousel method
-              $GlobalLibraryHandlerObj->remove_File_From_Server($type, $row_id);
-              //Call delete current record method
-              $returnArr = $GlobalInterfaceControllerObj->delete_Global_Data($deleteParam);
+          //Call delete current record method
+          $returnArr = $GlobalInterfaceControllerObj->delete_Global_Data($deleteParam);
 
-              if ($returnArr["responseArr"]["check"] == "success") {
-                $returnArr = array("check" => "success", "message" => "Query has been successfully executed!");
-              }
-              break;
+          if ($returnArr["responseArr"]["check"] == "success") {
+             
+             //Call update global carousel method
+             $GlobalLibraryHandlerObj->remove_File_From_Server($type, $resultArr);
 
-            case 'course':
-              //Call update global carousel method
-              $GlobalLibraryHandlerObj->remove_File_From_Server($type, $row_id);
-              //Call delete current record method
-              $returnArr = $GlobalInterfaceControllerObj->delete_Global_Data($deleteParam);
-
-              if ($returnArr["responseArr"]["check"] == "success") {
-                $returnArr = array("check" => "success", "message" => "Query has been successfully executed!");
-              }
-              break;
-
-            case 'student':
-              //Call update global carousel method
-              $GlobalLibraryHandlerObj->remove_File_From_Server($type, $row_id);
-              //Call update global carousel method
-              $returnArr = $GlobalInterfaceControllerObj->delete_Global_Data($deleteParam);
-
-              if ($returnArr["responseArr"]["check"] == "success") {
-                $returnArr = array("check" => "success", "message" => "Query has been successfully executed!");
-              }
-              break;
-
-            case 'temp_student':
-              //Call update global carousel method
-              $returnArr = $GlobalInterfaceControllerObj->delete_Global_Data($deleteParam);
-
-              if ($returnArr["responseArr"]["check"] == "success") {
-                $returnArr = array("check" => "success", "message" => "Query has been successfully executed!");
-              }
-              break;
-
-            case 'gallery':
-              //Call update global carousel method
-              $GlobalLibraryHandlerObj->remove_File_From_Server($type, $row_id);
-              //Call update global carousel method
-              $returnArr = $GlobalInterfaceControllerObj->delete_Global_Data($deleteParam);
-
-              if ($returnArr["responseArr"]["check"] == "success") {
-                $returnArr = array("check" => "success", "message" => "Query has been successfully executed!");
-              }
-              break;
-
-            case 'home_sliders':
-              //Call update global carousel method
-              $GlobalLibraryHandlerObj->remove_File_From_Server($type, $row_id);
-              //Call update global carousel method
-              $returnArr = $GlobalInterfaceControllerObj->delete_Global_Data($deleteParam);
-
-              if ($returnArr["responseArr"]["check"] == "success") {
-                $returnArr = array("check" => "success", "message" => "Query has been successfully executed!");
-              }
-              break;
-
-            case 'student_receipts':
-              //Call update global carousel method
-              $GlobalLibraryHandlerObj->remove_File_From_Server($type, $row_id);
-              $returnArr = $GlobalInterfaceControllerObj->delete_Global_Data($deleteParam);
-
-              if ($returnArr["responseArr"]["check"] == "success") {
-                $returnArr = array("check" => "success", "message" => "Query has been successfully executed!");
-              }
-
-            case 'parent_category':
-              //Call update global carousel method
-              $returnArr = $GlobalInterfaceControllerObj->delete_Global_Data($deleteParam);
-
-              if ($returnArr["responseArr"]["check"] == "success") {
-                $returnArr = array("check" => "success", "message" => "Query has been successfully executed!");
-              }
-              break;
-
-            case 'cities':
-              //Call update global carousel method
-              $returnArr = $GlobalInterfaceControllerObj->delete_Global_Data($deleteParam);
-
-              if ($returnArr["responseArr"]["check"] == "success") {
-                $returnArr = array("check" => "success", "message" => "Query has been successfully executed!");
-              }
-              break;
-
-            case 'email_template':
-              //Call update global carousel method
-              $returnArr = $GlobalInterfaceControllerObj->delete_Global_Data($deleteParam);
-
-              if ($returnArr["responseArr"]["check"] == "success") {
-                $returnArr = array("check" => "success", "message" => "Query has been successfully executed!");
-              }
-              break;
-
-            case 'news':
-              //Call update global carousel method
-              $GlobalLibraryHandlerObj->remove_File_From_Server($type, $row_id);
-              //Call update global carousel method
-              $returnArr = $GlobalInterfaceControllerObj->delete_Global_Data($deleteParam);
-
-              if ($returnArr["responseArr"]["check"] == "success") {
-                $returnArr = array("check" => "success", "message" => "Query has been successfully executed!");
-              }
-              break;
-
-            case 'enquiry':
-              //Call update global carousel method
-              $returnArr = $GlobalInterfaceControllerObj->delete_Global_Data($deleteParam);
-
-              if ($returnArr["responseArr"]["check"] == "success") {
-                $returnArr = array("check" => "success", "message" => "Query has been successfully executed!");
-              }
-              break;
+             $returnArr = array("check" => "success", "message" => "Query has been successfully executed!");
           }
+
         }
       } else {
         $returnArr = array("check" => "failure", "message" => "You haven't selected any data!");

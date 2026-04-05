@@ -81,7 +81,7 @@ if (!empty($_GET['actionType'])) {
 
 if (!empty($stu_id)) {
   $site_refresh_url = SITE_URL . '?route=view_receipts&stu_id=' . $stu_id;
-  $create_receipt_url = SITE_URL . '?route=view_receipts&actionType=create'.$extra_query_str;
+  $create_receipt_url = SITE_URL . '?route=view_receipts&actionType=create' . $extra_query_str;
 } else {
   $site_refresh_url = SITE_URL . '?route=view_receipts';
   $create_receipt_url = SITE_URL . '?route=view_receipts' . $extra_query_str . '&stu_err=1';
@@ -706,12 +706,12 @@ if (!empty($_GET['rcpt_id'])) {
                         $student_status = 'Course Complete';
                       }
 
-                      $total_receipt_amount = round( (int)$content->receipt_amount + (int)$content->late_fine + (int)$content->extra_fees);
+                      $total_receipt_amount = round((int)$content->receipt_amount + (int)$content->late_fine + (int)$content->extra_fees);
 
-                      if(!empty($studentDetails)){
+                      if (!empty($studentDetails)) {
                         $total_collection = round((int)$total_collection + (int)$content->receipt_amount);
-                      }else{
-                        $total_collection = round((int)$total_collection + (int)$total_receipt_amount); 
+                      } else {
+                        $total_collection = round((int)$total_collection + (int)$total_receipt_amount);
                       }
 
                       if (!empty($content->edit_description)) {
@@ -862,9 +862,7 @@ if (!empty($_GET['rcpt_id'])) {
                 </tbody>
                 <?php if (!empty($receiptListArr)) { ?>
                   <div class="alert alert-success text-center" role="alert">
-                    Total Collection of fees deposited by the students on <?= $rowCount ?>&nbsp;occasions : <a href="javascript:void(0);"
-                      id="fetchTotalCollectionReceipt" data-toggle="tooltip" data-placement="top" data-fstatus="pending"
-                      data-toggle="tooltip" data-placement="top" title="Fetch Total Collection Based on Selected Criteria"><i class="fa fa-eye-slash"></i>&nbsp;Reveal</a>
+                    Total Collection of fees deposited by the students on <?= $rowCount ?>&nbsp;occasions : <a href="javascript:void(0);" id="fetchTotalCollectionReceipt" data-toggle="tooltip" data-placement="top" data-fstatus="pending" data-toggle="tooltip" data-placement="top" title="Fetch Total Collection Based on Selected Criteria"><i class="fa fa-eye-slash"></i>&nbsp;Reveal</a>
                   </div>
                 <?php } ?>
               </table>
@@ -1307,7 +1305,7 @@ if (!empty($_GET['rcpt_id'])) {
           $('#manage_receipt').attr('disabled', false);
           return true;
         }
-      });
+    });
 
     $(document).on('keyup', '#extra_fees', function(event) {
 
@@ -1440,8 +1438,8 @@ if (!empty($_GET['rcpt_id'])) {
           contentType: false,
           processData: false,
           beforeSend: function() {
-            //$('.content_div_loader').addClass('sk-loading');
-            //$('#manage_receipt').attr('disabled',true);
+            $('.content_div_loader').addClass('sk-loading');
+            $('#manage_receipt').attr('disabled', true);
           },
           success: function(responseData) {
             var data = JSON.parse(responseData);
@@ -1570,10 +1568,10 @@ if (!empty($_GET['rcpt_id'])) {
     //Handling fetching total collection of receipt
     $(document).on('click', '#fetchTotalCollectionReceipt', function(event) {
       event.preventDefault();
-      
+
       var fetch_status = $(this).data('fstatus');
 
-      if(fetch_status == "pending"){
+      if (fetch_status == "pending") {
         var record_status = $('#record_status').val();
 
         var course_id = $('#course_id').val();
@@ -1583,7 +1581,7 @@ if (!empty($_GET['rcpt_id'])) {
         var receipt_season_start = $('#receipt_search_start').val();
         var receipt_season_end = $('#receipt_search_end').val();
         var created = $('#created').val();
-        
+
         var formData = {
           action: "fetchReceiptTotal",
           record_status: record_status,
@@ -1602,7 +1600,7 @@ if (!empty($_GET['rcpt_id'])) {
           showMethod: 'slideDown',
           timeOut: 2000,
         };
-      
+
         $.ajax({
           url: ajaxControllerHandler,
           method: 'POST',
@@ -1619,16 +1617,16 @@ if (!empty($_GET['rcpt_id'])) {
 
             if (result.check == 'success') {
 
-              if(student_id.length > 0){
+              if (student_id.length > 0) {
                 var total_collection = parseFloat(receiptData.receipt_amount);
-              }else{
+              } else {
                 var total_collection = (parseFloat(receiptData.receipt_amount) || 0) + (parseFloat(receiptData.late_fine) || 0) + (parseFloat(receiptData.extra_fees) || 0);
               }
               //Show success toast
               toastr.success(toastrText, 'Success!');
               $("#fetchTotalCollectionReceipt").data('fstatus', 'completed');
               $("#fetchTotalCollectionReceipt").html(`<i class="fa fa-inr"></i> ${total_collection}`);
-            }else{
+            } else {
               toastr.error(toastrText, 'Error!');
               $("#fetchTotalCollectionReceipt").data('fstatus', 'pending');
               $("#fetchTotalCollectionReceipt").html(`<i class="fa fa-eye-slash"></i>&nbsp;Reveal`);
@@ -1636,7 +1634,7 @@ if (!empty($_GET['rcpt_id'])) {
             return;
           }
         });
-      }  
+      }
     });
   });
 

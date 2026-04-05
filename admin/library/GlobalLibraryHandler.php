@@ -1909,9 +1909,8 @@ class GlobalLibraryHandler
     return $this->globalReturnArr;
   }
 
-  public function remove_File_From_Server($type, $row_id)
+  public function remove_File_From_Server($type, $resultArr)
   {
-    $resultArr = $this->GlobalInterfaceControllerObj->fetch_Global_Single_Data($type, $row_id);
 
     switch ($type) {
       case 'franchise':
@@ -1949,7 +1948,7 @@ class GlobalLibraryHandler
         break;
 
       case 'student_receipts':
-        $receiptPdfDir = USER_UPLOAD_DIR . 'receipt/' . $resultArr->receipt_pdf;
+        $receiptPdfDir =  USER_UPLOAD_DIR . 'runtime_upload/' . "Receipt_" . $resultArr->receipt_id . '.pdf';
         //unlinking files
         if ($receiptPdfDir && file_exists($receiptPdfDir)) {
           unlink($receiptPdfDir);
@@ -1973,12 +1972,17 @@ class GlobalLibraryHandler
         break;
 
       case 'news':
+        $featuredImageDir = USER_UPLOAD_DIR . $type . '/' . $resultArr->content;
         if ($featuredImageDir && file_exists($featuredImageDir)) {
           $newsPdfDir = USER_UPLOAD_DIR . $type . '/' . $resultArr->optional_pdf;
         }
         //Removing file from server
         unlink($newsPdfDir);
         break;
+      
+      default:
+        return true;  
+        
     }
     return true;
   }
@@ -2302,22 +2306,22 @@ class GlobalLibraryHandler
   public function php_mailer_send_mail($paramArr)
   {
     //print_r($paramArr);exit;
-    $emailReturnArr = $this->configure_email_body($paramArr);
+    //$emailReturnArr = $this->configure_email_body($paramArr);
     //print_r($emailReturnArr);exit;
 
     //Collecting necessary variables to configure send mail
-    $fromEmail = $emailReturnArr['sender_email'];
-    $fromName  = $emailReturnArr['sender_name'];
-    $toEmail   = $emailReturnArr['receiver_email'];
-    $toName    = $emailReturnArr['receiver_name'];
+    $fromEmail = $paramArr['sender_email'];
+    $fromName  = $paramArr['sender_name'];
+    $toEmail   = $paramArr['receiver_email'];
+    $toName    = $paramArr['receiver_name'];
 
-    $ccEmail   = $emailReturnArr['cc_email'];
+    $ccEmail   = $paramArr['cc_email'];
 
-    if (array_key_exists('attachment_path', $emailReturnArr)) {
-      $filePath  = $emailReturnArr['attachment_path'];
+    if (array_key_exists('attachment_path', $paramArr)) {
+      $filePath  = $paramArr['attachment_path'];
     }
-    $email_subject = $emailReturnArr['email_subject'];
-    $body = $emailReturnArr['email_template'];
+    $email_subject = $paramArr['email_subject'];
+    $body = $paramArr['email_template'];
 
     //echo $body."<br>".$filePath;exit;
     //Including php mailer class
@@ -2343,7 +2347,7 @@ class GlobalLibraryHandler
     $mail->IsHTML(true);                            //Sets message type to HTML 
     $mail->Subject = $email_subject;                //Sets the Subject of the message
     $mail->Body = $body;
-    if (array_key_exists('attachment_path', $emailReturnArr)) {
+    if (array_key_exists('attachment_path', $paramArr)) {
       $mail->AddAttachment($filePath);              //Adds an attachment from a path on the filesystem
       //$mail->addStringAttachment($filePath,"Local Attachment");
     }
@@ -2361,7 +2365,7 @@ class GlobalLibraryHandler
 
     //return $return_Result;
     if ($mail->Send()) {
-      if ($emailReturnArr['attachment_type'] == 'dynamic') {
+      if ($paramArr['attachment_type'] == 'dynamic') {
         unlink($filePath);   //Removing dynamically generated file
       }
       return true;
@@ -2420,6 +2424,7 @@ class GlobalLibraryHandler
       $pdfParamArr['sender_name'] = $emailTemplateArr->from_name;
       $pdfParamArr['sender_email'] = $emailTemplateArr->from_email;
       $pdfParamArr['cc_email'] = $emailTemplateArr->cc_email;
+      $pdfParamArr['email_subject'] = $emailTemplateArr->subject;
       $pdfParamArr['email_template'] = $emailTemplateArr->template;
 
       if (!empty($studentDetails->stu_course_fees)) {
@@ -2527,7 +2532,8 @@ class GlobalLibraryHandler
       }
 
       //Returning file path and email template for student receipt
-      $returnArr = array('check' => 'success', 'email_template' => $pdfParamArr['email_template'], 
+      $returnArr = array('check' => 'success', 'email_subject' => $pdfParamArr['email_subject'], 
+      'email_template' => $pdfParamArr['email_template'], 
       'file_upload_dir' => $file_upload_dir, 'file_url' => $file_url);
       
     } else {
