@@ -425,7 +425,7 @@ class GlobalInterfaceController
       // Verified status
       if (!empty($dataArr['verified_status'])) {
          $where[] = "rcpt.verified_status = ?";
-         $params[] = ($dataArr['verified_status'] === 'y') ? 1 : 0;
+         $params[] = ($dataArr['verified_status'] === 'y') ? '1' : '0';
       }
 
       // Student filter
@@ -436,7 +436,7 @@ class GlobalInterfaceController
 
       // Course filter
       if (!empty($dataArr['course_id']) && $dataArr['course_id'] > 0) {
-         $where[] = "crs.id = ?";
+         $where[] = "stu.course_id = ?";
          $params[] = $dataArr['course_id'];
       }
 
@@ -510,6 +510,8 @@ class GlobalInterfaceController
                stu.stu_name,
                stu.stu_phone,
                stu.stu_email,
+               stu.franchise_id,
+               stu.course_id,
                stu.image_file_name,
                stu.stu_qualification,
                stu.stu_course_fees,
@@ -550,145 +552,362 @@ class GlobalInterfaceController
       ];
    }
 
-   public function fetch_Single_Student_Receipt($student_id, $dataArr = array())
+   public function fetch_Single_Student_Receipt($student_id, $dataArr = [])
    {
+      $where = [];
+      $params = [];
 
-      if (!empty($dataArr)) {
-         $record_status = $dataArr['record_status'];
-      } else {
-         $record_status = 'active';
+      // =========================
+      // BASE CONDITION
+      // =========================
+      $record_status = !empty($dataArr['record_status']) ? $dataArr['record_status'] : 'active';
+
+      $where[] = "rcpt.record_status = ?";
+      $params[] = $record_status;
+
+      // =========================
+      // STUDENT FILTER (PRIMARY)
+      // =========================
+      $where[] = "rcpt.stu_id = ?";
+      $params[] = !empty($dataArr['student_id']) ? $dataArr['student_id'] : $student_id;
+
+      // =========================
+      // OPTIONAL FILTERS
+      // =========================
+      if (!empty($dataArr['course_id']) && $dataArr['course_id'] > 0) {
+         $where[] = "stu.course_id = ?";
+         $params[] = (int)$dataArr['course_id'];
       }
 
-      $where_Clause = "WHERE rcpt.record_status = '$record_status'";
-
-      if (!empty($dataArr['student_id'])) {
-         $student_id = $dataArr['student_id'];
-         $where_Clause .= " AND rcpt.stu_id = '$student_id'";
+      if (!empty($dataArr['franchise_id']) && $dataArr['franchise_id'] > 0) {
+         $where[] = "stu.franchise_id = ?";
+         $params[] = (int)$dataArr['franchise_id'];
       }
 
-      if ($dataArr['course_id'] > 0) {
-         $course_id = $dataArr['course_id'];
-         $where_Clause .= "AND crs.id = '$course_id'";
+      // =========================
+      // DATE FILTER (INDEX SAFE)
+      // =========================
+      if (!empty($dataArr['created'])) {
+         $startDate = date('Y-m-d', strtotime($dataArr['created']));
+         $endDate   = date('Y-m-d', strtotime($dataArr['created'] . ' +1 day'));
+
+         $where[] = "rcpt.created_at >= ? AND rcpt.created_at < ?";
+         $params[] = $startDate;
+         $params[] = $endDate;
       }
 
-      if ($dataArr['franchise_id'] > 0) {
-         $franchise_id = $dataArr['franchise_id'];
-         $where_Clause .= "AND frn.id = '$franchise_id'";
-      }
-
-      if ($dataArr['created'] > 0) {
-         $created_at = date('Y-m-d', strtotime($dataArr['created']));
-         $where_Clause .= "AND DATE(rcpt.created_at) = '$created_at'";
-      }
-
+      // =========================
+      // SEASON FILTER (FIXED BUG)
+      // =========================
       if (!empty($dataArr['receipt_season_start']) && empty($dataArr['receipt_season_end'])) {
-         $receipt_season_start = $dataArr['receipt_season_start'];
-         $where_Clause .= "AND rcpt.receipt_season_start >='$receipt_season_start'";
-      } else if (empty($dataArr['receipt_season_start']) && !empty($dataArr['receipt_season_end'])) {
-         $receipt_season_end = $dataArr['receipt_season_end'];
-         $where_Clause .= "AND rcpt.receipt_season_end <='$receipt_season_end'";
-      } else if (!empty($dataArr['receipt_season_start']) && !empty($dataArr['receipt_season_end'])) {
-         $receipt_season_start = $dataArr['receipt_season_start'];
-         $receipt_season_end = $dataArr['receipt_season_end'];
-         $where_Clause .= "AND rcpt.receipt_season_start BETWEEN '$receipt_season_start' AND '$receipt_season_end'";
+
+         $where[] = "rcpt.created_at >= ?";
+         $params[] = $dataArr['receipt_season_start'];
+
+      } elseif (empty($dataArr['receipt_season_start']) && !empty($dataArr['receipt_season_end'])) {
+
+         $endDate = date('Y-m-d', strtotime($dataArr['receipt_season_end'] . ' +1 day'));
+
+         $where[] = "rcpt.created_at < ?";
+         $params[] = $endDate;
+
+      } elseif (!empty($dataArr['receipt_season_start']) && !empty($dataArr['receipt_season_end'])) {
+
+         $startDate = $dataArr['receipt_season_start'];
+         $endDate   = date('Y-m-d', strtotime($dataArr['receipt_season_end'] . ' +1 day'));
+
+         $where[] = "rcpt.created_at >= ? AND rcpt.created_at < ?";
+         $params[] = $startDate;
+         $params[] = $endDate;
       }
 
-      $sql = "SELECT rcpt.id,rcpt.receipt_id,rcpt.category_id,rcpt.receipt_amount,rcpt.created_at,rcpt.record_status as receipt_status,stu.id as student_record_id,stu.stu_id,stu.stu_name,stu.stu_phone,stu.stu_email,stu.image_file_name,stu.stu_qualification,stu.stu_course_fees,stu.stu_course_discount,stu.fees_paid_before_dr,stu.student_status,stu.stu_dob,stu.stu_result,stu.record_status,stu.created_at as student_created_at,frn.center_name,crs.course_title,pc.name as category FROM " . DB_AIMGCSM . "." . TABLEPREFIX . "students stu LEFT JOIN " . DB_AIMGCSM . "." . TABLEPREFIX . "student_receipts rcpt ON rcpt.stu_id = stu.stu_id LEFT JOIN " . DB_AIMGCSM . "." . TABLEPREFIX . "franchise frn ON stu.franchise_id = frn.id LEFT JOIN " . DB_AIMGCSM . "." . TABLEPREFIX . "course crs ON stu.course_id = crs.id LEFT JOIN " . DB_AIMGCSM . "." . TABLEPREFIX . "parent_category pc ON rcpt.category_id = pc.id " . $where_Clause . " ORDER BY rcpt.created_at DESC";
+      // =========================
+      // FINAL WHERE
+      // =========================
+      $where_sql = "WHERE " . implode(" AND ", $where);
 
-      //echo $sql;exit();
+      // =========================
+      // QUERY (RECEIPTS-FIRST)
+      // =========================
+      $sql = "SELECT 
+                  rcpt.id,
+                  rcpt.receipt_id,
+                  rcpt.category_id,
+                  rcpt.receipt_amount,
+                  rcpt.late_fine,
+                  rcpt.extra_fees,
+                  rcpt.extra_fees_description,
+                  rcpt.verified_status,
+                  rcpt.created_at,
+                  rcpt.record_status AS receipt_status,
 
-      $resultArr = $this->conn->global_Fetch_All_DB($sql);
+                  stu.id AS student_record_id,
+                  stu.stu_id,
+                  stu.stu_name,
+                  stu.stu_phone,
+                  stu.stu_email,
+                  stu.image_file_name,
+                  stu.stu_qualification,
+                  stu.stu_course_fees,
+                  stu.stu_course_discount,
+                  stu.fees_paid_before_dr,
+                  stu.student_status,
+                  stu.stu_dob,
+                  stu.stu_result,
+                  stu.record_status,
+                  stu.created_at AS student_created_at,
+
+                  frn.center_name,
+                  crs.course_title,
+                  pc.name AS category
+
+               FROM " . DB_AIMGCSM . "." . TABLEPREFIX . "student_receipts rcpt
+
+               INNER JOIN " . DB_AIMGCSM . "." . TABLEPREFIX . "students stu 
+                  ON rcpt.stu_id = stu.stu_id
+
+               LEFT JOIN " . DB_AIMGCSM . "." . TABLEPREFIX . "franchise frn 
+                  ON stu.franchise_id = frn.id
+
+               LEFT JOIN " . DB_AIMGCSM . "." . TABLEPREFIX . "course crs 
+                  ON stu.course_id = crs.id
+
+               LEFT JOIN " . DB_AIMGCSM . "." . TABLEPREFIX . "parent_category pc 
+                  ON rcpt.category_id = pc.id
+
+               $where_sql
+
+               ORDER BY rcpt.created_at DESC";
+
+      // =========================
+      // DEBUG (OPTIONAL)
+      // =========================
+      // echo $this->debugQuery($sql, $params); exit;
+
+      $resultArr = $this->conn->global_Fetch_All_DB($sql, $params);
 
       return $resultArr;
    }
 
    public function fetch_Global_Receipts($dataArr)
    {
+      $where = [];
+      $params = [];
 
-      $record_status = $dataArr['record_status'];
+      // =========================
+      // BASE CONDITION
+      // =========================
+      $where[] = "rcpt.record_status = ?";
+      $params[] = $dataArr['record_status'];
 
-      $where_Clause = "WHERE rcpt.record_status = '$record_status'";
-
-      if ($dataArr['course_id'] > 0) {
-         $course_id = $dataArr['course_id'];
-         $where_Clause .= " AND stu.course_id = '$course_id'";
+      // =========================
+      // OPTIONAL FILTERS
+      // =========================
+      if (!empty($dataArr['course_id']) && $dataArr['course_id'] > 0) {
+         $where[] = "stu.course_id = ?";
+         $params[] = (int)$dataArr['course_id'];
       }
 
-      if ($dataArr['franchise_id'] > 0) {
-         $franchise_id = $dataArr['franchise_id'];
-         $where_Clause .= " AND stu.franchise_id = '$franchise_id'";
+      if (!empty($dataArr['franchise_id']) && $dataArr['franchise_id'] > 0) {
+         $where[] = "stu.franchise_id = ?";
+         $params[] = (int)$dataArr['franchise_id'];
       }
 
-      if ($dataArr['created'] > 0) {
-         $created_at = date('Y-m-d', strtotime($dataArr['created']));
-         $where_Clause .= " AND DATE(rcpt.created_at) = '$created_at'";
+      // =========================
+      // DATE FILTERS (FIXED)
+      // =========================
+
+      // Single date
+      if (!empty($dataArr['created'])) {
+         $startDate = date('Y-m-d', strtotime($dataArr['created']));
+         $endDate   = date('Y-m-d', strtotime($dataArr['created'] . ' +1 day'));
+
+         $where[] = "rcpt.created_at >= ? AND rcpt.created_at < ?";
+         $params[] = $startDate;
+         $params[] = $endDate;
       }
 
+      // Season filters
       if (!empty($dataArr['receipt_season_start']) && empty($dataArr['receipt_season_end'])) {
-         $receipt_season_start = $dataArr['receipt_season_start'];
-         $where_Clause .= " AND DATE(rcpt.created_at) >='$receipt_season_start'";
-      } else if (empty($dataArr['receipt_season_start']) && !empty($dataArr['receipt_season_end'])) {
-         $receipt_season_end = $dataArr['receipt_season_end'];
-         $where_Clause .= " AND DATE(rcpt.created_at) <='$receipt_season_end'";
-      } else if (!empty($dataArr['receipt_season_start']) && !empty($dataArr['receipt_season_end'])) {
-         $receipt_season_start = $dataArr['receipt_season_start'];
-         $receipt_season_end = $dataArr['receipt_season_end'];
-         $where_Clause .= " AND DATE(rcpt.created_at) BETWEEN '$receipt_season_start' AND '$receipt_season_end'";
+
+         $where[] = "rcpt.created_at >= ?";
+         $params[] = $dataArr['receipt_season_start'];
+
+      } elseif (empty($dataArr['receipt_season_start']) && !empty($dataArr['receipt_season_end'])) {
+
+         $endDate = date('Y-m-d', strtotime($dataArr['receipt_season_end'] . ' +1 day'));
+
+         $where[] = "rcpt.created_at < ?";
+         $params[] = $endDate;
+
+      } elseif (!empty($dataArr['receipt_season_start']) && !empty($dataArr['receipt_season_end'])) {
+
+         $startDate = $dataArr['receipt_season_start'];
+         $endDate   = date('Y-m-d', strtotime($dataArr['receipt_season_end'] . ' +1 day'));
+
+         $where[] = "rcpt.created_at >= ? AND rcpt.created_at < ?";
+         $params[] = $startDate;
+         $params[] = $endDate;
       }
 
-      $sql = "SELECT rcpt.id,rcpt.receipt_id,rcpt.category_id,rcpt.receipt_amount,rcpt.created_at,rcpt.record_status as receipt_status,stu.id as student_record_id,stu.stu_id,stu.stu_name,stu.stu_phone,stu.stu_email,stu.stu_course_fees,stu.stu_course_discount,stu.fees_paid_before_dr,stu.image_file_name,stu.stu_qualification,stu.student_status,stu.record_status,stu.created_at as student_created_at,frn.center_name,crs.course_title,pc.name as category FROM " . DB_AIMGCSM . "." . TABLEPREFIX . "students stu LEFT JOIN " . DB_AIMGCSM . "." . TABLEPREFIX . "student_receipts rcpt ON rcpt.stu_id = stu.stu_id LEFT JOIN " . DB_AIMGCSM . "." . TABLEPREFIX . "franchise frn ON stu.franchise_id = frn.id LEFT JOIN " . DB_AIMGCSM . "." . TABLEPREFIX . "course crs ON stu.course_id = crs.id LEFT JOIN " . DB_AIMGCSM . "." . TABLEPREFIX . "parent_category pc ON rcpt.category_id = pc.id " . $where_Clause . " ORDER BY rcpt.id DESC";
+      // =========================
+      // FINAL WHERE CLAUSE
+      // =========================
+      $where_sql = !empty($where) ? "WHERE " . implode(" AND ", $where) : "";
 
-      //echo $sql;exit();
+      // =========================
+      // QUERY
+      // =========================
+      $sql = "SELECT 
+                  rcpt.id,
+                  rcpt.receipt_id,
+                  rcpt.category_id,
+                  rcpt.receipt_amount,
+                  rcpt.late_fine,
+                  rcpt.extra_fees,
+                  rcpt.extra_fees_description,
+                  rcpt.verified_status,
+                  rcpt.created_at,
+                  rcpt.record_status AS receipt_status,
 
-      $resultArr = $this->conn->global_Fetch_All_DB($sql);
+                  stu.id AS student_record_id,
+                  stu.stu_id,
+                  stu.stu_name,
+                  stu.stu_phone,
+                  stu.stu_email,
+                  stu.stu_course_fees,
+                  stu.stu_course_discount,
+                  stu.fees_paid_before_dr,
+                  stu.image_file_name,
+                  stu.stu_qualification,
+                  stu.student_status,
+                  stu.record_status,
+                  stu.created_at AS student_created_at,
+
+                  frn.center_name,
+                  crs.course_title,
+                  pc.name AS category
+
+               FROM " . DB_AIMGCSM . "." . TABLEPREFIX . "student_receipts rcpt
+
+               INNER JOIN " . DB_AIMGCSM . "." . TABLEPREFIX . "students stu 
+                  ON rcpt.stu_id = stu.stu_id
+
+               LEFT JOIN " . DB_AIMGCSM . "." . TABLEPREFIX . "franchise frn 
+                  ON stu.franchise_id = frn.id
+
+               LEFT JOIN " . DB_AIMGCSM . "." . TABLEPREFIX . "course crs 
+                  ON stu.course_id = crs.id
+
+               LEFT JOIN " . DB_AIMGCSM . "." . TABLEPREFIX . "parent_category pc 
+                  ON rcpt.category_id = pc.id
+
+               $where_sql
+
+               ORDER BY rcpt.id DESC";
+
+      // =========================
+      // DEBUG (OPTIONAL)
+      // =========================
+      // echo $this->debugQuery($sql, $params); exit;
+
+      $resultArr = $this->conn->global_Fetch_All_DB($sql, $params);
 
       return $resultArr;
    }
 
    public function fetch_Receipt_Collection($dataArr)
    {
+      $where = [];
+      $params = [];
 
-      $record_status = $dataArr['record_status'];
+      // =========================
+      // BASE CONDITION
+      // =========================
+      $where[] = "rcpt.record_status = ?";
+      $params[] = $dataArr['record_status'];
 
-      $where_Clause = "WHERE rcpt.record_status = '$record_status'";
-
-      if ($dataArr['course_id'] > 0) {
-         $course_id = $dataArr['course_id'];
-         $where_Clause .= " AND stu.course_id = '$course_id'";
+      // =========================
+      // OPTIONAL FILTERS
+      // =========================
+      if (!empty($dataArr['course_id']) && $dataArr['course_id'] > 0) {
+         $where[] = "stu.course_id = ?";
+         $params[] = (int)$dataArr['course_id'];
       }
 
-      if ($dataArr['franchise_id'] > 0) {
-         $franchise_id = $dataArr['franchise_id'];
-         $where_Clause .= " AND stu.franchise_id = '$franchise_id'";
-      }
-
-      if (!empty($dataArr['created'])) {
-         $created_at = date('Y-m-d', strtotime($dataArr['created']));
-         $where_Clause .= " AND DATE(rcpt.created_at) = '$created_at'";
+      if (!empty($dataArr['franchise_id']) && $dataArr['franchise_id'] > 0) {
+         $where[] = "stu.franchise_id = ?";
+         $params[] = (int)$dataArr['franchise_id'];
       }
 
       if (!empty($dataArr['stu_id'])) {
-         $stu_id = $dataArr['stu_id'];
-         $where_Clause .= " AND rcpt.stu_id = '$stu_id'";
+         $where[] = "rcpt.stu_id = ?";
+         $params[] = $dataArr['stu_id'];
       }
 
+      // =========================
+      // DATE FILTERS (FIXED + INDEX FRIENDLY)
+      // =========================
+
+      // Single date filter
+      if (!empty($dataArr['created'])) {
+         $startDate = date('Y-m-d', strtotime($dataArr['created']));
+         $endDate   = date('Y-m-d', strtotime($dataArr['created'] . ' +1 day'));
+
+         $where[] = "rcpt.created_at >= ? AND rcpt.created_at < ?";
+         $params[] = $startDate;
+         $params[] = $endDate;
+      }
+
+      // Season filters (priority over single date if both passed)
       if (!empty($dataArr['receipt_season_start']) && empty($dataArr['receipt_season_end'])) {
-         $receipt_season_start = $dataArr['receipt_season_start'];
-         $where_Clause .= " AND DATE(rcpt.created_at) >='$receipt_season_start'";
-      } else if (empty($dataArr['receipt_season_start']) && !empty($dataArr['receipt_season_end'])) {
-         $receipt_season_end = $dataArr['receipt_season_end'];
-         $where_Clause .= " AND DATE(rcpt.created_at) <='$receipt_season_end'";
-      } else if (!empty($dataArr['receipt_season_start']) && !empty($dataArr['receipt_season_end'])) {
-         $receipt_season_start = $dataArr['receipt_season_start'];
-         $receipt_season_end = $dataArr['receipt_season_end'];
-         $where_Clause .= " AND DATE(rcpt.created_at) BETWEEN '$receipt_season_start' AND '$receipt_season_end'";
+
+         $where[] = "rcpt.created_at >= ?";
+         $params[] = $dataArr['receipt_season_start'];
+      } elseif (empty($dataArr['receipt_season_start']) && !empty($dataArr['receipt_season_end'])) {
+
+         // include full end day
+         $endDate = date('Y-m-d', strtotime($dataArr['receipt_season_end'] . ' +1 day'));
+
+         $where[] = "rcpt.created_at < ?";
+         $params[] = $endDate;
+      } elseif (!empty($dataArr['receipt_season_start']) && !empty($dataArr['receipt_season_end'])) {
+
+         $startDate = $dataArr['receipt_season_start'];
+         $endDate   = date('Y-m-d', strtotime($dataArr['receipt_season_end'] . ' +1 day'));
+
+         $where[] = "rcpt.created_at >= ? AND rcpt.created_at < ?";
+         $params[] = $startDate;
+         $params[] = $endDate;
       }
 
-      $sql = "SELECT SUM(rcpt.receipt_amount) as receipt_amount, SUM(rcpt.late_fine) as late_fine, SUM(rcpt.extra_fees) as extra_fees FROM " . DB_AIMGCSM . "." . TABLEPREFIX . "students stu LEFT JOIN " . DB_AIMGCSM . "." . TABLEPREFIX . "student_receipts rcpt ON rcpt.stu_id = stu.stu_id LEFT JOIN " . DB_AIMGCSM . "." . TABLEPREFIX . "franchise frn ON stu.franchise_id = frn.id LEFT JOIN " . DB_AIMGCSM . "." . TABLEPREFIX . "course crs ON stu.course_id = crs.id " . $where_Clause . " ORDER BY rcpt.id DESC";
+      // =========================
+      // FINAL WHERE CLAUSE
+      // =========================
+      $where_sql = !empty($where) ? "WHERE " . implode(" AND ", $where) : "";
 
-      //echo $sql;exit();
+      // =========================
+      // QUERY
+      // =========================
+      $sql = "SELECT 
+                   COALESCE(SUM(rcpt.receipt_amount), 0) AS receipt_amount,
+                   COALESCE(SUM(rcpt.late_fine), 0) AS late_fine,
+                   COALESCE(SUM(rcpt.extra_fees), 0) AS extra_fees
+               FROM " . DB_AIMGCSM . "." . TABLEPREFIX . "student_receipts rcpt
+               INNER JOIN " . DB_AIMGCSM . "." . TABLEPREFIX . "students stu 
+                   ON rcpt.stu_id = stu.stu_id
+               LEFT JOIN " . DB_AIMGCSM . "." . TABLEPREFIX . "franchise frn 
+                   ON stu.franchise_id = frn.id
+               LEFT JOIN " . DB_AIMGCSM . "." . TABLEPREFIX . "course crs 
+                   ON stu.course_id = crs.id
+               $where_sql";
 
-      $resultArr = $this->conn->global_Fetch_Single_DB($sql);
+      // =========================
+      // DEBUG (OPTIONAL)
+      // =========================
+      // $this->debugQuery($sql, $params);
+
+      $resultArr = $this->conn->global_Fetch_Single_DB($sql, $params);
 
       return $resultArr;
    }
@@ -1449,45 +1668,42 @@ class GlobalInterfaceController
 
    public function fetch_Global_Single_Data($type, $row_id)
    {
-      switch ($type) {
+      // =========================
+      // TABLE MAPPING (SAFE WHITELIST)
+      // =========================
+      $allowedTables = [
+         'franchise'         => 'franchise',
+         'student'           => 'students',
+         'course'            => 'course',
+         'gallery'           => 'gallery',
+         'home_sliders'      => 'home_sliders',
+         'student_receipts'  => 'student_receipts',
+         'news'              => 'news'
+      ];
 
-         case 'franchise':
-            $where_Clause = "`id` = '$row_id'";
-            break;
-
-         case 'student':
-            $type = "students";
-            $where_Clause = "`id` = '$row_id'";
-            break;
-
-         case 'course':
-            $where_Clause = "`id` = '$row_id'";
-            break;
-
-         case 'gallery':
-            $where_Clause = "`id` = '$row_id'";
-            break;
-
-         case 'home_sliders':
-            $where_Clause = "`id` = '$row_id'";
-            break;
-
-         case 'student':
-            $where_Clause = "`id` = '$row_id'";
-            break;
-
-         case 'student_receipts':
-            $where_Clause = "`id` = '$row_id'";
-            break;
-
-         case 'news':
-            $where_Clause = "`id` = '$row_id'";
-            break;
+      // Validate type
+      if (!isset($allowedTables[$type])) {
+         return null; // or throw exception
       }
 
-      $sql = "SELECT * FROM " . DB_AIMGCSM . "." . TABLEPREFIX . $type . " WHERE " . $where_Clause;
-      //echo $sql;exit;
-      $resultArr = $this->conn->global_Fetch_Single_DB($sql);
+      $table = $allowedTables[$type];
+
+      // =========================
+      // QUERY
+      // =========================
+      $sql = "SELECT * 
+            FROM " . DB_AIMGCSM . "." . TABLEPREFIX . "$table
+            WHERE id = ?
+            LIMIT 1";
+
+      $params = [
+         (int)$row_id
+      ];
+
+      // Optional debug
+      // $this->debugQuery($sql, $params);
+
+      $resultArr = $this->conn->global_Fetch_Single_DB($sql, $params);
 
       return $resultArr;
    }
@@ -1563,7 +1779,7 @@ class GlobalInterfaceController
       ];
 
       // Optional debug
-      // echo $this->debugQuery($sql, $params); exit;
+      // $this->debugQuery($sql, $params);
 
       $resultArr = $this->conn->global_Fetch_Single_DB($sql, $params);
 
@@ -2336,7 +2552,7 @@ class GlobalInterfaceController
       // =========================
       // DEBUG (OPTIONAL)
       // =========================
-      // echo $this->debugQuery($sql, $params); exit;
+      // $this->debugQuery($sql, $params);
 
       // =========================
       // EXECUTE

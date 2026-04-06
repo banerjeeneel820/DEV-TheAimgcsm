@@ -2843,6 +2843,52 @@ class GlobalLibraryHandler
     return !empty($createdZips) ? true : false;
   }
 
+  public function buildExportCriteria($params) 
+  {
+      $filters = [];
+
+      // Record Status
+      if (!empty($params['record_status'])) {
+          $filters[] = "Status: " . ucfirst($params['record_status']);
+      }
+
+      // Course
+      if (!empty($params['course_id'])) {
+          // Ideally fetch course name from DB
+          $filters[] = "Course ID: " . $params['course_id'];
+      }
+
+      // Franchise
+      if (!empty($params['franchise_id'])) {
+          // Ideally fetch franchise name from DB
+          $filters[] = "Franchise ID: " . $params['franchise_id'];
+      }
+
+      // Created filter (today / this month etc.)
+      if (!empty($params['created'])) {
+          $filters[] = "Created: " . ucfirst($params['created']);
+      }
+
+      // Date Range
+      if (!empty($params['receipt_season_start']) && !empty($params['receipt_season_end'])) {
+          $filters[] = "Date: " . date('d M Y', strtotime($params['receipt_season_start'])) .
+                      " to " . date('d M Y', strtotime($params['receipt_season_end']));
+      }
+
+      // Student ID
+      if (!empty($params['student_id'])) {
+          $filters[] = "Student ID: " . $params['student_id'];
+      }
+
+      // Protocol (source)
+      if (!empty($params['protocol'])) {
+          $source = ($params['protocol'] == 'dashboard') ? 'Dashboard' : 'Receipt Module';
+          $filters[] = "Source: " . $source;
+      }
+
+      return !empty($filters) ? implode(' | ', $filters) : 'No Filters Applied';
+  }
+
   // Method to log request data in a file
   public function logServerData($fileName, $logDataArr = [])
   {

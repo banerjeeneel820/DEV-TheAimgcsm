@@ -771,7 +771,7 @@ if (!empty($_GET['rcpt_id'])) {
                         </td>
 
                         <td class="project-title">
-                          <span class="cursor-pointer" data-toggle="tooltip" data-placement="bottom" title="Receipt ID: <?= $content->receipt_id ?>"><strong><?= (strlen($content->receipt_id) > 20 ? substr($content->receipt_id, 0, 20) . "..." : $content->receipt_id) ?></strong></span><br />
+                          <span class="cursor-pointer" data-toggle="tooltip" data-placement="bottom" title="Receipt ID: <?= $content->receipt_id ?>"><strong><?= $content->receipt_id ?></strong></span><br />
                           <small><strong>Receipt Type: <?= ucfirst($content->category) ?></strong></small>
                         </td>
 
@@ -1636,300 +1636,345 @@ if (!empty($_GET['rcpt_id'])) {
         });
       }
     });
-  });
 
-  //Configuring page records fetching params
-  $(document).on('submit', '#fetch_verified_records', function(event) {
-    event.preventDefault();
-    var verified_status = $('#verified_status').val();
+    //Configuring page records fetching params
+    $(document).on('submit', '#fetch_verified_records', function(event) {
+      event.preventDefault();
+      var record_status = $('#record_status').val();
+      var page_route = $('#page_route').val();
 
-    if (verified_status === null) {
-      window.location = SITE_URL + "?route=view_receipts";
-    } else {
-      $('#fetch_item_data').html('<i class="fa fa-spinner fa-spin"></i>&nbsp;Fetching').attr('disabled', true);
-      setTimeout(function() {
-        $('#fetch_item_data').html('<i class="fa fa-search"></i>&nbsp;Fetch Data').attr('disabled', false);
-        //show sweetalert success
-        swal({
-          title: "Great!",
-          text: "Data has been successfully fetched!",
-          type: "success",
-          allowEscapeKey: false,
-          allowOutsideClick: false
-        }, function() {
-          window.location = SITE_URL + "?route=view_receipts&verified_status=" + verified_status;
-        });
-      }, 500);
-      return true;
-    }
-  });
+      var course_id = $('#course_id').val();
+      var franchise_id = $('#franchise_id').val();
+      var created = $('#created').val();
 
-  //Configuring fetching all page records fetching params
-  $(document).on('submit', '#fetch_student_receipt_records', function(event) {
-    event.preventDefault();
-    var student_id = $('#student_id').val();
-    var record_status = $('#record_status').val();
-    var page_route = $('#page_route').val();
+      var receipt_season_start = $('#receipt_search_start').val();
+      var receipt_season_end = $('#receipt_search_end').val();
+      var verified_status = $('#verified_status').val();
 
-    var course_id = $('#course_id').val();
-    var franchise_id = $('#franchise_id').val();
-    var created = $('#created').val();
+      if (verified_status === null) {
+        window.location = SITE_URL + "?route=" + page_route;
+      } else {
+        $('#fetch_item_data').html('<i class="fa fa-spinner fa-spin"></i>&nbsp;Fetching').attr('disabled', true);
+        setTimeout(function() {
+          $('#fetch_item_data').html('<i class="fa fa-search"></i>&nbsp;Fetch Data').attr('disabled', false);
+          //show sweetalert success
+          swal({
+            title: "Great!",
+            text: "Data has been successfully fetched!",
+            type: "success",
+            allowEscapeKey: false,
+            allowOutsideClick: false
+          }, function() {
+            var redirect_url = SITE_URL + "?route=" + page_route;
 
-    var receipt_season_start = $('#receipt_search_start').val();
-    var receipt_season_end = $('#receipt_search_end').val();
+            if (student_id.length > 0) {
+              redirect_url += "&stu_id=" + student_id;
+            }
 
-    if (record_status === null) {
-      window.location = SITE_URL + "?route=" + page_route;
-    } else {
-      $('#fetch_item_data').html('<i class="fa fa-spinner fa-spin"></i>&nbsp;Fetching').attr('disabled', true);
-      setTimeout(function() {
-        $('#fetch_item_data').html('<i class="fa fa-search"></i>').attr('disabled', false);
-        //show sweetalert success
-        swal({
-          title: "Great!",
-          text: "Data has been successfully fetched!",
-          type: "success",
-          allowEscapeKey: false,
-          allowOutsideClick: false
-        }, function() {
+            if (receipt_season_start.length > 0) {
+              redirect_url += "&receipt_season_start=" + receipt_season_start;
+            }
 
-          var redirect_url = SITE_URL + "?route=" + page_route;
+            if (receipt_season_end.length > 0) {
+              redirect_url += "&receipt_season_end=" + receipt_season_end;
+            }
 
-          if (student_id.length > 0) {
-            redirect_url += "&stu_id=" + student_id;
-          }
+            if (course_id > 0) {
+              redirect_url += "&course_id=" + course_id;
+            }
 
-          if (receipt_season_start.length > 0) {
-            redirect_url += "&receipt_season_start=" + receipt_season_start;
-          }
+            if (franchise_id > 0) {
+              redirect_url += "&franchise_id=" + franchise_id;
+            }
 
-          if (receipt_season_end.length > 0) {
-            redirect_url += "&receipt_season_end=" + receipt_season_end;
-          }
+            if (created.length > 0) {
+              redirect_url += "&created=" + created;
+            }
 
-          if (course_id > 0) {
-            redirect_url += "&course_id=" + course_id;
-          }
+            if (verified_status != null && verified_status.length > 0) {
+              redirect_url += "&verified_status=" + verified_status;
+            }
 
-          if (franchise_id > 0) {
-            redirect_url += "&franchise_id=" + franchise_id;
-          }
+            redirect_url += "&record_status=" + record_status;
 
-          if (created.length > 0) {
-            redirect_url += "&created=" + created;
-          }
+            window.location = redirect_url;
+          });
+        }, 500);
+        return true;
+      }
+    });
 
-          redirect_url += "&record_status=" + record_status;
+    //Configuring fetching all page records fetching params
+    $(document).on('submit', '#fetch_student_receipt_records', function(event) {
+      event.preventDefault();
+      var student_id = $('#student_id').val();
+      var record_status = $('#record_status').val();
+      var page_route = $('#page_route').val();
 
-          window.location = redirect_url;
+      var course_id = $('#course_id').val();
+      var franchise_id = $('#franchise_id').val();
+      var created = $('#created').val();
 
-        });
-      }, 500);
-      return true;
-    }
-  });
+      var receipt_season_start = $('#receipt_search_start').val();
+      var receipt_season_end = $('#receipt_search_end').val();
+      var verified_status = $('#verified_status').val();
 
-  /*Status change handler*/
-  $(document).on('click', '.verified_action', function() {
-    var action = "updateReceiptVerifiedStatus";
-    var receipt_id = $(this).data('rid');
-    var verified_status = $(this).data('vstatus');
+      if (record_status === null) {
+        window.location = SITE_URL + "?route=" + page_route;
+      } else {
+        $('#fetch_item_data').html('<i class="fa fa-spinner fa-spin"></i>&nbsp;Fetching').attr('disabled', true);
+        setTimeout(function() {
+          $('#fetch_item_data').html('<i class="fa fa-search"></i>').attr('disabled', false);
+          //show sweetalert success
+          swal({
+            title: "Great!",
+            text: "Data has been successfully fetched!",
+            type: "success",
+            allowEscapeKey: false,
+            allowOutsideClick: false
+          }, function() {
 
-    var thisItem = $(this);
+            var redirect_url = SITE_URL + "?route=" + page_route;
 
-    if (verified_status == '1') {
-      var toastrText = 'This receipt has been marked as verified successfully!';
-    } else {
-      var toastrText = 'This receipt has been marked as not verified successfully!';
-    }
-    //set toastr option
-    toastr.options = {
-      closeButton: true,
-      progressBar: true,
-      showMethod: 'slideDown',
-      timeOut: 2000,
-    };
+            if (student_id.length > 0) {
+              redirect_url += "&stu_id=" + student_id;
+            }
 
-    var formData = {
-      action: action,
-      receipt_id: receipt_id,
-      verified_status: verified_status
-    };
+            if (receipt_season_start.length > 0) {
+              redirect_url += "&receipt_season_start=" + receipt_season_start;
+            }
 
-    $.ajax({
-      url: ajaxControllerHandler,
-      method: 'POST',
-      data: formData,
-      beforeSend: function() {
-        $('.content_div_loader').addClass('sk-loading');
-      },
-      success: function(responseData) {
-        //console.log(responseData); 
-        var data = JSON.parse(responseData);
-        //Disabling loader
-        $('.content_div_loader').removeClass('sk-loading');
+            if (receipt_season_end.length > 0) {
+              redirect_url += "&receipt_season_end=" + receipt_season_end;
+            }
 
-        //Check response
-        if (data.check == 'success') {
-          if (verified_status == '1') {
-            $(thisItem).data('vstatus', '0');
-            $(thisItem).attr('title', "Make this receipt's status not verified!");
-            $(thisItem).html('<i class="fa fa-check-circle"></i> Verified');
+            if (course_id > 0) {
+              redirect_url += "&course_id=" + course_id;
+            }
 
-            //Chnage table tr background color
-            $("#rcpt_tr_" + receipt_id).css({
-              'background-color': ''
-            });
-            //Show success toast
-            toastr.success(toastrText, 'Success!');
+            if (franchise_id > 0) {
+              redirect_url += "&franchise_id=" + franchise_id;
+            }
 
-          } else {
-            $(thisItem).data('vstatus', '1');
-            $(thisItem).attr('title', "Make this receipt's status verified!");
-            $(thisItem).html('<i class="fa fa-info-circle"></i> Not Verified');
-            //Chnage table tr background color
-            $("#rcpt_tr_" + receipt_id).css({
-              'background-color': '#f1d0d0'
-            });
-            //Show warning toast
-            toastr.warning(toastrText, 'Success!');
-          }
-          return true;
-        } else {
-          if (data.message.length > 0) {
-            var toastrErrorText = data.message;
-          } else {
-            var toastrErrorText = 'Something went wrong! Please try again.'
-          }
+            if (created.length > 0) {
+              redirect_url += "&created=" + created;
+            }
+
+            if (verified_status != null && verified_status.length > 0) {
+              redirect_url += "&verified_status=" + verified_status;
+            }
+
+            redirect_url += "&record_status=" + record_status;
+
+            window.location = redirect_url;
+
+          });
+        }, 500);
+        return true;
+      }
+    });
+
+    /*Status change handler*/
+    $(document).on('click', '.verified_action', function() {
+      var action = "updateReceiptVerifiedStatus";
+      var receipt_id = $(this).data('rid');
+      var verified_status = $(this).data('vstatus');
+
+      var thisItem = $(this);
+
+      if (verified_status == '1') {
+        var toastrText = 'This receipt has been marked as verified successfully!';
+      } else {
+        var toastrText = 'This receipt has been marked as not verified successfully!';
+      }
+      //set toastr option
+      toastr.options = {
+        closeButton: true,
+        progressBar: true,
+        showMethod: 'slideDown',
+        timeOut: 2000,
+      };
+
+      var formData = {
+        action: action,
+        receipt_id: receipt_id,
+        verified_status: verified_status
+      };
+
+      $.ajax({
+        url: ajaxControllerHandler,
+        method: 'POST',
+        data: formData,
+        beforeSend: function() {
+          $('.content_div_loader').addClass('sk-loading');
+        },
+        success: function(responseData) {
+          //console.log(responseData); 
+          var data = JSON.parse(responseData);
+          //Disabling loader
+          $('.content_div_loader').removeClass('sk-loading');
+
           //show toastr error
           toastr.options.onHidden = function() {
             window.location.reload();
           }
-          toastr.error(toastrErrorText, 'Error!');
-          return false;
-        }
 
-      }
-    });
-  });
+          //Check response
+          if (data.check == 'success') {
+            if (verified_status == '1') {
+              $(thisItem).data('vstatus', '0');
+              $(thisItem).attr('title', "Make this receipt's status not verified!");
+              $(thisItem).html('<i class="fa fa-check-circle"></i> Verified');
 
-  //handling student detail fetch form
-  $(document).on('click', '.viewStudentDetail', function(event) {
-    event.preventDefault();
+              //Chnage table tr background color
+              $("#rcpt_tr_" + receipt_id).css({
+                'background-color': ''
+              });
+              //Show success toast
+              toastr.success(toastrText, 'Success!');
 
-    var student_id = $(this).data('sid');
-    var formData = {
-      action: "fetchStudentDetailInModal",
-      student_id: student_id
-    }
-
-    //Calling ajax request
-    $.ajax({
-      url: ajaxControllerHandler,
-      method: 'POST',
-      data: formData,
-      beforeSend: function() {
-        $('.content_div_loader').addClass('sk-loading');
-      },
-      success: function(responseData) {
-        var data = JSON.parse(responseData);
-        //console.log(responseData);
-        if (data.check == 'success') {
-          //Populating student data in student detail div
-          var studentDetail = data.studentDetail;
-          //console.log(studentDetail); 
-          //populating student detail div
-          $('#stu_id').html('<b>' + studentDetail.stu_id + '</b>');
-          $('#stu_phone').text(studentDetail.stu_phone);
-          $('#stu_result').html('<b>' + studentDetail.stu_result + '</b>');
-          $('#focus_stu_name').text(studentDetail.stu_name);
-          $('#stu_name').text(studentDetail.stu_name);
-          $('#stu_father_name').text(studentDetail.stu_father_name);
-          $('#stu_address').text(studentDetail.stu_address);
-          $('#stu_dob').text(studentDetail.stu_dob);
-          $('#course_title').text(studentDetail.course_title);
-          $('#center_name').text(studentDetail.center_name);
-          $('#stu_email').text(studentDetail.stu_email);
-          $('#stu_qualification').text(studentDetail.stu_qualification);
-          $('#student_status').html('<b>' + studentDetail.student_status + '</b>');
-          $('#stu_gender').text(studentDetail.stu_gender);
-          $('#stu_marital_status').text(studentDetail.stu_marital_status);
-
-          //Receipt Data display
-          if (studentDetail.stu_course_fees) {
-            var course_fees = parseInt(studentDetail.stu_course_fees);
-          } else {
-            var course_fees = parseInt(studentDetail.course_default_fees);
-          }
-
-          $('#course_fees').text('Rs.' + course_fees);
-
-          if (studentDetail.stu_course_discount) {
-            var stu_course_discount = parseInt(studentDetail.stu_course_discount);
-          } else {
-            var stu_course_discount = parseInt('0');
-          }
-
-          $('#course_discount').text('Rs.' + stu_course_discount);
-
-          var net_course_fees = course_fees - stu_course_discount;
-
-          $('#net_course_fees').html('Rs.' + net_course_fees);
-
-          if (studentDetail.advanced_fees) {
-            var advanced_fees = parseInt(studentDetail.advanced_fees);
-            $('#stu_advanced_fees').text('Rs.' + advanced_fees + ' has been deposited on ' + studentDetail.advance_fees_date);
-          } else {
-            var advanced_fees = parseInt('0');
-            $('#stu_advanced_fees').text('Rs.0');
-          }
-
-          if (studentDetail.course_fees_paid) {
-            var stu_receipt_paid = parseInt(studentDetail.course_fees_paid);
-          } else {
-            var stu_receipt_paid = parseInt('0');
-          }
-
-          if (studentDetail.fees_paid_before_dr) {
-            var fees_paid_before_dr = parseInt(studentDetail.fees_paid_before_dr);
-            $('#stu_fees_paid_before_dr').text('Rs.' + studentDetail.fees_paid_before_dr + ' has been deposited before digital receipt.');
-          } else {
-            var fees_paid_before_dr = parseInt('0');
-            $('#stu_fees_paid_before_dr').text('Rs.0');
-          }
-
-          var course_fees_paid = parseInt(stu_receipt_paid + advanced_fees + fees_paid_before_dr);
-
-          if (course_fees_paid > 0) {
-            $('#fees_paid').text('Rs.' + course_fees_paid);
-          } else {
-            $('#fees_paid').text('No fees has been paid yet!');
-          }
-
-          var fees_due = parseInt(net_course_fees - course_fees_paid);
-
-          $('#fees_due').text('Rs.' + fees_due);
-
-          setTimeout(function() {
-            //disabling loader
-            $('.content_div_loader').removeClass('sk-loading');
-            //Display modal
-            $("#showStudentDetailModal").modal("show");
+            } else {
+              $(thisItem).data('vstatus', '1');
+              $(thisItem).attr('title', "Make this receipt's status verified!");
+              $(thisItem).html('<i class="fa fa-info-circle"></i> Not Verified');
+              //Chnage table tr background color
+              $("#rcpt_tr_" + receipt_id).css({
+                'background-color': '#f1d0d0'
+              });
+              //Show warning toast
+              toastr.warning(toastrText, 'Success!');
+            }
             return true;
-          }, 500);
-        } else {
-          //show sweetalert success
-          if (data.message.length > 0) {
-            var message = data.message;
           } else {
-            var message = "Something went wrong";
+            if (data.message.length > 0) {
+              var toastrErrorText = data.message;
+            } else {
+              var toastrErrorText = 'Something went wrong! Please try again.'
+            }
+            toastr.error(toastrErrorText, 'Error!');
+            return false;
           }
-          return false;
+
         }
+      });
+    });
+
+    //handling student detail fetch form
+    $(document).on('click', '.viewStudentDetail', function(event) {
+      event.preventDefault();
+
+      var student_id = $(this).data('sid');
+      var formData = {
+        action: "fetchStudentDetailInModal",
+        student_id: student_id
       }
+
+      //Calling ajax request
+      $.ajax({
+        url: ajaxControllerHandler,
+        method: 'POST',
+        data: formData,
+        beforeSend: function() {
+          $('.content_div_loader').addClass('sk-loading');
+        },
+        success: function(responseData) {
+          var data = JSON.parse(responseData);
+          //console.log(responseData);
+          if (data.check == 'success') {
+            //Populating student data in student detail div
+            var studentDetail = data.studentDetail;
+            //console.log(studentDetail); 
+            //populating student detail div
+            $('#stu_id').html('<b>' + studentDetail.stu_id + '</b>');
+            $('#stu_phone').text(studentDetail.stu_phone);
+            $('#stu_result').html('<b>' + studentDetail.stu_result + '</b>');
+            $('#focus_stu_name').text(studentDetail.stu_name);
+            $('#stu_name').text(studentDetail.stu_name);
+            $('#stu_father_name').text(studentDetail.stu_father_name);
+            $('#stu_address').text(studentDetail.stu_address);
+            $('#stu_dob').text(studentDetail.stu_dob);
+            $('#course_title').text(studentDetail.course_title);
+            $('#center_name').text(studentDetail.center_name);
+            $('#stu_email').text(studentDetail.stu_email);
+            $('#stu_qualification').text(studentDetail.stu_qualification);
+            $('#student_status').html('<b>' + studentDetail.student_status + '</b>');
+            $('#stu_gender').text(studentDetail.stu_gender);
+            $('#stu_marital_status').text(studentDetail.stu_marital_status);
+
+            //Receipt Data display
+            if (studentDetail.stu_course_fees) {
+              var course_fees = parseInt(studentDetail.stu_course_fees);
+            } else {
+              var course_fees = parseInt(studentDetail.course_default_fees);
+            }
+
+            $('#course_fees').text('Rs.' + course_fees);
+
+            if (studentDetail.stu_course_discount) {
+              var stu_course_discount = parseInt(studentDetail.stu_course_discount);
+            } else {
+              var stu_course_discount = parseInt('0');
+            }
+
+            $('#course_discount').text('Rs.' + stu_course_discount);
+
+            var net_course_fees = course_fees - stu_course_discount;
+
+            $('#net_course_fees').html('Rs.' + net_course_fees);
+
+            if (studentDetail.advanced_fees) {
+              var advanced_fees = parseInt(studentDetail.advanced_fees);
+              $('#stu_advanced_fees').text('Rs.' + advanced_fees + ' has been deposited on ' + studentDetail.advance_fees_date);
+            } else {
+              var advanced_fees = parseInt('0');
+              $('#stu_advanced_fees').text('Rs.0');
+            }
+
+            if (studentDetail.course_fees_paid) {
+              var stu_receipt_paid = parseInt(studentDetail.course_fees_paid);
+            } else {
+              var stu_receipt_paid = parseInt('0');
+            }
+
+            if (studentDetail.fees_paid_before_dr) {
+              var fees_paid_before_dr = parseInt(studentDetail.fees_paid_before_dr);
+              $('#stu_fees_paid_before_dr').text('Rs.' + studentDetail.fees_paid_before_dr + ' has been deposited before digital receipt.');
+            } else {
+              var fees_paid_before_dr = parseInt('0');
+              $('#stu_fees_paid_before_dr').text('Rs.0');
+            }
+
+            var course_fees_paid = parseInt(stu_receipt_paid + advanced_fees + fees_paid_before_dr);
+
+            if (course_fees_paid > 0) {
+              $('#fees_paid').text('Rs.' + course_fees_paid);
+            } else {
+              $('#fees_paid').text('No fees has been paid yet!');
+            }
+
+            var fees_due = parseInt(net_course_fees - course_fees_paid);
+
+            $('#fees_due').text('Rs.' + fees_due);
+
+            setTimeout(function() {
+              //disabling loader
+              $('.content_div_loader').removeClass('sk-loading');
+              //Display modal
+              $("#showStudentDetailModal").modal("show");
+              return true;
+            }, 500);
+          } else {
+            //show sweetalert success
+            if (data.message.length > 0) {
+              var message = data.message;
+            } else {
+              var message = "Something went wrong";
+            }
+            return false;
+          }
+        }
+      });
     });
   });
-</script>
-</body>
 
-</html>
+</script>

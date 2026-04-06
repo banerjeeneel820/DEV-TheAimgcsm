@@ -312,5 +312,3 @@
 
         });  
        </script>
-    </body>
-</html>

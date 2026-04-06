@@ -339,8 +339,6 @@
 
             }); 
          </script>
-    </body>
-</html>
 
 
             

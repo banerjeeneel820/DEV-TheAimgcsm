@@ -1,61 +1,61 @@
 <?php
-    include_once(__DIR__."/../constants.php");
-    
-    use Dompdf\Dompdf; 
-    use PhpOffice\PhpSpreadsheet\Spreadsheet;
-    use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
-    use PhpOffice\PhpSpreadsheet\Style\Border;
-    use PhpOffice\PhpSpreadsheet\Style\Color;
+include_once(__DIR__ . "/../constants.php");
 
-    defined('ROOTPATH') OR exit('No direct script access allowed');
+use Dompdf\Dompdf;
+use PhpOffice\PhpSpreadsheet\Spreadsheet;
+use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
+use PhpOffice\PhpSpreadsheet\Style\Border;
+use PhpOffice\PhpSpreadsheet\Style\Color;
 
-    //print_r($_POST);exit;
+defined('ROOTPATH') or exit('No direct script access allowed');
 
-    $export_table = $_POST['export_table'];
-    //Creating object for global controller
-    $GlobalInterfaceControllerObj = new GlobalInterfaceController();
-    //Creating object for global library
-    $GlobalLibraryHandlerObj = new GlobalLibraryHandler();
+//print_r($_POST);exit;
 
-    //Checking runtime folder existance
-    $GlobalLibraryHandlerObj->checkRunTimeFolderExistance();
+$export_table = $_POST['export_table'];
+//Creating object for global controller
+$GlobalInterfaceControllerObj = new GlobalInterfaceController();
+//Creating object for global library
+$GlobalLibraryHandlerObj = new GlobalLibraryHandler();
 
-    $spreadsheet = new Spreadsheet();
-    $Excel_writer = new Xlsx($spreadsheet);
-    
-    $export_html_style = '<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css">';
-    $export_html_style .= '<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">';
+//Checking runtime folder existance
+$GlobalLibraryHandlerObj->checkRunTimeFolderExistance();
 
-    //Excel sheet header style array
-     $styleArray = [
-        'font' => [
-            'bold' => true,
-        ],
-        'alignment' => [
-            'horizontal' => \PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_RIGHT,
-        ],
-        'borders' => [
-            'top' => [
-                'borderStyle' => \PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN,
-            ],
-        ],
-         /*'outline' => [
+$spreadsheet = new Spreadsheet();
+$Excel_writer = new Xlsx($spreadsheet);
+
+$export_html_style = '<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css">';
+$export_html_style .= '<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">';
+
+//Excel sheet header style array
+$styleArray = [
+  'font' => [
+    'bold' => true,
+  ],
+  'alignment' => [
+    'horizontal' => \PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_RIGHT,
+  ],
+  'borders' => [
+    'top' => [
+      'borderStyle' => \PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN,
+    ],
+  ],
+  /*'outline' => [
             'borderStyle' => \PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THICK,
             'color' => array('argb' => 'FFFF0000'),
         ],*/
-        'fill' => [
-            'fillType' => \PhpOffice\PhpSpreadsheet\Style\Fill::FILL_GRADIENT_LINEAR,
-            'rotation' => 90,
-            'startColor' => [
-                'argb' => 'FFFF0000',
-            ],
-            'endColor' => [
-                'argb' => 'FFA0A0A0',
-            ],
-        ],
-    ];
+  'fill' => [
+    'fillType' => \PhpOffice\PhpSpreadsheet\Style\Fill::FILL_GRADIENT_LINEAR,
+    'rotation' => 90,
+    'startColor' => [
+      'argb' => 'FFFF0000',
+    ],
+    'endColor' => [
+      'argb' => 'FFA0A0A0',
+    ],
+  ],
+];
 
-    $export_html_style .= '
+$export_html_style .= '
        <style>
         /*STYLED TABLE MODIFIED CSS ---*/
         .styled-table {
@@ -111,45 +111,44 @@
             /*------END HERE -----*/
        </style>';
 
-    switch ($export_table){
+switch ($export_table) {
 
-        case 'student':
+  case 'student':
 
-          if(empty($_POST['protocol'])){
-            $exportParamArr['record_status'] = mysqli_real_escape_string(DB::$WRITELINK,trim($_POST['record_status']));
-            
-            $exportParamArr['course_id'] = mysqli_real_escape_string(DB::$WRITELINK,trim($_POST['course_id']));
-            $exportParamArr['franchise_id'] = mysqli_real_escape_string(DB::$WRITELINK,trim($_POST['franchise_id']));
-            
-            $exportParamArr['search_string'] = mysqli_real_escape_string(DB::$WRITELINK,trim($_POST['search_string']));
+    if (empty($_POST['protocol'])) {
+      $exportParamArr['record_status'] = mysqli_real_escape_string(DB::$WRITELINK, trim($_POST['record_status']));
 
-            $exportParamArr['created'] = mysqli_real_escape_string(DB::$WRITELINK,trim($_POST['created']));
+      $exportParamArr['course_id'] = mysqli_real_escape_string(DB::$WRITELINK, trim($_POST['course_id']));
+      $exportParamArr['franchise_id'] = mysqli_real_escape_string(DB::$WRITELINK, trim($_POST['franchise_id']));
 
-            $exportParamArr['search_start'] = mysqli_real_escape_string(DB::$WRITELINK,trim($_POST['search_start']));
-            $exportParamArr['search_end'] = mysqli_real_escape_string(DB::$WRITELINK,trim($_POST['search_end']));
+      $exportParamArr['search_string'] = mysqli_real_escape_string(DB::$WRITELINK, trim($_POST['search_string']));
 
-            //fetching student data
-            $studentDataObj = $GlobalInterfaceControllerObj->fetch_Global_Student_Recipts($exportParamArr);  
-            $studentListArr = json_decode(json_encode($studentDataObj),true);
-          }
-          else{
-            $dataArr['fetchType'] = mysqli_real_escape_string(DB::$WRITELINK,trim($_POST['fetchType']));
+      $exportParamArr['created'] = mysqli_real_escape_string(DB::$WRITELINK, trim($_POST['created']));
 
-            //fetching student data
-            $studentDataObj = $GlobalInterfaceControllerObj->fetch_Dashboard_Student_Data($dataArr);  
-            $studentListArr = json_decode(json_encode($studentDataObj['data']),true); 
-          }
+      $exportParamArr['search_start'] = mysqli_real_escape_string(DB::$WRITELINK, trim($_POST['search_start']));
+      $exportParamArr['search_end'] = mysqli_real_escape_string(DB::$WRITELINK, trim($_POST['search_end']));
 
-          $export_method = mysqli_real_escape_string(DB::$WRITELINK,trim($_POST['export_method']));
-                  
-          //print_r($studentListArr);exit;
-          
-          if(count($studentListArr)>0){
-              if($export_method == "pdf"){
-                 
-                  $export_html = $export_html_style;
+      //fetching student data
+      $studentDataObj = $GlobalInterfaceControllerObj->fetch_Global_Student_Recipts($exportParamArr);
+      $studentListArr = json_decode(json_encode($studentDataObj), true);
+    } else {
+      $dataArr['fetchType'] = mysqli_real_escape_string(DB::$WRITELINK, trim($_POST['fetchType']));
 
-                  $export_html .= '
+      //fetching student data
+      $studentDataObj = $GlobalInterfaceControllerObj->fetch_Dashboard_Student_Data($dataArr);
+      $studentListArr = json_decode(json_encode($studentDataObj['data']), true);
+    }
+
+    $export_method = mysqli_real_escape_string(DB::$WRITELINK, trim($_POST['export_method']));
+
+    //print_r($studentListArr);exit;
+
+    if (count($studentListArr) > 0) {
+      if ($export_method == "pdf") {
+
+        $export_html = $export_html_style;
+
+        $export_html .= '
                     <div class="container px-0">
                       <div class="row mt-4">
                          <div class="col-12 col-lg-12">
@@ -182,197 +181,195 @@
                                </tr>
                             </thead>';
 
-                         foreach($studentListArr as $index => $student){
-                            $export_html .= '
+        foreach ($studentListArr as $index => $student) {
+          $export_html .= '
                               <tbody>
                                  <tr>
-                                  <td>'.($index+1).'</td>
+                                  <td>' . ($index + 1) . '</td>
                                   <td>
-                                    <b>Student Name:</b> '.$student["stu_name"].'<br><br>
-                                    <b>Father Name:</b> '.$student["stu_father_name"].  
-                                  '</td>
+                                    <b>Student Name:</b> ' . $student["stu_name"] . '<br><br>
+                                    <b>Father Name:</b> ' . $student["stu_father_name"] .
+            '</td>
                                   <td>
-                                    <b>Contact No:</b> '.$student["stu_phone"].'<br><br>
-                                    <b>Email:</b> '.$student["stu_email"].  
-                                  '</td>
+                                    <b>Contact No:</b> ' . $student["stu_phone"] . '<br><br>
+                                    <b>Email:</b> ' . $student["stu_email"] .
+            '</td>
                                   <td>
-                                    <b>Student ID:</b> '.$student["stu_id"].'<br><br>
-                                    <b>Course:</b> '.$student["course_title"].  
-                                  '</td>
+                                    <b>Student ID:</b> ' . $student["stu_id"] . '<br><br>
+                                    <b>Course:</b> ' . $student["course_title"] .
+            '</td>
                                   <td>
-                                    <b>Franchise:</b> '.$student["center_name"].'<br><br>
+                                    <b>Franchise:</b> ' . $student["center_name"] . '<br><br>
                                   </td>
                                   <td>
-                                    <b>Gender:</b> '.ucfirst($student["stu_gender"]).'<br><br>
-                                    <b>DOB:</b> '.date("jS F, Y",strtotime($student["stu_dob"])).  
-                                  '</td>
+                                    <b>Gender:</b> ' . ucfirst($student["stu_gender"]) . '<br><br>
+                                    <b>DOB:</b> ' . date("jS F, Y", strtotime($student["stu_dob"])) .
+            '</td>
                                    <td>
-                                    <b>Qualification:</b> '.$student["stu_qualification"].'<br><br>
-                                    <b>Marital Status:</b> '.ucfirst($student["stu_marital_status"]).  
-                                  '</td>
+                                    <b>Qualification:</b> ' . $student["stu_qualification"] . '<br><br>
+                                    <b>Marital Status:</b> ' . ucfirst($student["stu_marital_status"]) .
+            '</td>
                                    <td>
-                                    <b>Student Status:</b> '.ucfirst($student["student_status"]).'<br><br>
-                                    <b>Result:</b> '.ucfirst($student["stu_result"]).  
-                                  '</td>
+                                    <b>Student Status:</b> ' . ucfirst($student["student_status"]) . '<br><br>
+                                    <b>Result:</b> ' . ucfirst($student["stu_result"]) .
+            '</td>
                                   <td>'
-                                    .$student["receipt_count"].
-                                  '</td>
+            . $student["receipt_count"] .
+            '</td>
                                  </tr>
                                </tbody>';
-                          }
-                          $export_html .= '</table></div></div>';
+        }
+        $export_html .= '</table></div></div>';
 
-                   //echo $export_html;exit;   
+        //echo $export_html;exit;   
 
-                   $file_upload_dir =  USER_UPLOAD_DIR.'runtime_upload/'."Student_Export_Data.pdf";
-                   $file_url = USER_UPLOAD_URL.'runtime_upload/'."Student_Export_Data.pdf";
+        $file_upload_dir =  USER_UPLOAD_DIR . 'runtime_upload/' . "Student_Export_Data.pdf";
+        $file_url = USER_UPLOAD_URL . 'runtime_upload/' . "Student_Export_Data.pdf";
 
-                   $dompdf = new Dompdf();
-                   $dompdf->set_option('isRemoteEnabled', true);
-                   $dompdf->set_paper("a4", "landscape");
-                   $dompdf->load_html($export_html);
-                   $dompdf->render();
-                   $file = $dompdf->output();
-                   file_put_contents($file_upload_dir, $file);
+        $dompdf = new Dompdf();
+        $dompdf->set_option('isRemoteEnabled', true);
+        $dompdf->set_paper("a4", "landscape");
+        $dompdf->load_html($export_html);
+        $dompdf->render();
+        $file = $dompdf->output();
+        file_put_contents($file_upload_dir, $file);
 
-                   echo json_encode(array('check'=> 'success','file_upload_dir'=>$file_upload_dir,'file_url'=>$file_url));
-                   exit;
-              }else{
-             
-              $spreadsheet->setActiveSheetIndex(0);
-              $activeSheet = $spreadsheet->getActiveSheet();
+        echo json_encode(array('check' => 'success', 'file_upload_dir' => $file_upload_dir, 'file_url' => $file_url));
+        exit;
+      } else {
 
-              $spreadsheet->getActiveSheet()->getStyle('A1:P1')->applyFromArray($styleArray);
-              $spreadsheet->getDefaultStyle()->getFont()->setName('Arial');
-              $spreadsheet->getDefaultStyle()->getFont()->setSize(10);
-              
-              //Set sheet header cloumn width
-              $spreadsheet->getActiveSheet()->getColumnDimension('A')->setWidth(40, 'pt');
-              $cellHeaderArr = array('B','C','D','E','F','G','H','I','J','K','L','M','N','O','P');
+        $spreadsheet->setActiveSheetIndex(0);
+        $activeSheet = $spreadsheet->getActiveSheet();
 
-              foreach($cellHeaderArr as $cell){
-                $spreadsheet->getActiveSheet()->getColumnDimension($cell)->setWidth(130, 'pt');//setAutoSize(true);
-              }
-              //cell text alignment
-              $spreadsheet->getActiveSheet()->getStyle('A1:P1')->getAlignment()->setHorizontal('center');
-              $spreadsheet->getActiveSheet()->getStyle('A1:P1')->getAlignment()->setVertical('center');
-                
-              $activeSheet->setCellValue('A1', 'SL No.');
-              $activeSheet->setCellValue('B1', 'Student Name');
-              $activeSheet->setCellValue('C1', "Father's Name");
-              $activeSheet->setCellValue('D1', 'Student Email');
-              $activeSheet->setCellValue('E1', 'Contact No');
-              $activeSheet->setCellValue('F1', 'Student ID');
-              $activeSheet->setCellValue('G1', 'Course');
-              $activeSheet->setCellValue('H1', 'Franchise');
-              $activeSheet->setCellValue('I1', 'Date of Birth');
-              $activeSheet->setCellValue('J1', 'Gender');
-              $activeSheet->setCellValue('K1', 'Qualification');
-              $activeSheet->setCellValue('L1', 'Student Address');
-              $activeSheet->setCellValue('M1', 'Marital Status');
-              $activeSheet->setCellValue('N1', 'Student Status');
-              $activeSheet->setCellValue('O1', 'Receipt Count');
-              $activeSheet->setCellValue('P1', 'Result');
+        $spreadsheet->getActiveSheet()->getStyle('A1:P1')->applyFromArray($styleArray);
+        $spreadsheet->getDefaultStyle()->getFont()->setName('Arial');
+        $spreadsheet->getDefaultStyle()->getFont()->setSize(10);
 
-              if(count($studentListArr) > 0) {
-                  $i = 2;
-                  foreach($studentListArr as $index => $student){
+        //Set sheet header cloumn width
+        $spreadsheet->getActiveSheet()->getColumnDimension('A')->setWidth(40, 'pt');
+        $cellHeaderArr = array('B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P');
 
-                      if($student['student_status'] == "course_complete"){
-                         $student_status = "Course Complete";
-                      }else{
-                         $student_status = ucfirst($student['student_status']);
-                      }
-                      //cell text alignment
-                      $spreadsheet->getActiveSheet()->getStyle('A'.$i.':P'.$i)->getAlignment()->setHorizontal('center');
-                      $spreadsheet->getActiveSheet()->getStyle('A'.$i.':P'.$i)->getAlignment()->setVertical('center');
+        foreach ($cellHeaderArr as $cell) {
+          $spreadsheet->getActiveSheet()->getColumnDimension($cell)->setWidth(130, 'pt'); //setAutoSize(true);
+        }
+        //cell text alignment
+        $spreadsheet->getActiveSheet()->getStyle('A1:P1')->getAlignment()->setHorizontal('center');
+        $spreadsheet->getActiveSheet()->getStyle('A1:P1')->getAlignment()->setVertical('center');
 
-                      //Wrap text
-                      $spreadsheet->getActiveSheet()->getStyle('A'.$i.':P'.$i)->getAlignment()->setWrapText(true);    
+        $activeSheet->setCellValue('A1', 'SL No.');
+        $activeSheet->setCellValue('B1', 'Student Name');
+        $activeSheet->setCellValue('C1', "Father's Name");
+        $activeSheet->setCellValue('D1', 'Student Email');
+        $activeSheet->setCellValue('E1', 'Contact No');
+        $activeSheet->setCellValue('F1', 'Student ID');
+        $activeSheet->setCellValue('G1', 'Course');
+        $activeSheet->setCellValue('H1', 'Franchise');
+        $activeSheet->setCellValue('I1', 'Date of Birth');
+        $activeSheet->setCellValue('J1', 'Gender');
+        $activeSheet->setCellValue('K1', 'Qualification');
+        $activeSheet->setCellValue('L1', 'Student Address');
+        $activeSheet->setCellValue('M1', 'Marital Status');
+        $activeSheet->setCellValue('N1', 'Student Status');
+        $activeSheet->setCellValue('O1', 'Receipt Count');
+        $activeSheet->setCellValue('P1', 'Result');
 
-                      $activeSheet->setCellValue('A'.$i , $index+1);
-                      $activeSheet->setCellValue('B'.$i , $student['stu_name']);
-                      $activeSheet->setCellValue('C'.$i , $student['stu_father_name']);
-                      $activeSheet->setCellValue('D'.$i , $student['stu_email']);
-                      $activeSheet->setCellValue('E'.$i , $student['stu_phone']);
-                      $activeSheet->setCellValue('F'.$i , $student['stu_id']);
-                      $activeSheet->setCellValue('G'.$i , $student['course_title']);
-                      $activeSheet->setCellValue('H'.$i , $student['center_name']);
-                      $activeSheet->setCellValue('I'.$i , date("jS F, Y",strtotime($student['stu_dob'])));
-                      $activeSheet->setCellValue('J'.$i , ucfirst($student['stu_gender']));
-                      $activeSheet->setCellValue('K'.$i , $student['stu_qualification']);
-                      $activeSheet->setCellValue('L'.$i , $student['stu_address']);
-                      $activeSheet->setCellValue('M'.$i , ucfirst($student['stu_marital_status']));
-                      $activeSheet->setCellValue('N'.$i , $student_status);
-                      $activeSheet->setCellValue('O'.$i , $student['receipt_count']);
-                      $activeSheet->setCellValue('P'.$i , ucfirst($student['stu_result']));
-                      $i++;
-                  }
-              }
-              
-              $file_upload_dir =  USER_UPLOAD_DIR.'runtime_upload/Student_Data.xlsx';
-              $file_url = USER_UPLOAD_URL.'runtime_upload/Student_Data.xlsx';
-  
-              $Excel_writer->save($file_upload_dir);
+        if (count($studentListArr) > 0) {
+          $i = 2;
+          foreach ($studentListArr as $index => $student) {
 
-              echo json_encode(array('check'=> 'success','file_upload_dir'=>$file_upload_dir,'file_url'=>$file_url));
-
-           }    
-          }else{
-            echo json_encode(array('check'=> 'failure','msg'=>"No recoed found to export."));
-          } 
-       
-          break;
-
-       case 'receipt':
-          if(empty($_POST['protocol'])){
-            $exportParamArr['record_status'] = mysqli_real_escape_string(DB::$WRITELINK,trim($_POST['record_status']));
-
-            $exportParamArr['course_id'] = mysqli_real_escape_string(DB::$WRITELINK,trim($_POST['course_id']));
-            $exportParamArr['franchise_id'] = mysqli_real_escape_string(DB::$WRITELINK,trim($_POST['franchise_id']));
-
-            $exportParamArr['created'] = mysqli_real_escape_string(DB::$WRITELINK,trim($_POST['created']));
-
-            if(!empty($_POST['receipt_season_start'])){
-              $receipt_season_start = mysqli_real_escape_string(DB::$WRITELINK,trim($_POST['receipt_season_start']));
-              $receipt_season_start = str_replace('/', '-', $receipt_season_start);
-              $exportParamArr['receipt_season_start'] = date('Y-m-d', strtotime($receipt_season_start));
-            }  
-
-            if(!empty($_POST['receipt_season_end'])){
-              $receipt_season_end = mysqli_real_escape_string(DB::$WRITELINK,trim($_POST['receipt_season_end']));
-              $receipt_season_end = str_replace('/', '-', $receipt_season_end);
-              $exportParamArr['receipt_season_end'] = date('Y-m-d', strtotime($receipt_season_end));
-            }  
-
-            if(!empty($_POST['student_id'])){
-                $exportParamArr['student_id'] = mysqli_real_escape_string(DB::$WRITELINK,trim($_POST['student_id']));
-               //fetching receipt data
-               $receiptDataObj = $GlobalInterfaceControllerObj->fetch_Single_Student_Receipt($exportParamArr['student_id'],$exportParamArr);  
-               $receiptListArr = json_decode(json_encode($receiptDataObj),true);
-            }else{
-               //fetching receipt data
-               $receiptDataObj = $GlobalInterfaceControllerObj->fetch_Global_Receipts($exportParamArr);  
-               $receiptListArr = json_decode(json_encode($receiptDataObj),true);  
+            if ($student['student_status'] == "course_complete") {
+              $student_status = "Course Complete";
+            } else {
+              $student_status = ucfirst($student['student_status']);
             }
-            
-          }elseif($_POST['protocol'] == "dashboard"){
-            $dataArr['fetchType'] = mysqli_real_escape_string(DB::$WRITELINK,trim($_POST['fetchType']));
-            //fetching student data
-            $receiptDataObj = $GlobalInterfaceControllerObj->fetch_Dashboard_Receipt_Data($dataArr);  
-            $receiptListArr = json_decode(json_encode($receiptDataObj['data']),true); 
+            //cell text alignment
+            $spreadsheet->getActiveSheet()->getStyle('A' . $i . ':P' . $i)->getAlignment()->setHorizontal('center');
+            $spreadsheet->getActiveSheet()->getStyle('A' . $i . ':P' . $i)->getAlignment()->setVertical('center');
+
+            //Wrap text
+            $spreadsheet->getActiveSheet()->getStyle('A' . $i . ':P' . $i)->getAlignment()->setWrapText(true);
+
+            $activeSheet->setCellValue('A' . $i, $index + 1);
+            $activeSheet->setCellValue('B' . $i, $student['stu_name']);
+            $activeSheet->setCellValue('C' . $i, $student['stu_father_name']);
+            $activeSheet->setCellValue('D' . $i, $student['stu_email']);
+            $activeSheet->setCellValue('E' . $i, $student['stu_phone']);
+            $activeSheet->setCellValue('F' . $i, $student['stu_id']);
+            $activeSheet->setCellValue('G' . $i, $student['course_title']);
+            $activeSheet->setCellValue('H' . $i, $student['center_name']);
+            $activeSheet->setCellValue('I' . $i, date("jS F, Y", strtotime($student['stu_dob'])));
+            $activeSheet->setCellValue('J' . $i, ucfirst($student['stu_gender']));
+            $activeSheet->setCellValue('K' . $i, $student['stu_qualification']);
+            $activeSheet->setCellValue('L' . $i, $student['stu_address']);
+            $activeSheet->setCellValue('M' . $i, ucfirst($student['stu_marital_status']));
+            $activeSheet->setCellValue('N' . $i, $student_status);
+            $activeSheet->setCellValue('O' . $i, $student['receipt_count']);
+            $activeSheet->setCellValue('P' . $i, ucfirst($student['stu_result']));
+            $i++;
           }
+        }
 
-          $export_method = mysqli_real_escape_string(DB::$WRITELINK,trim($_POST['export_method']));
-                  
-          //print_r($receiptListArr);exit;
-          
-          if(count($receiptListArr)>0){
-              if($export_method == "pdf"){
-                 
-                  $export_html = $export_html_style;
+        $file_upload_dir =  USER_UPLOAD_DIR . 'runtime_upload/Student_Data.xlsx';
+        $file_url = USER_UPLOAD_URL . 'runtime_upload/Student_Data.xlsx';
 
-                  $export_html .= '
+        $Excel_writer->save($file_upload_dir);
+
+        echo json_encode(array('check' => 'success', 'file_upload_dir' => $file_upload_dir, 'file_url' => $file_url));
+      }
+    } else {
+      echo json_encode(array('check' => 'failure', 'msg' => "No recoed found to export."));
+    }
+
+    break;
+
+  case 'receipt':
+    if (empty($_POST['protocol'])) {
+      $exportParamArr['record_status'] = mysqli_real_escape_string(DB::$WRITELINK, trim($_POST['record_status']));
+
+      $exportParamArr['course_id'] = mysqli_real_escape_string(DB::$WRITELINK, trim($_POST['course_id']));
+      $exportParamArr['franchise_id'] = mysqli_real_escape_string(DB::$WRITELINK, trim($_POST['franchise_id']));
+
+      $exportParamArr['created'] = mysqli_real_escape_string(DB::$WRITELINK, trim($_POST['created']));
+
+      if (!empty($_POST['receipt_season_start'])) {
+        $receipt_season_start = mysqli_real_escape_string(DB::$WRITELINK, trim($_POST['receipt_season_start']));
+        $receipt_season_start = str_replace('/', '-', $receipt_season_start);
+        $exportParamArr['receipt_season_start'] = date('Y-m-d', strtotime($receipt_season_start));
+      }
+
+      if (!empty($_POST['receipt_season_end'])) {
+        $receipt_season_end = mysqli_real_escape_string(DB::$WRITELINK, trim($_POST['receipt_season_end']));
+        $receipt_season_end = str_replace('/', '-', $receipt_season_end);
+        $exportParamArr['receipt_season_end'] = date('Y-m-d', strtotime($receipt_season_end));
+      }
+
+      if (!empty($_POST['student_id'])) {
+        $exportParamArr['student_id'] = mysqli_real_escape_string(DB::$WRITELINK, trim($_POST['student_id']));
+        //fetching receipt data
+        $receiptDataObj = $GlobalInterfaceControllerObj->fetch_Single_Student_Receipt($exportParamArr['student_id'], $exportParamArr);
+        $receiptListArr = json_decode(json_encode($receiptDataObj), true);
+      } else {
+        //fetching receipt data
+        $receiptDataObj = $GlobalInterfaceControllerObj->fetch_Global_Receipts($exportParamArr);
+        $receiptListArr = json_decode(json_encode($receiptDataObj), true);
+      }
+    } elseif ($_POST['protocol'] == "dashboard") {
+      $dataArr['fetchType'] = mysqli_real_escape_string(DB::$WRITELINK, trim($_POST['fetchType']));
+      //fetching student data
+      $receiptDataObj = $GlobalInterfaceControllerObj->fetch_Dashboard_Receipt_Data($dataArr);
+      $receiptListArr = json_decode(json_encode($receiptDataObj['data']), true);
+    }
+
+    $export_method = mysqli_real_escape_string(DB::$WRITELINK, trim($_POST['export_method']));
+
+    //print_r($receiptListArr);exit;
+
+    if (count($receiptListArr) > 0) {
+      if ($export_method == "pdf") {
+
+        $export_html = $export_html_style;
+
+        $export_html .= '
                     <div class="container px-0">
                       <div class="row mt-4">
                          <div class="col-12 col-lg-12">
@@ -405,137 +402,173 @@
                                </tr>
                             </thead>';
 
-                         foreach($receiptListArr as $index => $receipt){
-                           
-                              $export_html .= '
+        foreach ($receiptListArr as $index => $receipt) {
+
+          $export_html .= '
                                 <tbody>
                                    <tr>
-                                    <td>'.($index+1).'</td>
+                                    <td>' . ($index + 1) . '</td>
                                     <td>'
-                                      .$receipt["receipt_id"].
-                                    '</td>
-                                    <td>'.date('jS F, Y',strtotime($receipt["created_at"])).'</td>
-                                    <td>'.$receipt["receipt_amount"].'</td>
-                                    <td>'.$receipt["stu_name"].'</td>
+            . $receipt["receipt_id"] .
+            '</td>
+                                    <td>' . date('jS F, Y', strtotime($receipt["created_at"])) . '</td>
+                                    <td>' . $receipt["receipt_amount"] . '</td>
+                                    <td>' . $receipt["stu_name"] . '</td>
                                     <td>
-                                      <b>Contact No:</b> '.$receipt["stu_phone"].'<br><br>
-                                      <b>Email:</b> '.$receipt["stu_email"].  
-                                    '</td>
+                                      <b>Contact No:</b> ' . $receipt["stu_phone"] . '<br><br>
+                                      <b>Email:</b> ' . $receipt["stu_email"] .
+            '</td>
                                     <td>
-                                      <b>Course:</b> '.$receipt["course_title"].'<br><br>  
-                                      <b>Franchise:</b> '.$receipt["center_name"].'
+                                      <b>Course:</b> ' . $receipt["course_title"] . '<br><br>  
+                                      <b>Franchise:</b> ' . $receipt["center_name"] . '
                                     </td>
                                     <td>
-                                      <b>Student ID:</b> '.$receipt["stu_id"].'<br><br>
-                                      <b>Result:</b> '.ucfirst($receipt["stu_result"]).  
-                                    '</td>
+                                      <b>Student ID:</b> ' . $receipt["stu_id"] . '<br><br>
+                                      <b>Result:</b> ' . ucfirst($receipt["stu_result"]) .
+            '</td>
                                    </tr>
                                  </tbody>';
-                         }
-                         $export_html .= '</table></div></div>';
+        }
+        $export_html .= '</table></div></div>';
 
-                   //echo $export_html;exit;   
-                   
-                   $file_upload_dir =  USER_UPLOAD_DIR.'runtime_upload/'."Student_Export_Data.pdf";
-                   $file_url = USER_UPLOAD_URL.'runtime_upload/'."Student_Export_Data.pdf";
+        //echo $export_html;exit;   
 
-                   $dompdf = new Dompdf();
-                   //$dompdf->set_option('isRemoteEnabled', true);
-                   $dompdf->set_paper("a4", "landscape");
-                   $dompdf->load_html($export_html);
-                   $dompdf->render();
-                   $file = $dompdf->output();
-                   file_put_contents($file_upload_dir, $file);
+        $file_upload_dir =  USER_UPLOAD_DIR . "runtime_upload/" . "Receipt_Data_" . time() . ".pdf";
+        $file_url = USER_UPLOAD_URL . "runtime_upload/" . "Receipt_Data_" . time() . ".pdf";
 
-                   echo json_encode(array('check'=> 'success','file_upload_dir'=>$file_upload_dir,'file_url'=>$file_url));
-                   exit;
-              }else{
+        $dompdf = new Dompdf();
+        //$dompdf->set_option('isRemoteEnabled', true);
+        $dompdf->set_paper("a4", "landscape");
+        $dompdf->load_html($export_html);
+        $dompdf->render();
+        $file = $dompdf->output();
+        file_put_contents($file_upload_dir, $file);
 
-              $spreadsheet->setActiveSheetIndex(0);
-              $activeSheet = $spreadsheet->getActiveSheet();
+        echo json_encode(array('check' => 'success', 'file_upload_dir' => $file_upload_dir, 'file_url' => $file_url));
+        exit;
+      } else {
+        //Build export criteria
+        $criteriaText = $GlobalLibraryHandlerObj->buildExportCriteria($exportParamArr);
 
-              $spreadsheet->getActiveSheet()->getStyle('A1:K1')->applyFromArray($styleArray);
-              $spreadsheet->getDefaultStyle()->getFont()->setName('Arial');
-              $spreadsheet->getDefaultStyle()->getFont()->setSize(10);
-              
-              //Set sheet header cloumn width
-              $spreadsheet->getActiveSheet()->getColumnDimension('A')->setWidth(40, 'pt');
-              $cellHeaderArr = array('B','C','D','E','F','G','H','I','J','K');
+        $spreadsheet->setActiveSheetIndex(0);
+        $activeSheet = $spreadsheet->getActiveSheet();
 
-              foreach($cellHeaderArr as $cell){
-                $spreadsheet->getActiveSheet()->getColumnDimension($cell)->setWidth(130, 'pt');//setAutoSize(true);
-              }
-              //cell text alignment
-              $spreadsheet->getActiveSheet()->getStyle('A1:K1')->getAlignment()->setHorizontal('center');
-              $spreadsheet->getActiveSheet()->getStyle('A1:K1')->getAlignment()->setVertical('center');
-                
-              $activeSheet->setCellValue('A1', 'SL No.');
-              $activeSheet->setCellValue('B1', 'Receipt ID');
-              $activeSheet->setCellValue('C1', 'Receipt Created');
-              $activeSheet->setCellValue('D1', 'Receipt Amount');
-              $activeSheet->setCellValue('E1', 'Student Name');
-              $activeSheet->setCellValue('F1', 'Student Email');
-              $activeSheet->setCellValue('G1', 'Contact No');
-              $activeSheet->setCellValue('H1', 'Student ID');
-              $activeSheet->setCellValue('I1', 'Student Result');
-              $activeSheet->setCellValue('J1', 'Course');
-              $activeSheet->setCellValue('K1', 'Franchise');
+        $spreadsheet->getActiveSheet()->getStyle('A1:N1')->applyFromArray($styleArray);
+        $spreadsheet->getDefaultStyle()->getFont()->setName('Arial');
+        $spreadsheet->getDefaultStyle()->getFont()->setSize(10);
 
-              if(count($receiptListArr) > 0) {
-                  $i = 2;
-                  foreach($receiptListArr as $index => $receipt){                      
-                      //cell text alignment
-                      $spreadsheet->getActiveSheet()->getStyle('A'.$i.':K'.$i)->getAlignment()->setHorizontal('center');
-                      $spreadsheet->getActiveSheet()->getStyle('A'.$i.':K'.$i)->getAlignment()->setVertical('center');
+        //Set sheet header cloumn width
+        $spreadsheet->getActiveSheet()->getColumnDimension('A')->setWidth(40, 'pt');
+        $cellHeaderArr = array('B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N');
 
-                      //Wrap text
-                      $spreadsheet->getActiveSheet()->getStyle('A'.$i.':K'.$i)->getAlignment()->setWrapText(true);   
+        foreach ($cellHeaderArr as $cell) {
+          $spreadsheet->getActiveSheet()->getColumnDimension($cell)->setWidth(130, 'pt'); //setAutoSize(true);
+        }
+        
+        //cell text alignment
+        $spreadsheet->getActiveSheet()->getStyle('A1:N1')->getAlignment()->setHorizontal('center');
+        $spreadsheet->getActiveSheet()->getStyle('A1:N1')->getAlignment()->setVertical('center');
 
-                      $activeSheet->setCellValue('A'.$i , $index+1);
-                      $activeSheet->setCellValue('B'.$i , $receipt['receipt_id']);
-                      $activeSheet->setCellValue('C'.$i , date('jS F, Y',strtotime($receipt["created_at"])));
-                      $activeSheet->setCellValue('D'.$i , "Rs. ".$receipt['receipt_amount']);
-                      $activeSheet->setCellValue('E'.$i , $receipt['stu_name']);
-                      $activeSheet->setCellValue('F'.$i , $receipt['stu_email']);
-                      $activeSheet->setCellValue('G'.$i , $receipt['stu_phone']);
-                      $activeSheet->setCellValue('H'.$i , $receipt['stu_id']);
-                      $activeSheet->setCellValue('I'.$i , ucfirst($receipt['stu_result']));
-                      $activeSheet->setCellValue('J'.$i , $receipt['course_title']);
-                      $activeSheet->setCellValue('K'.$i , $receipt['center_name']);
-                      $i++;
-                  }
-              }
+        // $activeSheet->insertNewRowBefore(1, 3);
 
-              $file_upload_dir =  USER_UPLOAD_DIR.'runtime_upload/Receipt_Data.xlsx';
-              $file_url = USER_UPLOAD_URL.'runtime_upload/Receipt_Data.xlsx';
-  
-              $Excel_writer->save($file_upload_dir);
+        // $activeSheet->setCellValue('A1', 'Receipt Report');
+        // $activeSheet->setCellValue('A2', 'Generated on: ' . date('d M Y h:i A'));
+        // $activeSheet->setCellValue('A3', 'Filters: ' . $criteriaText);
 
-              echo json_encode(array('check'=> 'success','file_upload_dir'=>$file_upload_dir,'file_url'=>$file_url));
-           }    
-          }else{
-             echo json_encode(array('check'=> 'failure','msg'=>"No recoed found to export.")); 
-          } 
-       
-          break;
+        // // Merge for clean UI
+        // $activeSheet->mergeCells('A1:N1');
+        // $activeSheet->mergeCells('A2:N2');
+        // $activeSheet->mergeCells('A3:N3');
 
-      case 'franchise':
-          
-          $record_status = mysqli_real_escape_string(DB::$WRITELINK,trim($_POST['record_status']));
-           
-          //fetching student data
-          $franchiseDataObj = $GlobalInterfaceControllerObj->fetch_Global_Franchise($record_status);  
-          $franchiseListArr = json_decode(json_encode($franchiseDataObj),true);
-          
-          $export_method = mysqli_real_escape_string(DB::$WRITELINK,trim($_POST['export_method']));
-                  
-          //print_r($franchiseListArr);exit;
+        // // Styling (optional but recommended)
+        // $activeSheet->getStyle('A1')->getFont()->setBold(true)->setSize(14);
+        // $activeSheet->getStyle('A2:A3')->getFont()->setSize(10);
+        // $activeSheet->getStyle('A3')->getAlignment()->setWrapText(true);
 
-          if($export_method == "pdf"){
-             
-              $export_html = $export_html_style;
+        $activeSheet->setCellValue('A1', 'SL No.');
+        $activeSheet->setCellValue('B1', 'Receipt ID');
+        $activeSheet->setCellValue('C1', 'Receipt Created');
+        $activeSheet->setCellValue('D1', 'Receipt Amount');
+        $activeSheet->setCellValue('E1', 'Late Fine');
+        $activeSheet->setCellValue('F1', 'Additional Fees');
+        $activeSheet->setCellValue('G1', 'Student Name');
+        $activeSheet->setCellValue('H1', 'Student Email');
+        $activeSheet->setCellValue('I1', 'Contact No');
+        $activeSheet->setCellValue('J1', 'Student ID');
+        $activeSheet->setCellValue('K1', 'Student Result');
+        $activeSheet->setCellValue('L1', 'Course');
+        $activeSheet->setCellValue('M1', 'Franchise');
+        $activeSheet->setCellValue('N1', 'Verified Status');
 
-              $export_html .= '
+        if (count($receiptListArr) > 0) {
+          $i = 2;
+          foreach ($receiptListArr as $index => $receipt) {
+            //Formatting Data before put into csv file
+            $receipt_amount = "Rs. " . (!empty($receipt['receipt_amount']) ? $receipt['receipt_amount'] : 0);
+            $late_fine      = "Rs. " . (!empty($receipt['late_fine']) ? $receipt['late_fine'] : 0);
+            $extra_fees     = "Rs. " . (!empty($receipt['extra_fees']) ? $receipt['extra_fees'] : 0);
+
+            if (!empty($receipt['extra_fees']) && !empty($receipt['extra_fees_description'])) {
+              $extra_fees .= " for " . $receipt['extra_fees_description'];
+            }
+
+            $verified_status = $receipt['verified_status'] == '1' ? "Verified" : "Not verified";
+
+            //cell text alignment
+            $spreadsheet->getActiveSheet()->getStyle('A' . $i . ':N' . $i)->getAlignment()->setHorizontal('center');
+            $spreadsheet->getActiveSheet()->getStyle('A' . $i . ':N' . $i)->getAlignment()->setVertical('center');
+
+            //Wrap text
+            $spreadsheet->getActiveSheet()->getStyle('A' . $i . ':N' . $i)->getAlignment()->setWrapText(true);
+
+            $activeSheet->setCellValue('A' . $i, $index + 1);
+            $activeSheet->setCellValue('B' . $i, $receipt['receipt_id']);
+            $activeSheet->setCellValue('C' . $i, date('jS F, Y', strtotime($receipt["created_at"])));
+            $activeSheet->setCellValue('D' . $i, $receipt_amount);
+            $activeSheet->setCellValue('E' . $i, $late_fine);
+            $activeSheet->setCellValue('F' . $i, $extra_fees);
+            $activeSheet->setCellValue('G' . $i, $receipt['stu_name']);
+            $activeSheet->setCellValue('H' . $i, $receipt['stu_email']);
+            $activeSheet->setCellValue('I' . $i, $receipt['stu_phone']);
+            $activeSheet->setCellValue('J' . $i, $receipt['stu_id']);
+            $activeSheet->setCellValue('K' . $i, ucfirst($receipt['stu_result']));
+            $activeSheet->setCellValue('L' . $i, $receipt['course_title']);
+            $activeSheet->setCellValue('M' . $i, $receipt['center_name']);
+            $activeSheet->setCellValue('N' . $i, $verified_status);
+            $i++;
+          }
+        }
+
+        $file_upload_dir =  USER_UPLOAD_DIR . 'runtime_upload/Receipt_Data_' . time() . '.xlsx';
+        $file_url = USER_UPLOAD_URL . 'runtime_upload/Receipt_Data_' . time() . '.xlsx';
+
+        $Excel_writer->save($file_upload_dir);
+
+        echo json_encode(array('check' => 'success', 'file_upload_dir' => $file_upload_dir, 'file_url' => $file_url));
+      }
+    } else {
+      echo json_encode(array('check' => 'failure', 'msg' => "No recoed found to export."));
+    }
+
+    break;
+
+  case 'franchise':
+
+    $record_status = mysqli_real_escape_string(DB::$WRITELINK, trim($_POST['record_status']));
+
+    //fetching student data
+    $franchiseDataObj = $GlobalInterfaceControllerObj->fetch_Global_Franchise($record_status);
+    $franchiseListArr = json_decode(json_encode($franchiseDataObj), true);
+
+    $export_method = mysqli_real_escape_string(DB::$WRITELINK, trim($_POST['export_method']));
+
+    //print_r($franchiseListArr);exit;
+
+    if ($export_method == "pdf") {
+
+      $export_html = $export_html_style;
+
+      $export_html .= '
                 <div class="container px-0">
                   <div class="row mt-4">
                      <div class="col-12 col-lg-12">
@@ -567,84 +600,84 @@
                            </tr>
                         </thead>';
 
-                    foreach($franchiseListArr as $index => $franchise){
-                       
-                      $export_html .= '
+      foreach ($franchiseListArr as $index => $franchise) {
+
+        $export_html .= '
                         <tbody>
                            <tr>
-                            <td>'.($index+1).'</td>
+                            <td>' . ($index + 1) . '</td>
                             <td>'
-                              .$franchise["center_name"].
-                            '</td>
-                            <td>'.$franchise["owner_name"].'</td>
-                            <td>'.$franchise["fran_id"].'</td>
+          . $franchise["center_name"] .
+          '</td>
+                            <td>' . $franchise["owner_name"] . '</td>
+                            <td>' . $franchise["fran_id"] . '</td>
                             <td>
-                              <b>Contact No:</b> '.$franchise["fran_phone"].'<br><br>
-                              <b>Email:</b> '.$franchise["fran_email"].  
-                            '</td>
-                            <td>'.$franchise["fran_address"].'</td>
+                              <b>Contact No:</b> ' . $franchise["fran_phone"] . '<br><br>
+                              <b>Email:</b> ' . $franchise["fran_email"] .
+          '</td>
+                            <td>' . $franchise["fran_address"] . '</td>
                             <td>
-                              <b>Student ID:</b> '.ucfirst($franchise["record_status"]).'<br><br>
-                              <b>Total no of Enrolled Student Count:</b> '.$franchise["enrolled_student_count"].  
-                            '</td>
+                              <b>Student ID:</b> ' . ucfirst($franchise["record_status"]) . '<br><br>
+                              <b>Total no of Enrolled Student Count:</b> ' . $franchise["enrolled_student_count"] .
+          '</td>
                            </tr>
                          </tbody>';
-                     }
-                     $export_html .= '</table></div></div>';
+      }
+      $export_html .= '</table></div></div>';
 
-               //echo $export_html;exit;   
-               
-               $file_upload_dir =  USER_UPLOAD_DIR.'runtime_upload/'."Franchise_Export_Data.pdf";
-               $file_url = USER_UPLOAD_URL.'runtime_upload/'."Franchise_Export_Data.pdf";
+      //echo $export_html;exit;   
 
-               $dompdf = new Dompdf();
-               //$dompdf->set_option('isRemoteEnabled', true);
-               $dompdf->set_paper("a4", "landscape");
-               $dompdf->load_html($export_html);
-               $dompdf->render();
-               $file = $dompdf->output();
-               file_put_contents($file_upload_dir, $file);
+      $file_upload_dir =  USER_UPLOAD_DIR . 'runtime_upload/' . "Franchise_Export_Data.pdf";
+      $file_url = USER_UPLOAD_URL . 'runtime_upload/' . "Franchise_Export_Data.pdf";
 
-               echo json_encode(array('check'=> 'success','file_upload_dir'=>$file_upload_dir,'file_url'=>$file_url));
-               exit;
-           }else{
-             
-              $spreadsheet->setActiveSheetIndex(0);
-              $activeSheet = $spreadsheet->getActiveSheet();
-              
-              //Styling the sheet
-              //$spreadsheet->getActiveSheet()->getStyle('A1:I1')->getFill()->setFillType(\PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID)->getStartColor()->setARGB('FFFF0000');
+      $dompdf = new Dompdf();
+      //$dompdf->set_option('isRemoteEnabled', true);
+      $dompdf->set_paper("a4", "landscape");
+      $dompdf->load_html($export_html);
+      $dompdf->render();
+      $file = $dompdf->output();
+      file_put_contents($file_upload_dir, $file);
 
-              $spreadsheet->getActiveSheet()->getStyle('A1:I1')->applyFromArray($styleArray);
-              $spreadsheet->getDefaultStyle()->getFont()->setName('Arial');
-              $spreadsheet->getDefaultStyle()->getFont()->setSize(10);
-              
-              //Set sheet header cloumn width
-              $spreadsheet->getActiveSheet()->getColumnDimension('A')->setWidth(40, 'pt');
+      echo json_encode(array('check' => 'success', 'file_upload_dir' => $file_upload_dir, 'file_url' => $file_url));
+      exit;
+    } else {
 
-              $cellHeaderArr = array('B','C','D','E','F','G','H','I');
+      $spreadsheet->setActiveSheetIndex(0);
+      $activeSheet = $spreadsheet->getActiveSheet();
 
-              foreach($cellHeaderArr as $cell){
-                $spreadsheet->getActiveSheet()->getColumnDimension($cell)->setWidth(150, 'pt');//setAutoSize(true);
-              }
-              //cell text alignment
-              $spreadsheet->getActiveSheet()->getStyle('A1:I1')->getAlignment()->setHorizontal('center');
-              $spreadsheet->getActiveSheet()->getStyle('A1:I1')->getAlignment()->setVertical('center');
-                                         
-              $activeSheet->setCellValue('A1', 'SL No.');
-              $activeSheet->setCellValue('B1', 'Franchise Name');
-              $activeSheet->setCellValue('C1', 'Owner Name');
-              $activeSheet->setCellValue('D1', 'Franchise ID');
-              $activeSheet->setCellValue('E1', 'Contact No');
-              $activeSheet->setCellValue('F1', 'Franchise Email');
-              $activeSheet->setCellValue('G1', 'Franchise Address');
-              $activeSheet->setCellValue('H1', 'Franchise Status');
-              $activeSheet->setCellValue('I1', 'Total No of Student Enrolled');
+      //Styling the sheet
+      //$spreadsheet->getActiveSheet()->getStyle('A1:I1')->getFill()->setFillType(\PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID)->getStartColor()->setARGB('FFFF0000');
 
-              if(count($franchiseListArr) > 0) {
-                  $i = 2;
-                  foreach($franchiseListArr as $index => $franchise){
-                      /*if($i%2 == 0){
+      $spreadsheet->getActiveSheet()->getStyle('A1:I1')->applyFromArray($styleArray);
+      $spreadsheet->getDefaultStyle()->getFont()->setName('Arial');
+      $spreadsheet->getDefaultStyle()->getFont()->setSize(10);
+
+      //Set sheet header cloumn width
+      $spreadsheet->getActiveSheet()->getColumnDimension('A')->setWidth(40, 'pt');
+
+      $cellHeaderArr = array('B', 'C', 'D', 'E', 'F', 'G', 'H', 'I');
+
+      foreach ($cellHeaderArr as $cell) {
+        $spreadsheet->getActiveSheet()->getColumnDimension($cell)->setWidth(150, 'pt'); //setAutoSize(true);
+      }
+      //cell text alignment
+      $spreadsheet->getActiveSheet()->getStyle('A1:I1')->getAlignment()->setHorizontal('center');
+      $spreadsheet->getActiveSheet()->getStyle('A1:I1')->getAlignment()->setVertical('center');
+
+      $activeSheet->setCellValue('A1', 'SL No.');
+      $activeSheet->setCellValue('B1', 'Franchise Name');
+      $activeSheet->setCellValue('C1', 'Owner Name');
+      $activeSheet->setCellValue('D1', 'Franchise ID');
+      $activeSheet->setCellValue('E1', 'Contact No');
+      $activeSheet->setCellValue('F1', 'Franchise Email');
+      $activeSheet->setCellValue('G1', 'Franchise Address');
+      $activeSheet->setCellValue('H1', 'Franchise Status');
+      $activeSheet->setCellValue('I1', 'Total No of Student Enrolled');
+
+      if (count($franchiseListArr) > 0) {
+        $i = 2;
+        foreach ($franchiseListArr as $index => $franchise) {
+          /*if($i%2 == 0){
                         $cell_color = "42F560";
                       }else{
                         $cell_color = "EDDC40";  
@@ -653,34 +686,33 @@
                       //Filling cell color
                       $spreadsheet->getActiveSheet()->getStyle('A'.$i.':I'.$i)->getFill()->setFillType(\PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID)->getStartColor()->setARGB($cell_color);*/
 
-                      //cell text alignment
-                      $spreadsheet->getActiveSheet()->getStyle('A'.$i.':I'.$i)->getAlignment()->setHorizontal('center');
-                      $spreadsheet->getActiveSheet()->getStyle('A'.$i.':I'.$i)->getAlignment()->setVertical('center');
+          //cell text alignment
+          $spreadsheet->getActiveSheet()->getStyle('A' . $i . ':I' . $i)->getAlignment()->setHorizontal('center');
+          $spreadsheet->getActiveSheet()->getStyle('A' . $i . ':I' . $i)->getAlignment()->setVertical('center');
 
-                      //Wrap text
-                      $spreadsheet->getActiveSheet()->getStyle('A'.$i.':I'.$i)->getAlignment()->setWrapText(true);
+          //Wrap text
+          $spreadsheet->getActiveSheet()->getStyle('A' . $i . ':I' . $i)->getAlignment()->setWrapText(true);
 
-                      $activeSheet->setCellValue('A'.$i , $index+1);
-                      $activeSheet->setCellValue('B'.$i , $franchise['center_name']);
-                      $activeSheet->setCellValue('C'.$i , $franchise['owner_name']);
-                      $activeSheet->setCellValue('D'.$i , $franchise['fran_id']);
-                      $activeSheet->setCellValue('E'.$i , $franchise['fran_phone']);
-                      $activeSheet->setCellValue('F'.$i , $franchise['fran_email']);
-                      $activeSheet->setCellValue('G'.$i , $franchise['fran_address']);
-                      $activeSheet->setCellValue('H'.$i , ucfirst($franchise['record_status']));
-                      $activeSheet->setCellValue('I'.$i , $franchise['enrolled_student_count']);
-                      $i++;
-                  }
-              }
- 
-              $file_upload_dir =  USER_UPLOAD_DIR.'runtime_upload/Franchise_Data.xlsx';
-              $file_url = USER_UPLOAD_URL.'runtime_upload/Franchise_Data.xlsx';
-  
-              $Excel_writer->save($file_upload_dir);
+          $activeSheet->setCellValue('A' . $i, $index + 1);
+          $activeSheet->setCellValue('B' . $i, $franchise['center_name']);
+          $activeSheet->setCellValue('C' . $i, $franchise['owner_name']);
+          $activeSheet->setCellValue('D' . $i, $franchise['fran_id']);
+          $activeSheet->setCellValue('E' . $i, $franchise['fran_phone']);
+          $activeSheet->setCellValue('F' . $i, $franchise['fran_email']);
+          $activeSheet->setCellValue('G' . $i, $franchise['fran_address']);
+          $activeSheet->setCellValue('H' . $i, ucfirst($franchise['record_status']));
+          $activeSheet->setCellValue('I' . $i, $franchise['enrolled_student_count']);
+          $i++;
+        }
+      }
 
-              echo json_encode(array('check'=> 'success','file_upload_dir'=>$file_upload_dir,'file_url'=>$file_url));
-          }    
-       
-          break;
-    }      
-?>
+      $file_upload_dir =  USER_UPLOAD_DIR . 'runtime_upload/Franchise_Data.xlsx';
+      $file_url = USER_UPLOAD_URL . 'runtime_upload/Franchise_Data.xlsx';
+
+      $Excel_writer->save($file_upload_dir);
+
+      echo json_encode(array('check' => 'success', 'file_upload_dir' => $file_upload_dir, 'file_url' => $file_url));
+    }
+
+    break;
+}
