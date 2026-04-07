@@ -1558,13 +1558,19 @@ if (!empty($_GET['rcpt_id'])) {
             $('.content_div_loader').removeClass('sk-loading');
             //console.log(responseData);
             var result = JSON.parse(responseData);
-            $('#export_record_href').attr("href", result.file_url);
-            $("#hidden_export_button").click();
-            //Removing file from server
-            setTimeout(function() {
-              removeFileFromServer(result.file_upload_dir);
-            }, 5000);
-            return true;
+
+            if(result.check == "success"){
+              $('#export_record_href').attr("href", result.file_url);
+              $("#hidden_export_button").click();
+              //Removing file from server
+              setTimeout(function() {
+                removeFileFromServer(result.file_upload_dir);
+              }, 5000);
+              return true;
+            }else{
+              toastr.error(result.message, 'Success!');
+              return false;
+            }  
           }
         });
       });

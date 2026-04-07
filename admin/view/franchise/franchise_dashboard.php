@@ -355,7 +355,7 @@ $backupLimit = $_SESSION['user_type'] == "developer" ? true : ($_COOKIE["backupC
 
                 <button type="button" class="btn btn-xs btn-white filter_table_data <?= ($stuFetchType == 'monthly' ? 'active' : '') ?>" data-dtype="student" data-ftype="monthly">Monthly</button>
 
-                <button type="button" class="btn btn-xs btn-white filter_table_data <?= ($stuFetchType == 'annual' ? 'active' : '') ?>" data-dtype="student" data-ftype="annual">Annual</button>
+                <!-- <button type="button" class="btn btn-xs btn-white filter_table_data <?= ($stuFetchType == 'annual' ? 'active' : '') ?>" data-dtype="student" data-ftype="annual">Annual</button> -->
               </div>
               <a class="collapse-link">
                 <i class="fa fa-chevron-up"></i>
@@ -492,7 +492,7 @@ $backupLimit = $_SESSION['user_type'] == "developer" ? true : ($_COOKIE["backupC
 
                 <button type="button" class="btn btn-xs btn-white filter_table_data <?= ($rcptFetchType == 'monthly' ? 'active' : '') ?>" data-dtype="receipt" data-ftype="monthly">Monthly</button>
 
-                <button type="button" class="btn btn-xs btn-white filter_table_data <?= ($rcptFetchType == 'annual' ? 'active' : '') ?>" data-dtype="receipt" data-ftype="annual">Annual</button>
+                <!-- <button type="button" class="btn btn-xs btn-white filter_table_data <?= ($rcptFetchType == 'annual' ? 'active' : '') ?>" data-dtype="receipt" data-ftype="annual">Annual</button> -->
               </div>
             </div>
           </div>

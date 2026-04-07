@@ -671,3 +671,14 @@ label.error {
   font-size: 20px;
   font-weight: 800;
 }
+
+/*Select 2 clear button css*/
+.select2-container--default .select2-selection--single .select2-selection__rendered {
+    padding-right: 30px !important;
+}
+
+.select2-container--default .select2-selection__clear {
+    z-index: 9999;
+    position: relative;
+}
+/*End here*/
