@@ -326,8 +326,15 @@ switch ($export_table) {
     if (empty($_POST['protocol'])) {
       $exportParamArr['record_status'] = mysqli_real_escape_string(DB::$WRITELINK, trim($_POST['record_status']));
 
-      $exportParamArr['course_id'] = mysqli_real_escape_string(DB::$WRITELINK, trim($_POST['course_id']));
-      $exportParamArr['franchise_id'] = mysqli_real_escape_string(DB::$WRITELINK, trim($_POST['franchise_id']));
+      if (!empty($_POST['course_id'])) {
+        $exportParamArr['course_id'] = mysqli_real_escape_string(DB::$WRITELINK, trim($_POST['course_id']));
+        $exportParamArr['course_name'] = mysqli_real_escape_string(DB::$WRITELINK, trim($_POST['course_name']));
+      }
+      
+      if (!empty($_POST['franchise_id'])) {
+        $exportParamArr['franchise_id'] = mysqli_real_escape_string(DB::$WRITELINK, trim($_POST['franchise_id']));
+        $exportParamArr['franchise_name'] = mysqli_real_escape_string(DB::$WRITELINK, trim($_POST['franchise_name']));
+      }  
 
       $exportParamArr['created'] = mysqli_real_escape_string(DB::$WRITELINK, trim($_POST['created']));
 
@@ -453,90 +460,109 @@ switch ($export_table) {
         $spreadsheet->setActiveSheetIndex(0);
         $activeSheet = $spreadsheet->getActiveSheet();
 
-        $spreadsheet->getActiveSheet()->getStyle('A1:N1')->applyFromArray($styleArray);
+        // ==========================
+        // INSERT TOP ROWS FOR CRITERIA
+        // ==========================
+        $activeSheet->insertNewRowBefore(1, 3);
+
+        // Title + metadata
+        $activeSheet->setCellValue('A1', 'Receipt Report');
+        $activeSheet->setCellValue('A2', 'Generated on: ' . date('d M Y h:i A'));
+        $activeSheet->setCellValue('A3', 'Filters: ' . $criteriaText);
+
+        // Merge for clean UI
+        $activeSheet->mergeCells('A1:N1');
+        $activeSheet->mergeCells('A2:N2');
+        $activeSheet->mergeCells('A3:N3');
+
+        // Styling
+        $activeSheet->getStyle('A1')->getFont()->setBold(true)->setSize(14);
+        $activeSheet->getStyle('A2:A3')->getFont()->setSize(10);
+        $activeSheet->getStyle('A3')->getAlignment()->setWrapText(true);
+
+        // ==========================
+        // DEFAULT FONT
+        // ==========================
         $spreadsheet->getDefaultStyle()->getFont()->setName('Arial');
         $spreadsheet->getDefaultStyle()->getFont()->setSize(10);
 
-        //Set sheet header cloumn width
+        // ==========================
+        // COLUMN WIDTH
+        // ==========================
         $spreadsheet->getActiveSheet()->getColumnDimension('A')->setWidth(40, 'pt');
-        $cellHeaderArr = array('B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N');
 
+        $cellHeaderArr = array('B','C','D','E','F','G','H','I','J','K','L','M','N');
         foreach ($cellHeaderArr as $cell) {
-          $spreadsheet->getActiveSheet()->getColumnDimension($cell)->setWidth(130, 'pt'); //setAutoSize(true);
+            $spreadsheet->getActiveSheet()->getColumnDimension($cell)->setWidth(130, 'pt');
         }
-        
-        //cell text alignment
-        $spreadsheet->getActiveSheet()->getStyle('A1:N1')->getAlignment()->setHorizontal('center');
-        $spreadsheet->getActiveSheet()->getStyle('A1:N1')->getAlignment()->setVertical('center');
 
-        // $activeSheet->insertNewRowBefore(1, 3);
+        // ==========================
+        // HEADER ROW (NOW ROW 4)
+        // ==========================
+        $spreadsheet->getActiveSheet()->getStyle('A4:N4')->applyFromArray($styleArray);
 
-        // $activeSheet->setCellValue('A1', 'Receipt Report');
-        // $activeSheet->setCellValue('A2', 'Generated on: ' . date('d M Y h:i A'));
-        // $activeSheet->setCellValue('A3', 'Filters: ' . $criteriaText);
+        $spreadsheet->getActiveSheet()->getStyle('A4:N4')->getAlignment()->setHorizontal('center');
+        $spreadsheet->getActiveSheet()->getStyle('A4:N4')->getAlignment()->setVertical('center');
 
-        // // Merge for clean UI
-        // $activeSheet->mergeCells('A1:N1');
-        // $activeSheet->mergeCells('A2:N2');
-        // $activeSheet->mergeCells('A3:N3');
+        $activeSheet->setCellValue('A4', 'SL No.');
+        $activeSheet->setCellValue('B4', 'Receipt ID');
+        $activeSheet->setCellValue('C4', 'Receipt Created');
+        $activeSheet->setCellValue('D4', 'Receipt Amount');
+        $activeSheet->setCellValue('E4', 'Late Fine');
+        $activeSheet->setCellValue('F4', 'Additional Fees');
+        $activeSheet->setCellValue('G4', 'Student Name');
+        $activeSheet->setCellValue('H4', 'Student Email');
+        $activeSheet->setCellValue('I4', 'Contact No');
+        $activeSheet->setCellValue('J4', 'Student ID');
+        $activeSheet->setCellValue('K4', 'Student Result');
+        $activeSheet->setCellValue('L4', 'Course');
+        $activeSheet->setCellValue('M4', 'Franchise');
+        $activeSheet->setCellValue('N4', 'Verified Status');
 
-        // // Styling (optional but recommended)
-        // $activeSheet->getStyle('A1')->getFont()->setBold(true)->setSize(14);
-        // $activeSheet->getStyle('A2:A3')->getFont()->setSize(10);
-        // $activeSheet->getStyle('A3')->getAlignment()->setWrapText(true);
-
-        $activeSheet->setCellValue('A1', 'SL No.');
-        $activeSheet->setCellValue('B1', 'Receipt ID');
-        $activeSheet->setCellValue('C1', 'Receipt Created');
-        $activeSheet->setCellValue('D1', 'Receipt Amount');
-        $activeSheet->setCellValue('E1', 'Late Fine');
-        $activeSheet->setCellValue('F1', 'Additional Fees');
-        $activeSheet->setCellValue('G1', 'Student Name');
-        $activeSheet->setCellValue('H1', 'Student Email');
-        $activeSheet->setCellValue('I1', 'Contact No');
-        $activeSheet->setCellValue('J1', 'Student ID');
-        $activeSheet->setCellValue('K1', 'Student Result');
-        $activeSheet->setCellValue('L1', 'Course');
-        $activeSheet->setCellValue('M1', 'Franchise');
-        $activeSheet->setCellValue('N1', 'Verified Status');
-
+        // ==========================
+        // DATA LOOP (START FROM ROW 5)
+        // ==========================
         if (count($receiptListArr) > 0) {
-          $i = 2;
-          foreach ($receiptListArr as $index => $receipt) {
-            //Formatting Data before put into csv file
-            $receipt_amount = "Rs. " . (!empty($receipt['receipt_amount']) ? $receipt['receipt_amount'] : 0);
-            $late_fine      = "Rs. " . (!empty($receipt['late_fine']) ? $receipt['late_fine'] : 0);
-            $extra_fees     = "Rs. " . (!empty($receipt['extra_fees']) ? $receipt['extra_fees'] : 0);
+            $i = 5;
 
-            if (!empty($receipt['extra_fees']) && !empty($receipt['extra_fees_description'])) {
-              $extra_fees .= " for " . $receipt['extra_fees_description'];
+            foreach ($receiptListArr as $index => $receipt) {
+
+                // Formatting
+                $receipt_amount = "Rs. " . (!empty($receipt['receipt_amount']) ? $receipt['receipt_amount'] : 0);
+                $late_fine      = "Rs. " . (!empty($receipt['late_fine']) ? $receipt['late_fine'] : 0);
+                $extra_fees     = "Rs. " . (!empty($receipt['extra_fees']) ? $receipt['extra_fees'] : 0);
+
+                if (!empty($receipt['extra_fees']) && !empty($receipt['extra_fees_description'])) {
+                    $extra_fees .= " for " . $receipt['extra_fees_description'];
+                }
+
+                $verified_status = $receipt['verified_status'] == '1' ? "Verified" : "Not verified";
+
+                // Alignment
+                $spreadsheet->getActiveSheet()->getStyle('A'.$i.':N'.$i)->getAlignment()->setHorizontal('center');
+                $spreadsheet->getActiveSheet()->getStyle('A'.$i.':N'.$i)->getAlignment()->setVertical('center');
+
+                // Wrap text
+                $spreadsheet->getActiveSheet()->getStyle('A'.$i.':N'.$i)->getAlignment()->setWrapText(true);
+
+                // Data
+                $activeSheet->setCellValue('A'.$i, $index + 1);
+                $activeSheet->setCellValue('B'.$i, $receipt['receipt_id']);
+                $activeSheet->setCellValue('C'.$i, date('jS F, Y', strtotime($receipt["created_at"])));
+                $activeSheet->setCellValue('D'.$i, $receipt_amount);
+                $activeSheet->setCellValue('E'.$i, $late_fine);
+                $activeSheet->setCellValue('F'.$i, $extra_fees);
+                $activeSheet->setCellValue('G'.$i, $receipt['stu_name']);
+                $activeSheet->setCellValue('H'.$i, $receipt['stu_email']);
+                $activeSheet->setCellValue('I'.$i, $receipt['stu_phone']);
+                $activeSheet->setCellValue('J'.$i, $receipt['stu_id']);
+                $activeSheet->setCellValue('K'.$i, ucfirst($receipt['stu_result']));
+                $activeSheet->setCellValue('L'.$i, $receipt['course_title']);
+                $activeSheet->setCellValue('M'.$i, $receipt['center_name']);
+                $activeSheet->setCellValue('N'.$i, $verified_status);
+
+                $i++;
             }
-
-            $verified_status = $receipt['verified_status'] == '1' ? "Verified" : "Not verified";
-
-            //cell text alignment
-            $spreadsheet->getActiveSheet()->getStyle('A' . $i . ':N' . $i)->getAlignment()->setHorizontal('center');
-            $spreadsheet->getActiveSheet()->getStyle('A' . $i . ':N' . $i)->getAlignment()->setVertical('center');
-
-            //Wrap text
-            $spreadsheet->getActiveSheet()->getStyle('A' . $i . ':N' . $i)->getAlignment()->setWrapText(true);
-
-            $activeSheet->setCellValue('A' . $i, $index + 1);
-            $activeSheet->setCellValue('B' . $i, $receipt['receipt_id']);
-            $activeSheet->setCellValue('C' . $i, date('jS F, Y', strtotime($receipt["created_at"])));
-            $activeSheet->setCellValue('D' . $i, $receipt_amount);
-            $activeSheet->setCellValue('E' . $i, $late_fine);
-            $activeSheet->setCellValue('F' . $i, $extra_fees);
-            $activeSheet->setCellValue('G' . $i, $receipt['stu_name']);
-            $activeSheet->setCellValue('H' . $i, $receipt['stu_email']);
-            $activeSheet->setCellValue('I' . $i, $receipt['stu_phone']);
-            $activeSheet->setCellValue('J' . $i, $receipt['stu_id']);
-            $activeSheet->setCellValue('K' . $i, ucfirst($receipt['stu_result']));
-            $activeSheet->setCellValue('L' . $i, $receipt['course_title']);
-            $activeSheet->setCellValue('M' . $i, $receipt['center_name']);
-            $activeSheet->setCellValue('N' . $i, $verified_status);
-            $i++;
-          }
         }
 
         $file_upload_dir =  USER_UPLOAD_DIR . 'runtime_upload/Receipt_Data_' . time() . '.xlsx';

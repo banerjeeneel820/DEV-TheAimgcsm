@@ -1501,6 +1501,9 @@ if (!empty($_GET['rcpt_id'])) {
       var franchise_id = $('#franchise_id').val();
       var student_id = $('#student_id').val();
 
+      var course_name = $('#course_id option:selected').text();
+      var franchise_name = $('#franchise_id option:selected').text();
+
       var receipt_season_start = $('#receipt_search_start').val();
       var receipt_season_end = $('#receipt_search_end').val();
 
@@ -1514,6 +1517,8 @@ if (!empty($_GET['rcpt_id'])) {
         record_status: record_status,
         course_id: course_id,
         franchise_id: franchise_id,
+        course_name:course_name,
+        franchise_name:franchise_name,
         receipt_season_start: receipt_season_start,
         receipt_season_end: receipt_season_end,
         created: created,

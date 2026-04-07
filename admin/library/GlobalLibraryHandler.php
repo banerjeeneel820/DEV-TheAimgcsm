@@ -2855,13 +2855,13 @@ class GlobalLibraryHandler
       // Course
       if (!empty($params['course_id'])) {
           // Ideally fetch course name from DB
-          $filters[] = "Course ID: " . $params['course_id'];
+          $filters[] = "Course: " . $params['course_name'];
       }
 
       // Franchise
       if (!empty($params['franchise_id'])) {
           // Ideally fetch franchise name from DB
-          $filters[] = "Franchise ID: " . $params['franchise_id'];
+          $filters[] = "Franchise: " . $params['franchise_name'];
       }
 
       // Created filter (today / this month etc.)
