@@ -781,6 +781,7 @@ class GlobalInterfaceController
                   stu.image_file_name,
                   stu.stu_qualification,
                   stu.student_status,
+                  stu.stu_result,
                   stu.record_status,
                   stu.created_at AS student_created_at,
 

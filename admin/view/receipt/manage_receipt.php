@@ -1568,7 +1568,7 @@ if (!empty($_GET['rcpt_id'])) {
               }, 5000);
               return true;
             }else{
-              toastr.error(result.message, 'Success!');
+              toastr.error(result.message, 'Error!');
               return false;
             }  
           }

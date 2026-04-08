@@ -377,6 +377,14 @@ switch ($export_table) {
       
       if ($export_method == "pdf") {
 
+        if (count($receiptListArr) > 300) {
+          echo json_encode([
+              'status' => false,
+              'message' => 'Too much data for PDF. Please export as Excel.'
+          ]);
+          exit;
+        }
+
         $export_html = $export_html_style;
 
         $export_html .= '
