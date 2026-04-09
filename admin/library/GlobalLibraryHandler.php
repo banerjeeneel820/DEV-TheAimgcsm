@@ -1719,12 +1719,8 @@ class GlobalLibraryHandler
           $this->globalReturnArr['receipt_data'] = $this->GlobalInterfaceControllerObj->fetch_Global_Receipt($dataArr);
         } else {
 
-          if ($_GET['record_status'] == "blocked" || !empty($_GET['course_id']) || !empty($_GET['franchise_id']) || !empty($_GET['created']) || !empty($_GET['receipt_season_start']) || !empty($_GET['receipt_season_end']) || !empty($_GET['verified_status'])) {
-            //Fetch all receipt list
-            $this->globalReturnArr['receipt_data'] = $this->GlobalInterfaceControllerObj->fetch_Global_Receipt($dataArr);
-          } else {
-            $this->globalReturnArr['receipt_data'] = array();
-          }
+          //Fetch all receipt list
+          $this->globalReturnArr['receipt_data'] = $this->GlobalInterfaceControllerObj->fetch_Global_Receipt($dataArr);
 
           //Student details
           $this->globalReturnArr['student_data'] = array();

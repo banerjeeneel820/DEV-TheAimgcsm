@@ -1,3 +1,6 @@
+var btn = $('#button_to_top');
+
+/* important functions */
 function initDtTbl(){
    $('.dataTables-example').DataTable({
      "pageLength": 30,
@@ -58,7 +61,26 @@ function destroyDTbl(){
     $('.dataTables-example').DataTable().clear().destroy();
 }
 
-var btn = $('#button_to_top');
+function getQueryParams(url) {
+  var params = {};
+  var queryString = url.split('?')[1];
+  if (!queryString) return params;
+
+  queryString.split('&').forEach(function(pair) {
+      var parts = pair.split('=');
+      params[decodeURIComponent(parts[0])] = decodeURIComponent(parts[1] || '');
+  });
+
+  return params;
+}
+
+function isSameFilter(oldParams, newParams) {
+  // Remove pageNo before comparing
+  delete oldParams.pageNo;
+  delete newParams.pageNo;
+
+  return JSON.stringify(oldParams) === JSON.stringify(newParams);
+}
 
 $(window).scroll(function() {
     var window_top = $(window).scrollTop() - 0;  

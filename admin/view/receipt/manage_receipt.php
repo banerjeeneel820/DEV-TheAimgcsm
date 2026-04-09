@@ -316,6 +316,7 @@ if (!empty($_GET['rcpt_id'])) {
               <div class="sk-rect5"></div>
             </div>
             <form id="fetch_student_receipt_records" onsubmit="return false;">
+              <input type="hidden" id="pageNo" value="<?= $pageNo ?>">
               <input type="hidden" name="page_route" id="page_route" value="<?= $_GET['route'] ?>">
               <div class="row">
                 <div class="col-lg-3 col-md-3 col-sm-12 m-b-xs input-group pr-0">
@@ -1305,7 +1306,7 @@ if (!empty($_GET['rcpt_id'])) {
           $('#manage_receipt').attr('disabled', false);
           return true;
         }
-    });
+      });
 
     $(document).on('keyup', '#extra_fees', function(event) {
 
@@ -1517,8 +1518,8 @@ if (!empty($_GET['rcpt_id'])) {
         record_status: record_status,
         course_id: course_id,
         franchise_id: franchise_id,
-        course_name:course_name,
-        franchise_name:franchise_name,
+        course_name: course_name,
+        franchise_name: franchise_name,
         receipt_season_start: receipt_season_start,
         receipt_season_end: receipt_season_end,
         created: created,
@@ -1559,7 +1560,7 @@ if (!empty($_GET['rcpt_id'])) {
             //console.log(responseData);
             var result = JSON.parse(responseData);
 
-            if(result.check == "success"){
+            if (result.check == "success") {
               $('#export_record_href').attr("href", result.file_url);
               $("#hidden_export_button").click();
               //Removing file from server
@@ -1567,10 +1568,10 @@ if (!empty($_GET['rcpt_id'])) {
                 removeFileFromServer(result.file_upload_dir);
               }, 5000);
               return true;
-            }else{
+            } else {
               toastr.error(result.message, 'Error!');
               return false;
-            }  
+            }
           }
         });
       });
@@ -1651,9 +1652,11 @@ if (!empty($_GET['rcpt_id'])) {
     //Configuring page records fetching params
     $(document).on('submit', '#fetch_verified_records', function(event) {
       event.preventDefault();
+
       var record_status = $('#record_status').val();
       var page_route = $('#page_route').val();
 
+      var student_id = $('#student_id').val();
       var course_id = $('#course_id').val();
       var franchise_id = $('#franchise_id').val();
       var created = $('#created').val();
@@ -1662,13 +1665,22 @@ if (!empty($_GET['rcpt_id'])) {
       var receipt_season_end = $('#receipt_search_end').val();
       var verified_status = $('#verified_status').val();
 
+      var pageNo = $('#pageNo').val();
+
       if (verified_status === null) {
         window.location = SITE_URL + "?route=" + page_route;
       } else {
-        $('#fetch_item_data').html('<i class="fa fa-spinner fa-spin"></i>&nbsp;Fetching').attr('disabled', true);
+
+        $('#fetch_item_data')
+          .html('<i class="fa fa-spinner fa-spin"></i>&nbsp;Fetching')
+          .attr('disabled', true);
+
         setTimeout(function() {
-          $('#fetch_item_data').html('<i class="fa fa-search"></i>&nbsp;Fetch Data').attr('disabled', false);
-          //show sweetalert success
+
+          $('#fetch_item_data')
+            .html('<i class="fa fa-search"></i>&nbsp;Fetch Data')
+            .attr('disabled', false);
+
           swal({
             title: "Great!",
             text: "Data has been successfully fetched!",
@@ -1676,41 +1688,67 @@ if (!empty($_GET['rcpt_id'])) {
             allowEscapeKey: false,
             allowOutsideClick: false
           }, function() {
-            var redirect_url = SITE_URL + "?route=" + page_route;
 
-            if (student_id.length > 0) {
-              redirect_url += "&stu_id=" + student_id;
+            // current URL params
+            var currentParams = getQueryParams(window.location.href);
+
+            // build new params
+            var newParams = {
+              route: page_route,
+              record_status: record_status
+            };
+
+            if (student_id && student_id.length > 0) {
+              newParams.stu_id = student_id;
             }
 
-            if (receipt_season_start.length > 0) {
-              redirect_url += "&receipt_season_start=" + receipt_season_start;
+            if (receipt_season_start && receipt_season_start.length > 0) {
+              newParams.receipt_season_start = receipt_season_start;
             }
 
-            if (receipt_season_end.length > 0) {
-              redirect_url += "&receipt_season_end=" + receipt_season_end;
+            if (receipt_season_end && receipt_season_end.length > 0) {
+              newParams.receipt_season_end = receipt_season_end;
             }
 
             if (course_id > 0) {
-              redirect_url += "&course_id=" + course_id;
+              newParams.course_id = course_id;
             }
 
             if (franchise_id > 0) {
-              redirect_url += "&franchise_id=" + franchise_id;
+              newParams.franchise_id = franchise_id;
             }
 
-            if (created.length > 0) {
-              redirect_url += "&created=" + created;
+            if (created && created.length > 0) {
+              newParams.created = created;
             }
 
-            if (verified_status != null && verified_status.length > 0) {
-              redirect_url += "&verified_status=" + verified_status;
+            if (verified_status && verified_status.length > 0) {
+              newParams.verified_status = verified_status;
             }
 
-            redirect_url += "&record_status=" + record_status;
+            // compare filters (excluding pageNo)
+            var sameFilter = isSameFilter({ ...currentParams }, { ...newParams });
+
+            // pagination logic
+            if (sameFilter) {
+              if (pageNo && pageNo.length > 0) {
+                newParams.pageNo = pageNo;
+              }
+            }
+
+            // build query string
+            var queryString = Object.keys(newParams)
+              .map(key => key + '=' + encodeURIComponent(newParams[key]))
+              .join('&');
+
+            var redirect_url = SITE_URL + "?" + queryString;
 
             window.location = redirect_url;
+
           });
+
         }, 500);
+
         return true;
       }
     });
@@ -1718,6 +1756,7 @@ if (!empty($_GET['rcpt_id'])) {
     //Configuring fetching all page records fetching params
     $(document).on('submit', '#fetch_student_receipt_records', function(event) {
       event.preventDefault();
+
       var student_id = $('#student_id').val();
       var record_status = $('#record_status').val();
       var page_route = $('#page_route').val();
@@ -1730,59 +1769,93 @@ if (!empty($_GET['rcpt_id'])) {
       var receipt_season_end = $('#receipt_search_end').val();
       var verified_status = $('#verified_status').val();
 
+      var pageNo = $('#pageNo').val();
+
       if (record_status === null) {
-        window.location = SITE_URL + "?route=" + page_route;
-      } else {
-        $('#fetch_item_data').html('<i class="fa fa-spinner fa-spin"></i>&nbsp;Fetching').attr('disabled', true);
-        setTimeout(function() {
-          $('#fetch_item_data').html('<i class="fa fa-search"></i>').attr('disabled', false);
-          //show sweetalert success
-          swal({
-            title: "Great!",
-            text: "Data has been successfully fetched!",
-            type: "success",
-            allowEscapeKey: false,
-            allowOutsideClick: false
-          }, function() {
-
-            var redirect_url = SITE_URL + "?route=" + page_route;
-
-            if (student_id.length > 0) {
-              redirect_url += "&stu_id=" + student_id;
-            }
-
-            if (receipt_season_start.length > 0) {
-              redirect_url += "&receipt_season_start=" + receipt_season_start;
-            }
-
-            if (receipt_season_end.length > 0) {
-              redirect_url += "&receipt_season_end=" + receipt_season_end;
-            }
-
-            if (course_id > 0) {
-              redirect_url += "&course_id=" + course_id;
-            }
-
-            if (franchise_id > 0) {
-              redirect_url += "&franchise_id=" + franchise_id;
-            }
-
-            if (created.length > 0) {
-              redirect_url += "&created=" + created;
-            }
-
-            if (verified_status != null && verified_status.length > 0) {
-              redirect_url += "&verified_status=" + verified_status;
-            }
-
-            redirect_url += "&record_status=" + record_status;
-
-            window.location = redirect_url;
-
-          });
-        }, 500);
-        return true;
+        record_status = "active";
       }
+
+      $('#fetch_item_data')
+        .html('<i class="fa fa-spinner fa-spin"></i>&nbsp;Fetching')
+        .attr('disabled', true);
+
+      setTimeout(function() {
+
+        $('#fetch_item_data')
+          .html('<i class="fa fa-search"></i>')
+          .attr('disabled', false);
+
+        swal({
+          title: "Great!",
+          text: "Data has been successfully fetched!",
+          type: "success",
+          allowEscapeKey: false,
+          allowOutsideClick: false
+        }, function() {
+
+          // current params from URL
+          var currentParams = getQueryParams(window.location.href);
+
+          // build new params object
+          var newParams = {
+            route: page_route,
+            record_status: record_status
+          };
+
+          if (student_id.length > 0) {
+            newParams.stu_id = student_id;
+          }
+
+          if (receipt_season_start.length > 0) {
+            newParams.receipt_season_start = receipt_season_start;
+          }
+
+          if (receipt_season_end.length > 0) {
+            newParams.receipt_season_end = receipt_season_end;
+          }
+
+          if (course_id > 0) {
+            newParams.course_id = course_id;
+          }
+
+          if (franchise_id > 0) {
+            newParams.franchise_id = franchise_id;
+          }
+
+          if (created.length > 0) {
+            newParams.created = created;
+          }
+
+          if (verified_status != null && verified_status.length > 0) {
+            newParams.verified_status = verified_status;
+          }
+
+          // compare filters (excluding pageNo)
+          var sameFilter = isSameFilter({...currentParams}, {...newParams});
+
+          // pagination logic
+          if (sameFilter) {
+            if (pageNo && pageNo.length > 0) {
+              newParams.pageNo = pageNo;
+            }
+          }
+
+          console.log(pageNo,newParams,sameFilter);return false;
+
+          // build query string
+          var queryString = Object.keys(newParams)
+            .map(key => key + '=' + encodeURIComponent(newParams[key]))
+            .join('&');
+
+          var redirect_url = SITE_URL + "?" + queryString;
+
+          window.location = redirect_url;
+
+        });
+
+      }, 500);
+
+      return true;
     });
 
     /*Status change handler*/
@@ -1987,5 +2060,4 @@ if (!empty($_GET['rcpt_id'])) {
       });
     });
   });
-
 </script>

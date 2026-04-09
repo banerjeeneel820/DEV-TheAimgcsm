@@ -84,6 +84,7 @@ if(!empty($_GET['fetchType'])){
                     <form id="fetch_all_student_records" onsubmit="return false;">
                         <input type="hidden" id="pageNo" value="<?= $pageNo ?>">
                         <input type="hidden" name="page_route" id="page_route" value="<?= $_GET['route'] ?>">
+                        <input type="hidden" name="fetchType" id="fetchType" value="<?= $_GET['fetchType'] ?>">
 
                         <div class="row">
                             <div class="col-lg-2 col-md-2 col-sm-12 m-b-xs input-group pr-0">
@@ -814,6 +815,7 @@ if(!empty($_GET['fetchType'])){
             var record_status = $('#record_status').val();
             var student_id = $('#student_id').val();
             var page_route = $('#page_route').val();
+            var fetchType = $("#fetchType").val();
 
             var course_id = $('#course_id').val();
             var franchise_id = $('#franchise_id').val();
@@ -834,23 +836,47 @@ if(!empty($_GET['fetchType'])){
                         allowEscapeKey: false,
                         allowOutsideClick: false
                     }, function() {
-                        var redirect_url = SITE_URL + "?route=" + page_route + "&record_status=" + record_status;
+                        var currentParams = getQueryParams(window.location.href);
+
+                        // Build new params object
+                        var newParams = {
+                            route: page_route,
+                            record_status: record_status
+                        };
+
+                        if (fetchType.length > 0) {
+                            newParams.fetchType = fetchType;
+                        }
 
                         if (student_id.length > 0) {
-                            redirect_url += "&stu_id=" + student_id;
+                            newParams.stu_id = student_id;
                         }
 
                         if (course_id > 0) {
-                            redirect_url += "&course_id=" + course_id;
+                            newParams.course_id = course_id;
                         }
 
                         if (franchise_id > 0) {
-                            redirect_url += "&franchise_id=" + franchise_id;
+                            newParams.franchise_id = franchise_id;
                         }
 
-                        if (pageNo.length > 0) {
-                            redirect_url += "&pageNo=" + pageNo;
+                        // Compare filters
+                        var sameFilter = isSameFilter({...currentParams}, {...newParams});
+
+                        // Handle pageNo
+                        if (sameFilter) {
+                            if (pageNo.length > 0) {
+                                newParams.pageNo = pageNo;
+                            }
                         }
+                        // else → don't include pageNo (resets to page 1)
+
+                        // Convert object → query string
+                        var queryString = Object.keys(newParams)
+                            .map(key => key + '=' + encodeURIComponent(newParams[key]))
+                            .join('&');
+
+                        var redirect_url = SITE_URL + "?" + queryString;
 
                         window.location = redirect_url;
 
