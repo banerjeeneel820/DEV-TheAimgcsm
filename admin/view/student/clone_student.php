@@ -102,7 +102,7 @@
                                     <label class="col-sm-2 col-form-label">Student ID <span class="cursor-pointer" data-toggle="tooltip" data-placement="bottom" title="Student ID"><i class="fa fa-question-circle"></i></span></label>
                                     <div class="col-sm-4">
                                       <div class="input-group">
-                                        <input type="text" class="form-control" value="<?=(isset($studentDetailArr)?$studentDetailArr->stu_id:'')?>" readonly>
+                                        <input type="text" class="form-control" value="NOT AVAILABLE" readonly>
                                       </div>   
                                     </div>
 
@@ -230,36 +230,81 @@
                                 <div class="hr-line-dashed"></div>
 
                                 <div class="form-group row">
-                                  <label class="col-sm-2 col-form-label text-right">Student Qualification <span class="cursor-pointer" data-toggle="tooltip" data-placement="bottom" title="Enter Student Qualification"><i class="fa fa-question-circle"></i></span></label>
+                                  <label class="col-sm-2 col-form-label text-right">Qualification <span class="cursor-pointer" data-toggle="tooltip" data-placement="bottom" title="Enter Student Qualification"><i class="fa fa-question-circle"></i></span></label>
                                     <div class="col-sm-4">
                                       <div class="input-group">
                                         <input type="text" class="form-control" name="stu_qualification" placeholder="Enter Student Qualification..." value="<?=(isset($studentDetailArr)?$studentDetailArr->stu_qualification:'')?>">
                                      </div>   
                                     </div>
 
-                                    <label class="col-sm-2 col-form-label text-right">Course Fees <span class="cursor-pointer" data-toggle="tooltip" data-placement="bottom" title="Enter Student Total Course Fees of Student"><i class="fa fa-question-circle"></i></span></label>
-                                    <div class="col-sm-4">
-                                      <div class="input-group">
-                                        <input type="text" class="form-control" name="stu_course_fees" placeholder="Enter Student's Total Course Fees..." value="<?=(isset($studentDetailArr)?$studentDetailArr->stu_course_fees:'')?>">
-                                     </div>   
+                                     <label class="col-sm-2 col-form-label text-right">Conversion Status <span class="cursor-pointer" data-toggle="tooltip" data-placement="bottom" title="Choose If this student is upgraded to higher level of current course or not"><i class="fa fa-question-circle"></i></span></label>
+                                     <div class="col-sm-4 pt-1">
+                                       <label class="checkbox-inline i-checks"> <input type="radio" value="0" name="conversion_status" <?=($studentDetailArr->conversion_status)=='0'?'checked':''?> /> <i></i>Recent </label>
+                                       <label class="checkbox-inline i-checks"> <input type="radio" value="1" name="conversion_status" <?=($studentDetailArr->conversion_status)=='1'?'checked':''?>> <i></i> Converted </label>
                                     </div>
                                 </div>                               
                                 <div class="hr-line-dashed"></div>
                                 
-                                <?php if($statusUpdatePermission){ ?>
+                                <?php if($statusUpdatePermission) { ?>
                                     <div class="form-group row">
-                                        <label class="col-sm-2 col-form-label text-right">Student Status <span class="cursor-pointer" data-toggle="tooltip" data-placement="bottom" title="Choose Student Record Status"><i class="fa fa-question-circle"></i></span></label>
-                                        <div class="col-sm-10 pt-1">
-                                           <label class="checkbox-inline i-checks pl-2"> <input type="radio" value="admitted" name="student_status" <?=($studentDetailArr->student_status)=='admitted'?'checked':''?> required> <i></i> Admitted </label>
-                                           
-                                           <label class="checkbox-inline i-checks pl-2"> <input type="radio" value="continue" name="student_status" <?=($studentDetailArr->student_status)=='continue'?'checked':''?> required> <i></i> Continue </label>
-
-                                           <label class="checkbox-inline i-checks pl-2"> <input type="radio" value="course_complete" name="student_status" <?=($studentDetailArr->student_status)=='course_complete'?'checked':''?> required> <i></i> Course Complete </label>
-
-                                           <label class="checkbox-inline i-checks"> <input type="radio" value="dropout" name="student_status" <?=($studentDetailArr->student_status)=='dropout'?'checked':''?> required /> <i></i>Dropout </label>
+                                        <label class="col-sm-2 col-form-label text-right">Total Course Fees <span class="cursor-pointer" data-toggle="tooltip" data-placement="bottom" title="Enter Student Total Course Fees of Student"><i class="fa fa-question-circle"></i></span></label>
+                                        <div class="col-sm-4">
+                                          <div class="input-group">
+                                            <input type="text" class="form-control" name="stu_course_fees" placeholder="Enter Student's Total Course Fees..." value="<?=(isset($studentDetailArr)?$studentDetailArr->stu_course_fees:'')?>" required>
+                                         </div>   
                                         </div>
+
+                                        <label class="col-sm-2 col-form-label text-right">Monthly Course Fees <span class="cursor-pointer" data-toggle="tooltip" data-placement="bottom" title="Enter Student Total Course Discount"><i class="fa fa-question-circle"></i></span></label>
+                                        <div class="col-sm-4">
+                                          <div class="input-group">
+                                            <input type="text" class="form-control" name="monthly_course_fees" placeholder="Enter Student's Monthly Course Fees..." value="<?=(isset($studentDetailArr)?$studentDetailArr->monthly_course_fees:'')?>" required>
+                                         </div>   
+                                        </div> 
                                     </div>    
-                                    <div class="hr-line-dashed"></div>  
+
+                                    <div class="hr-line-dashed"></div>
+
+                                    <div class="form-group row">
+                                        <label class="col-sm-2 col-form-label text-right">Course Discount <span class="cursor-pointer" data-toggle="tooltip" data-placement="bottom" title="Enter Student Total Course Discount"><i class="fa fa-question-circle"></i></span></label>
+                                        <div class="col-sm-4">
+                                          <div class="input-group">
+                                            <input type="text" class="form-control" name="stu_course_discount" placeholder="Enter Student's Course Disount..." value="<?=(isset($studentDetailArr)?$studentDetailArr->stu_course_discount:'')?>">
+                                         </div>   
+                                        </div> 
+
+                                        <label class="col-sm-2 col-form-label text-right">Fees Paid before DR <span class="cursor-pointer" data-toggle="tooltip" data-placement="bottom" title="Enter Total Course Fees Paid before Digital Receipt by the Student"><i class="fa fa-question-circle"></i></span></label>
+                                        <div class="col-sm-4">
+                                          <div class="input-group">
+                                            <input type="text" class="form-control" name="fees_paid_before_dr" placeholder="Enter Total Course Fees Paid before Digital Receipt by the Student..." value="<?=(isset($studentDetailArr)?$studentDetailArr->fees_paid_before_dr:'')?>">
+                                         </div>   
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="hr-line-dashed"></div>    
+                                <?php } ?>    
+                                
+                                <?php if($statusUpdatePermission){ ?>
+                                  <div class="form-group row">
+                                        <label class="col-sm-2 col-form-label text-right">Student Status <span class="cursor-pointer" data-toggle="tooltip" data-placement="bottom" title="Choose Student Record Status"><i class="fa fa-question-circle"></i></span></label>
+                                        <div class="col-sm-4 pt-1">
+                                          <select class="form-control-sm form-control input-s-sm inline student_status" name="student_status" id="student_status" required>
+                                            <option selected="" disabled="" value="">Select a Student Status</option>
+                                            <option value="admitted" <?=($studentDetailArr->student_status)=='admitted'?'selected':''?>>Admitted</option>  
+                                            <option value="continue" <?=($studentDetailArr->student_status)=='continue'?'selected':''?>>Continue</option>
+                                            <option value="course_complete" <?=($studentDetailArr->student_status)=='course_complete'?'selected':''?>>Course Complete</option>
+                                            <option value="dropout" <?=($studentDetailArr->student_status)=='dropout'?'selected':''?>>Dropout</option>  
+                                          </select>
+                                        </div>
+
+                                        <label class="col-sm-2 col-form-label text-right">Months Exclude from Receipt <span class="cursor-pointer" data-toggle="tooltip" data-placement="bottom" title="Enter Total Course Fees Paid before Digital Receipt by the Student"><i class="fa fa-question-circle"></i></span></label>
+                                        <div class="col-sm-4">
+                                          <div class="input-group">
+                                            <input type="text" class="form-control" name="month_exclude_receipt" placeholder="Enter Months to Exclude from Receipt..." value="<?=(isset($studentDetailArr)?$studentDetailArr->month_exclude_receipt:'')?>">
+                                          </div>   
+                                        </div>
+                                        <div class="hr-line-dashed"></div> 
+                                    </div>    
+                                    <div class="hr-line-dashed"></div>    
 
                                     <div class="form-group row">
                                         <label class="col-sm-2 col-form-label text-right">Student Result <span class="cursor-pointer" data-toggle="tooltip" data-placement="bottom" title="Choose Student Record Status"><i class="fa fa-question-circle"></i></span></label>
@@ -520,7 +565,8 @@
                                 text: successText,
                                 type: "success"
                             },function() {
-                                window.location = redirect_url;
+                                window.open(redirect_url, "_blank");
+                                window.location.replace(SITE_URL+"?route=edit_student&id="+data.last_insert_id);
                             });
                         },1000);
                         return true; 

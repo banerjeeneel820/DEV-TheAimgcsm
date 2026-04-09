@@ -560,6 +560,7 @@
                             }else{
                                var redirect_url = SITE_URL+"?route=add_student";
                             }
+
                         }
 
                         swal({
@@ -572,7 +573,13 @@
                         },function() {
                             //window.location = redirect_url;
                             window.open(redirect_url, "_blank");
-                            location.reload();
+                            
+                            if(stu_row_id>0){
+                              location.reload();
+                            }else{
+                              window.location.replace(SITE_URL+"?route=edit_student&id="+student_id);
+                            }
+                            
                         });
                         return true; 
                      }else{

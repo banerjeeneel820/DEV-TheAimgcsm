@@ -82,6 +82,77 @@ function isSameFilter(oldParams, newParams) {
   return JSON.stringify(oldParams) === JSON.stringify(newParams);
 }
 
+function isFirefox() {
+  return navigator.userAgent.toLowerCase().includes('firefox');
+}
+
+function showPrintLoader() {
+  if (!$('#print_loader_modal').length) return;
+  $('#print_loader_modal').css('display', 'flex');
+}
+
+function hidePrintLoader() {
+  if (!$('#print_loader_modal').length) return;
+  $('#print_loader_modal').hide();
+}
+
+function printDocument(url, options = {}) {
+  const delay = options.delay || 1000;
+  const iframeId = options.iframeId || 'print_iframe';
+
+  const isFirefox = navigator.userAgent.toLowerCase().includes('firefox');
+
+  // Show loader
+  showPrintLoader();
+
+  // Remove old iframe
+  const oldIframe = document.getElementById(iframeId);
+  if (oldIframe) oldIframe.remove();
+
+  const iframe = document.createElement('iframe');
+  iframe.id = iframeId;
+
+  iframe.style.position = 'fixed';
+  iframe.style.right = '0';
+  iframe.style.bottom = '0';
+  iframe.style.width = '0';
+  iframe.style.height = '0';
+  iframe.style.border = '0';
+  iframe.style.visibility = 'hidden';
+
+  document.body.appendChild(iframe);
+
+  iframe.src = url;
+
+  iframe.onload = function () {
+
+    const finalDelay = isFirefox ? delay + 500 : delay;
+
+    setTimeout(function () {
+      try {
+        iframe.contentWindow.focus();
+        iframe.contentWindow.print();
+      } catch (e) {
+        console.warn('Fallback to new tab');
+
+        const win = window.open(url, '_blank');
+        setTimeout(() => {
+          try { win.print(); } catch (_) {}
+        }, 1200);
+      }
+
+      // Hide loader AFTER triggering print
+      hidePrintLoader();
+
+    }, finalDelay);
+  };
+
+  // Safety fallback (if onload fails)
+  setTimeout(function () {
+    hidePrintLoader();
+  }, 10000);
+}
+
 $(window).scroll(function() {
     var window_top = $(window).scrollTop() - 0;  
   

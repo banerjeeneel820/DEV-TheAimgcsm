@@ -990,84 +990,177 @@ class GlobalInterfaceController
 
    public function fetch_Global_Student($dataArr)
    {
-
-      //pagination property
-      $limit = $dataArr['limit'];
-      $pageNo = $dataArr['pageNo'];
-      $offset = ($pageNo - 1) * $limit;
-
-      $record_status = $dataArr['record_status'];
-      $student_status = $dataArr['student_status'];
-
-      $where_Clause = "WHERE stu.record_status = '$record_status'";
-
-      if (!empty($dataArr['verified_status'])) {
-         if ($dataArr['verified_status'] == 'y') {
-            $verified_status = '1';
-         } else {
-            $verified_status = '0';
-         }
-         $where_Clause .= " AND stu.verified_status = '$verified_status'";
-      }
-
-      if (!empty($dataArr['student_status'])) {
-         $student_status = $dataArr['student_status'];
-         $where_Clause .= " AND stu.student_status = '$student_status'";
-      }
-
-      if ($dataArr['course_id'] > 0) {
-         $course_id = $dataArr['course_id'];
-         $where_Clause .= " AND stu.course_id = '$course_id'";
-      }
-
-      if ($dataArr['franchise_id'] > 0) {
-         $franchise_id = $dataArr['franchise_id'];
-         $where_Clause .= " AND stu.franchise_id = '$franchise_id'";
-      }
-
-      if (!empty($dataArr['result_status'])) {
-         $result_status = $dataArr['result_status'];
-         $where_Clause .= " AND stu.stu_result = '$result_status'";
-      }
-
-      if ($dataArr['created'] > 0) {
-         $created_at = date('Y-m-d', strtotime($dataArr['created']));
-         $where_Clause .= " AND DATE(stu.created_at) = '$created_at'";
-      }
-
-      if (!empty($dataArr['search_start']) && empty($dataArr['search_end'])) {
-         $search_start = $dataArr['search_start'];
-         $where_Clause .= " AND DATE(stu.created_at) >='$search_start'";
-      } else if (empty($dataArr['search_start']) && !empty($dataArr['search_end'])) {
-         $search_end = $dataArr['search_end'];
-         $where_Clause .= " AND DATE(stu.created_at) <='$search_end'";
-      } else if (!empty($dataArr['search_start']) && !empty($dataArr['search_end'])) {
-         $search_start = $dataArr['search_start'];
-         $search_end = $dataArr['search_end'];
-         $where_Clause .= " AND DATE(stu.created_at) BETWEEN '$search_start' AND '$search_end'";
-      }
-
-      if (!empty($dataArr['search_string'])) {
-         $string = $dataArr['search_string'];
-         $where_Clause .= " AND (stu.stu_id LIKE '%$string%' OR stu.stu_name LIKE '%$string%' OR stu.stu_father_name LIKE '%$string%' OR stu.stu_address LIKE '%$string%' OR stu.stu_phone LIKE '%$string%' OR stu.stu_email LIKE '%$string%' OR stu.stu_gender LIKE '%$string%' OR stu.stu_qualification LIKE '%$string%' OR stu.stu_marital_status LIKE '%$string%')";
-      }
-
-      //$sql = "SELECT * FROM ".DB_AIMGCSM.".".TABLEPREFIX."students WHERE `record_status` = '$record_status' ORDER BY id DESC";
-
-      $sql_fetch_student = "SELECT stu.id,stu.stu_id,stu.stu_name,stu.stu_phone,stu.stu_dob,stu.record_status,stu.verified_status,stu.image_file_name,stu.student_status,stu.stu_result,stu.created_at,frn.center_name,crs.course_title FROM " . DB_AIMGCSM . "." . TABLEPREFIX . "students stu LEFT JOIN " . DB_AIMGCSM . "." . TABLEPREFIX . "franchise frn ON stu.franchise_id = frn.id LEFT JOIN " . DB_AIMGCSM . "." . TABLEPREFIX . "course crs ON stu.course_id = crs.id " . $where_Clause . " GROUP BY stu.id ORDER BY stu.id DESC";
-
-      $sql_fetch_student_limit = $sql_fetch_student . " LIMIT $offset, $limit";
-
-      //echo $sql_fetch_student_limit;exit();
-
-      //$resultArr = $this->conn->global_Fetch_All_DB($sql); 
-
-      $resultArr['data'] = $this->conn->global_Fetch_All_DB($sql_fetch_student_limit);
-      $resultArr['row_count'] = $this->conn->global_Rows_Count_DB($sql_fetch_student);
-      $resultArr['pageNo'] = $dataArr['pageNo'];
-      $resultArr['limit'] = $dataArr['limit'];
-
-      return $resultArr;
+       $where = [];
+       $params = [];
+   
+       // =========================
+       // BASE CONDITION
+       // =========================
+       $where[] = "stu.record_status = ?";
+       $params[] = $dataArr['record_status'];
+   
+       // =========================
+       // VERIFIED STATUS
+       // =========================
+       if (!empty($dataArr['verified_status'])) {
+           $where[] = "stu.verified_status = ?";
+           $params[] = ($dataArr['verified_status'] === 'y') ? '1' : '0';
+       }
+   
+       // =========================
+       // STUDENT STATUS
+       // =========================
+       if (!empty($dataArr['student_status'])) {
+           $where[] = "stu.student_status = ?";
+           $params[] = $dataArr['student_status'];
+       }
+   
+       // =========================
+       // COURSE FILTER
+       // =========================
+       if (!empty($dataArr['course_id']) && $dataArr['course_id'] > 0) {
+           $where[] = "stu.course_id = ?";
+           $params[] = (int)$dataArr['course_id'];
+       }
+   
+       // =========================
+       // FRANCHISE FILTER
+       // =========================
+       if (!empty($dataArr['franchise_id']) && $dataArr['franchise_id'] > 0) {
+           $where[] = "stu.franchise_id = ?";
+           $params[] = (int)$dataArr['franchise_id'];
+       }
+   
+       // =========================
+       // RESULT STATUS
+       // =========================
+       if (!empty($dataArr['result_status'])) {
+           $where[] = "stu.stu_result = ?";
+           $params[] = $dataArr['result_status'];
+       }
+   
+       // =========================
+       // SINGLE DATE FILTER (INDEX FRIENDLY)
+       // =========================
+       if (!empty($dataArr['created'])) {
+           $date = date('Y-m-d', strtotime($dataArr['created']));
+           $where[] = "stu.created_at >= ? AND stu.created_at < ?";
+           $params[] = $date . " 00:00:00";
+           $params[] = $date . " 23:59:59";
+       }
+   
+       // =========================
+       // DATE RANGE FILTER
+       // =========================
+       if (!empty($dataArr['search_start'])) {
+           $where[] = "stu.created_at >= ?";
+           $params[] = $dataArr['search_start'] . " 00:00:00";
+       }
+   
+       if (!empty($dataArr['search_end'])) {
+           $where[] = "stu.created_at <= ?";
+           $params[] = $dataArr['search_end'] . " 23:59:59";
+       }
+   
+       // =========================
+       // SEARCH STRING (SAFE LIKE)
+       // =========================
+       if (!empty($dataArr['search_string'])) {
+           $search = "%" . $dataArr['search_string'] . "%";
+   
+           $where[] = "(
+               stu.stu_id LIKE ? OR
+               stu.stu_name LIKE ? OR
+               stu.stu_father_name LIKE ? OR
+               stu.stu_address LIKE ? OR
+               stu.stu_phone LIKE ? OR
+               stu.stu_email LIKE ? OR
+               stu.stu_gender LIKE ? OR
+               stu.stu_qualification LIKE ? OR
+               stu.stu_marital_status LIKE ?
+           )";
+   
+           // push same param multiple times
+           for ($i = 0; $i < 9; $i++) {
+               $params[] = $search;
+           }
+       }
+   
+       // =========================
+       // FINAL WHERE
+       // =========================
+       $whereSql = !empty($where) ? "WHERE " . implode(" AND ", $where) : "";
+   
+       // =========================
+       // PAGINATION
+       // =========================
+       $limit = (int) $dataArr['limit'];
+       $pageNo = (int) $dataArr['pageNo'];
+       $offset = ($pageNo - 1) * $limit;
+   
+       // =========================
+       // BASE QUERY
+       // =========================
+       $baseSql = "
+           FROM " . DB_AIMGCSM . "." . TABLEPREFIX . "students stu
+   
+           LEFT JOIN " . DB_AIMGCSM . "." . TABLEPREFIX . "franchise frn 
+               ON stu.franchise_id = frn.id
+   
+           LEFT JOIN " . DB_AIMGCSM . "." . TABLEPREFIX . "course crs 
+               ON stu.course_id = crs.id
+   
+           $whereSql
+       ";
+   
+       // =========================
+       // DATA QUERY
+       // =========================
+       $dataSql = "
+           SELECT 
+               stu.id,
+               stu.stu_id,
+               stu.stu_name,
+               stu.stu_phone,
+               stu.stu_dob,
+               stu.record_status,
+               stu.verified_status,
+               stu.image_file_name,
+               stu.student_status,
+               stu.stu_result,
+               stu.created_at,
+   
+               frn.center_name,
+               crs.course_title
+   
+           $baseSql
+   
+           ORDER BY stu.id DESC
+           LIMIT ?, ?
+       ";
+   
+       // =========================
+       // COUNT QUERY
+       // =========================
+       $countSql = "SELECT COUNT(*) as total $baseSql";
+   
+       // =========================
+       // EXECUTION
+       // =========================
+       $dataParams = array_merge($params, [$offset, $limit]);
+   
+       // Debug if needed
+       // $this->debugQuery($dataSql, $dataParams);
+   
+       $data = $this->conn->global_Fetch_All_DB($dataSql, $dataParams);
+       $total = $this->conn->global_Count_Value_DB($countSql, $params);
+   
+       return [
+           'data' => $data,
+           'row_count' => $total,
+           'pageNo' => $pageNo,
+           'limit' => $limit
+       ];
    }
 
    public function fetch_Due_Students_Data($dataArr)
@@ -2104,14 +2197,57 @@ class GlobalInterfaceController
 
    public function update_student_monthly_course_fees($paramArr)
    {
-      $stu_id = $paramArr['stu_id'];
-      $monthly_course_fees = $paramArr['monthly_course_fees'];
-
-      $sql = "UPDATE " . DB_AIMGCSM . "." . TABLEPREFIX . "students SET `monthly_course_fees` = '$monthly_course_fees',`updated_at` = now() WHERE `stu_id`='$stu_id'";
-
-      $resultArr = $this->conn->global_CRUD_DB($sql);
-
-      return $resultArr;
+       // =========================
+       // VALIDATION + SANITIZATION
+       // =========================
+       if (empty($paramArr['stu_id'])) {
+           return [
+               'check' => 'failure',
+               'message' => 'Student ID is required'
+           ];
+       }
+   
+       if (!isset($paramArr['monthly_course_fees'])) {
+           return [
+               'check' => 'failure',
+               'message' => 'Monthly course fees is required'
+           ];
+       }
+   
+       $stu_id = $paramArr['stu_id'];
+       $monthly_course_fees = (int)$paramArr['monthly_course_fees'];
+   
+       // Optional: prevent negative values
+       if ($monthly_course_fees < 0) {
+           return [
+               'check' => 'failure',
+               'message' => 'Monthly course fees cannot be negative'
+           ];
+       }
+   
+       // =========================
+       // QUERY (PARAM BINDING)
+       // =========================
+       $sql = "UPDATE " . DB_AIMGCSM . "." . TABLEPREFIX . "students 
+               SET monthly_course_fees = ?, updated_at = NOW() 
+               WHERE stu_id = ?";
+   
+       $params = [
+           $monthly_course_fees,
+           $stu_id
+       ];
+   
+       // =========================
+       // DEBUG (OPTIONAL)
+       // =========================
+       // echo $this->debugQuery($sql, $params); exit;
+   
+       // =========================
+       // EXECUTION
+       // =========================
+       $resultArr = $this->conn->global_CRUD_DB($sql, $params);
+   
+       return $resultArr;
    }
 
    public function manage_Global_Course($courseDataArr)

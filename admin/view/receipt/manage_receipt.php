@@ -1388,25 +1388,29 @@ if (!empty($_GET['rcpt_id'])) {
         success: function(responseData) {
           var result = JSON.parse(responseData);
           //console.log(result);
-          setTimeout(function() {
+
+          if (export_type == "download") {
+            $('#export_receipt_href').attr("href", result.file_url);
+            $("#hidden_export_receipt_button").click();
+          } else {
+              
+              // Calling custom function to print doc
+              printDocument(result.file_url);
+
+              // Chrome / Edge (printJS works fine)
+              // printJS({
+              //   printable: result.file_url,
+              //   type: 'pdf',
+              //   showModal: true
+              // });
+
+          }
+
+          setTimeout(function () {
             //Disabling loader
             $('.content_div_loader').removeClass('sk-loading');
+          },2000);
 
-            if (export_type == "download") {
-              $('#export_receipt_href').attr("href", result.file_url);
-              $("#hidden_export_receipt_button").click();
-            } else {
-              //Generating dynamic button for print pdf
-              var printPdfBtn = '<button id="print_receipt_btn" style="display:none;" onclick="printJS(\'' + result.file_url + '\')">' +
-                '<i class="fa fa-print"></i> Print</button>';
-
-              if ($('#print_receipt_btn')[0]) {
-                $('#print_receipt_btn').remove();
-              }
-              $("body").append(printPdfBtn);
-              $("#print_receipt_btn").click();
-            }
-          }, 50);
           //Removing file from server
           setTimeout(function() {
             removeFileFromServer(result.file_upload_dir);
@@ -1839,8 +1843,6 @@ if (!empty($_GET['rcpt_id'])) {
               newParams.pageNo = pageNo;
             }
           }
-
-          console.log(pageNo,newParams,sameFilter);return false;
 
           // build query string
           var queryString = Object.keys(newParams)

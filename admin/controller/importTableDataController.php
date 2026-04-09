@@ -115,8 +115,8 @@ switch ($import_table) {
          
          foreach($finalSpreadSheetArr as $index=> $line){ 
             if(!empty($line[0])){  
-               $stu_id = $line[0];
-               $monthly_course_fees = $line[1];
+               $stu_id = trim($line[0]);
+               $monthly_course_fees = trim($line[1]);
 
                //Fetching student details from db
                $studentDetailArr = json_decode(json_encode($GlobalInterfaceControllerObj->fetch_Global_Single_Student($stu_id)),true);
