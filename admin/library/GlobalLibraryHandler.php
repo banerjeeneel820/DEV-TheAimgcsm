@@ -38,6 +38,29 @@ class GlobalLibraryHandler
 
     return $returnArr;
   }
+  
+  public function buildBackUrl($newRoute) {
+    $scheme = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? "https" : "http";
+    $host = $_SERVER['HTTP_HOST'];
+    $currentUrl = $_SERVER['REQUEST_URI'];
+
+    $queryString = parse_url($currentUrl, PHP_URL_QUERY);
+    parse_str($queryString ?? '', $params);
+
+    // remove unwanted params
+    unset($params['route'], $params['id']);
+
+    // build params with route FIRST
+    $finalParams = array_merge(
+        ['route' => $newRoute],
+        $params
+    );
+
+    $newQuery = http_build_query($finalParams);
+    $path = strtok($currentUrl, '?');
+
+    return $scheme . '://' . $host . $path . '?' . $newQuery;
+  }
 
   public function checkRunTimeFolderExistance()
   {
@@ -80,59 +103,62 @@ class GlobalLibraryHandler
   }
 
   public function purgeSiteCache($section)
-  {
-    switch ($section) {
-      case 'student':
-        if ($_SESSION['user_type'] == 'developer' || $_SESSION['user_type'] == 'admin') {
-          $this->memObj->delete("student_dashboard_today");
-          $this->memObj->delete("student_dashboard_weekly");
-          $this->memObj->delete("student_dashboard_monthly");
-          $this->memObj->delete("student_dashboard_annual");
-        } elseif ($_SESSION['user_type'] == 'franchise') {
-          $franchise_id = $_SESSION['user_id'];
-          $this->memObj->delete("student_dashboard_today_$franchise_id");
-          $this->memObj->delete("student_dashboard_weekly_$franchise_id");
-          $this->memObj->delete("student_dashboard_monthly_$franchise_id");
-          $this->memObj->delete("student_dashboard_annual_$franchise_id");
-        }
-        break;
+  { 
+    if(SERVER_ENV == "PRODUCTION"){
+      switch ($section) {
+        case 'student':
+          if ($_SESSION['user_type'] == 'developer' || $_SESSION['user_type'] == 'admin') {
+            $this->memObj->delete("student_dashboard_today");
+            $this->memObj->delete("student_dashboard_weekly");
+            $this->memObj->delete("student_dashboard_monthly");
+            $this->memObj->delete("student_dashboard_annual");
+          } elseif ($_SESSION['user_type'] == 'franchise') {
+            $franchise_id = $_SESSION['user_id'];
+            $this->memObj->delete("student_dashboard_today_$franchise_id");
+            $this->memObj->delete("student_dashboard_weekly_$franchise_id");
+            $this->memObj->delete("student_dashboard_monthly_$franchise_id");
+            $this->memObj->delete("student_dashboard_annual_$franchise_id");
+          }
+          break;
 
-      case 'student_receipts':
-        if ($_SESSION['user_type'] == 'developer' || $_SESSION['user_type'] == 'admin') {
-          $this->memObj->delete("receipt_dashboard_today");
-          $this->memObj->delete("receipt_dashboard_weekly");
-          $this->memObj->delete("receipt_dashboard_monthly");
-          $this->memObj->delete("receipt_dashboard_annual");
-        } elseif ($_SESSION['user_type'] == 'franchise') {
-          $franchise_id = $_SESSION['user_id'];
-          $this->memObj->delete("receipt_dashboard_today_$franchise_id");
-          $this->memObj->delete("receipt_dashboard_weekly_$franchise_id");
-          $this->memObj->delete("receipt_dashboard_monthly_$franchise_id");
-          $this->memObj->delete("receipt_dashboard_annual_$franchise_id");
-        }
-        break;
+        case 'student_receipts':
+          if ($_SESSION['user_type'] == 'developer' || $_SESSION['user_type'] == 'admin') {
+            $this->memObj->delete("receipt_dashboard_today");
+            $this->memObj->delete("receipt_dashboard_weekly");
+            $this->memObj->delete("receipt_dashboard_monthly");
+            $this->memObj->delete("receipt_dashboard_annual");
+          } elseif ($_SESSION['user_type'] == 'franchise') {
+            $franchise_id = $_SESSION['user_id'];
+            $this->memObj->delete("receipt_dashboard_today_$franchise_id");
+            $this->memObj->delete("receipt_dashboard_weekly_$franchise_id");
+            $this->memObj->delete("receipt_dashboard_monthly_$franchise_id");
+            $this->memObj->delete("receipt_dashboard_annual_$franchise_id");
+          }
+          break;
 
-      case 'franchise':
-        $this->memObj->delete("franchise_data_active");
-        $this->memObj->delete("franchise_data_blocked");
-        break;
+        case 'franchise':
+          $this->memObj->delete("franchise_data_active");
+          $this->memObj->delete("franchise_data_blocked");
+          break;
 
-      case 'course':
-        $this->memObj->delete("course_data");
-        $this->memObj->delete("course_data_active");
-        $this->memObj->delete("course_data_blocked");
-        break;
+        case 'course':
+          $this->memObj->delete("course_data");
+          $this->memObj->delete("course_data_active");
+          $this->memObj->delete("course_data_blocked");
+          break;
 
-      case 'others':
-        $this->memObj->delete("news_data");
-        $this->memObj->delete("enquiry_data");
-        $this->memObj->delete("gallery_data");
-        break;
+        case 'others':
+          $this->memObj->delete("news_data");
+          $this->memObj->delete("enquiry_data");
+          $this->memObj->delete("gallery_data");
+          break;
 
-      default:
-        # code...
-        break;
+        default:
+          # code...
+          break;
+      }
     }
+    return true;  
   }
 
   public function fetchSiteBackupFiles()
@@ -1418,37 +1444,29 @@ class GlobalLibraryHandler
         $_get_verified_status = $_GET['verified_status'];
 
         if (!empty($_get_verified_status)) {
-          if ($_GET['verified_status'] == 'y') {
-            $dataArr['verified_status'] = '1';
-          } else {
-            $dataArr['verified_status'] = '0';
-          }
+          $dataArr['verified_status'] = $_get_verified_status;
         } else {
-          $dataArr['verified_status'] = 'null';
+          $dataArr['verified_status'] = null;
         }
 
         if (!empty($_get_conversion_status)) {
-          if ($_GET['conversion_status'] == 'y') {
-            $dataArr['conversion_status'] = '1';
-          } else {
-            $dataArr['conversion_status'] = '0';
-          }
+          $dataArr['conversion_status'] = $_get_conversion_status;
         } else {
 
           if ($_SESSION['user_type'] == 'franchise') {
 
             if (!empty($_GET['record_status']) || !empty($_get_verified_status) || !empty($_GET['course_id']) || !empty($_GET['search_string']) || !empty($_GET['created']) || !empty($_GET['search_start']) || !empty($_GET['search_end'])) {
 
-              $dataArr['conversion_status'] = 'null';
+              $dataArr['conversion_status'] = null;
             } else {
-              $dataArr['conversion_status'] = '0';
+              $dataArr['conversion_status'] = 'n';
             }
           } else {
             if (!empty($_GET['record_status']) || !empty($_get_verified_status) || !empty($_GET['course_id']) || !empty($_GET['franchise_id']) || !empty($_GET['search_string']) || !empty($_GET['created']) || !empty($_GET['search_start']) || !empty($_GET['search_end'])) {
 
-              $dataArr['conversion_status'] = 'null';
+              $dataArr['conversion_status'] = null;
             } else {
-              $dataArr['conversion_status'] = '0';
+              $dataArr['conversion_status'] = 'n';
             }
           }
         }
@@ -2479,7 +2497,7 @@ class GlobalLibraryHandler
         "{STUDENT_NAME}" => !empty($pdfParamArr['receiver_name']) ? $pdfParamArr['receiver_name'] : "Not available!",
         "{STUDENT_CONTACT}" => !empty($pdfParamArr['student_contact']) ? $pdfParamArr['student_contact'] : "Not available!",
         "{STUDENT_ID}" => $studentDetails->stu_id,
-        "{CONVERSION_STATUS}" => $studentDetails->conversion_status == 1 ? 'Converted' : 'Recent',
+        "{CONVERSION_STATUS}" => $studentDetails->conversion_status == 'y' ? 'Converted' : 'Recent',
         "{COURSE}" => $studentDetails->course_title,
         "{FRANCHISE}" => $studentDetails->center_name,
         "{RECEIPT_TITLE}" => $receiptTitle,

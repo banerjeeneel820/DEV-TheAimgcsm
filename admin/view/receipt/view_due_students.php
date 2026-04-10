@@ -270,7 +270,7 @@ if(!empty($_GET['fetchType'])){
                                             $student_status = 'Course Complete';
                                         }
                                 ?>
-                                        <tr id="stu_tr_<?= $content->stu_id ?>" style="background-color:<?= ($content->verified_status == '0' ? '#f1d0d0;' : '') ?>">
+                                        <tr id="stu_tr_<?= $content->stu_id ?>" style="background-color:<?= ($content->verified_status == 'n' ? '#f1d0d0;' : '') ?>">
                                             <td style="width: 6%;">
                                                 <div class="pretty p-image p-plain selectAllItem ml-2">
                                                     <input type="checkbox" class="singleCheck" id="<?= $content->id ?>" value="<?= $content->id ?>" />

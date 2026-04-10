@@ -153,6 +153,28 @@ function printDocument(url, options = {}) {
   }, 10000);
 }
 
+function buildUrl(newRoute, options = {}) {
+  const url = new URL(window.location.href);
+  const params = new URLSearchParams(url.search);
+
+  // params to remove (default: route, id)
+  const removeParams = options.remove || ['route', 'id'];
+
+  // remove unwanted params
+  removeParams.forEach(p => params.delete(p));
+
+  // build new params with route FIRST
+  const newParams = new URLSearchParams();
+  newParams.set('route', newRoute);
+
+  // append remaining params
+  params.forEach((value, key) => {
+      newParams.append(key, value);
+  });
+
+  return `${url.origin}${url.pathname}?${newParams.toString()}`;
+}
+
 $(window).scroll(function() {
     var window_top = $(window).scrollTop() - 0;  
   

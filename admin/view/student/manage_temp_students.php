@@ -192,7 +192,7 @@
 
                                 <div class="form-group row">
                                     <div class="col-sm-4 col-sm-offset-2">
-                                        <a href="<?=SITE_URL?>?route=manage_temp_students&conversion_status=<?=($studentDetails->conversion_status == '0' ? 'n':'y')?>"><button type="button" class="btn btn-danger btn-sm" data-toggle="tooltip" data-placement="right" title="Close Create Student Form" title="Save"><i class="fa fa-reply"></i></button></a>
+                                        <a href="<?=SITE_URL?>?route=manage_temp_students&conversion_status=<?=$studentDetails->conversion_status?>"><button type="button" class="btn btn-danger btn-sm" data-toggle="tooltip" data-placement="right" title="Close Create Student Form" title="Save"><i class="fa fa-reply"></i></button></a>
                                         
                                         <button class="btn btn-primary btn-sm" id="manage" type="submit" data-toggle="tooltip" title="<?=(!empty($_GET['tmp_id'])?'Update Student':'Create Student')?>" class="btn btn-success" title="Save"><i class="fa fa-save"></i> <?=(!empty($_GET['tmp_id'])?'Update Student':'Create Student')?></button>
                                     </div>
@@ -415,7 +415,7 @@
                                             
                                             $total_collection = (int)$total_collection + (int)$student->advanced_fees;
                                       ?> 
-                                          <tr id="tmp_tr_<?=$student->tmp_id?>" style="background-color:<?=(($_SESSION['user_type']!= 'franchise' && $student->verified_status == '0') ? '#f1d0d0;':'')?>">
+                                          <tr id="tmp_tr_<?=$student->tmp_id?>" style="background-color:<?=(($_SESSION['user_type']!= 'franchise' && $student->verified_status == 'n') ? '#f1d0d0;':'')?>">
                                             
                                             <td style="width: 6%;">
                                               <div class="pretty p-image p-plain selectAllItem ml-2">
@@ -432,7 +432,7 @@
                                                     <?=$student->stu_name?></a>
                                                 <br/>
                                                 <small>Created <?=date('jS F, Y',strtotime($student->created_at))?></small><br>
-                                                <small><strong>Conversion Status: <?=($student->conversion_status == 0? 'Not Converted':'Converted')?></strong></small>
+                                                <small><strong>Conversion Status: <?=($student->conversion_status == 'n'? 'Not Converted':'Converted')?></strong></small>
                                             </td>
 
                                             <td class="project-title">
@@ -464,7 +464,7 @@
                                                          <a href="<?=SITE_URL?>?route=manage_temp_students&actionType=manage_student&tmp_id=<?=$student->tmp_id?>" class="#" data-toggle="tooltip" data-placement="bottom" title="Edit this Student"><i class="fa fa-pencil"></i> Edit Student</a>
                                                        </li>
                                                        
-                                                       <?php if($updatePermission && $student->conversion_status == 0){ ?>
+                                                       <?php if($updatePermission && $student->conversion_status == 'n'){ ?>
                                                            <li>
                                                              <a href="<?=SITE_URL?>?route=student_admission&actionType=manage_student&tmp_id=<?=$student->tmp_id?>" class="#" data-toggle="tooltip" data-placement="bottom" title="Convert to Parmanent Student"><i class="fa fa-exchange"></i> Convert to Main</a>
                                                            </li>
@@ -474,7 +474,7 @@
                                                     <?php if($updatePermission && ($_SESSION['user_type'] == "admin" || $_SESSION['user_type'] == "developer")){ ?> 
 
                                                         <li>
-                                                            <a href="javascript:void(0)" id="item_<?=$student->tmp_id?>" class="verified_action" data-vstatus="<?=($student->verified_status=='1'?'0':'1')?>" data-tid="<?=$student->tmp_id?>" data-toggle="tooltip" data-placement="bottom" title="Make this student's status <?=($student->verified_status=='1'?'not verified':'verified')?>"><i class="<?=($student->verified_status=='1'?'fa fa-check-circle':'fa fa-info-circle')?>"></i> <?=($student->verified_status=='1'?'Verified':'Not-Verified')?> 
+                                                            <a href="javascript:void(0)" id="item_<?=$student->tmp_id?>" class="verified_action" data-vstatus="<?=($student->verified_status=='y'?'n':'y')?>" data-tid="<?=$student->tmp_id?>" data-toggle="tooltip" data-placement="bottom" title="Make this student's status <?=($student->verified_status=='y'?'not verified':'verified')?>"><i class="<?=($student->verified_status=='y'?'fa fa-check-circle':'fa fa-info-circle')?>"></i> <?=($student->verified_status=='y'?'Verified':'Not-Verified')?> 
                                                             </a>
                                                         </li>
                                                         
@@ -900,7 +900,7 @@
 
               var thisItem = $(this);
 
-              if(verified_status == '1'){
+              if(verified_status == 'y'){
                 var toastrText = 'This student has been marked as verified successfully!';
               }else{
                 var toastrText = 'This student has been marked as not verified successfully!';
@@ -930,8 +930,8 @@
 
                       //Check response
                       if(data.check == 'success'){
-                          if(verified_status == '1'){
-                            $(thisItem).data('vstatus', '0');
+                          if(verified_status == 'y'){
+                            $(thisItem).data('vstatus', 'n');
                             $(thisItem).attr('title',"Make this student's status not verified!");
                             $(thisItem).html('<i class="fa fa-check-circle"></i> Verified');
 
@@ -941,7 +941,7 @@
                             toastr.success(toastrText, 'Success!');
 
                           }else{
-                            $(thisItem).data('vstatus', '1');
+                            $(thisItem).data('vstatus', 'y');
                             $(thisItem).attr('title',"Make this student's status verified!");
                             $(thisItem).html('<i class="fa fa-info-circle"></i> Not Verified');
                             //Chnage table tr background color

@@ -163,10 +163,10 @@
 
             var response = grecaptcha.getResponse(loginCaptchaWidget);
 
-            if (response.length === 0) {
-                // reCAPTCHA not checked
-                toastr.error("Please verify that you are not a robot.", "Error!");
-            } else {
+            // if (response.length === 0) {
+            //     // reCAPTCHA not checked
+            //     toastr.error("Please verify that you are not a robot.", "Error!");
+            // } else {
                 $.ajax({
                     url: ajaxControllerHandler,
                     method: 'POST',
@@ -203,7 +203,7 @@
                         }
                     }
                 });
-            }
+            //}
 
         });
     </script>

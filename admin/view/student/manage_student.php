@@ -29,6 +29,9 @@
   }else{
      $statusUpdatePermission = false;
   }
+
+  // Constructing back button url
+  $backToListUrl = $this->globalLibraryHandlerObj-> buildBackUrl('view_students');
   
   /*print"<pre>";
   print_r($pageContent['student_data']);
@@ -230,8 +233,8 @@
 
                                      <label class="col-sm-2 col-form-label text-right">Conversion Status <span class="cursor-pointer" data-toggle="tooltip" data-placement="bottom" title="Choose If this student is upgraded to higher level of current course or not"><i class="fa fa-question-circle"></i></span></label>
                                      <div class="col-sm-4 pt-1">
-                                       <label class="checkbox-inline i-checks"> <input type="radio" value="0" name="conversion_status" <?=($studentDetailArr->conversion_status)=='0'?'checked':''?> /> <i></i>Recent </label>
-                                       <label class="checkbox-inline i-checks"> <input type="radio" value="1" name="conversion_status" <?=($studentDetailArr->conversion_status)=='1'?'checked':''?>> <i></i> Converted </label>
+                                       <label class="checkbox-inline i-checks"> <input type="radio" value="n" name="conversion_status" <?=($studentDetailArr->conversion_status)=='n'?'checked':''?> /> <i></i>Recent </label>
+                                       <label class="checkbox-inline i-checks"> <input type="radio" value="y" name="conversion_status" <?=($studentDetailArr->conversion_status)=='y'?'checked':''?>> <i></i> Converted </label>
                                     </div>
                                 </div>                               
                                 <div class="hr-line-dashed"></div>
@@ -326,7 +329,7 @@
 
                                 <div class="form-group row">
                                     <div class="col-sm-4 col-sm-offset-2">
-                                        <a href="<?=SITE_URL?>?route=view_students" data-toggle="tooltip" title="" class="btn btn-default" data-original-title="Cancel"><i class="fa fa-reply"></i></a>
+                                        <a href="<?=$backToListUrl?>" data-toggle="tooltip" title="" class="btn btn-default" data-original-title="Cancel"><i class="fa fa-reply"></i></a>
                                         <button class="btn btn-success btn-sm" id="create" type="submit" data-toggle="tooltip" title="" class="btn btn-success" data-original-title="Save"><i class="fa fa-save"></i> Save</button>
                                     </div>
                                 </div>
@@ -529,7 +532,7 @@
                         //Clearing textarea, tagsinput & Dropdowns
                         $('.note-editable').html('');
                         //Clearing image preview data
-                        $('#image_upload_preview').attr('src', 'http://placehold.it/100x100');
+                        //$('#image_upload_preview').attr('src', 'http://placehold.it/100x100');
                         //Disabling loader
                         $('#manage_student_loader').removeClass('sk-loading');
                         //show sweetalert success
@@ -551,7 +554,8 @@
                             if(clone_student == "yes"){
                                var redirect_url = SITE_URL+"?route=clone_student&id="+student_id;
                             }else{
-                               var redirect_url = SITE_URL+"?route=view_students";
+                              // construct final URL
+                              var redirect_url = buildUrl('view_students');
                             }
 
                         }else{

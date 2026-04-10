@@ -402,7 +402,7 @@
                                                     $student_status = 'Course Complete';
                                                 }
                                           ?> 
-                                              <tr id="stu_tr_<?=$content->stu_id?>" style="background-color:<?=($content->verified_status == '0' ? '#f1d0d0;':'')?>">
+                                              <tr id="stu_tr_<?=$content->stu_id?>" style="background-color:<?=($content->verified_status == 'n' ? '#f1d0d0;':'')?>">
                                                 <td style="width: 6%;">
                                                   <div class="pretty p-image p-plain selectAllItem ml-2">
                                                        <input type="checkbox" class="singleCheck" id="<?=$content->id?>" value="<?=$content->id?>"/>
@@ -528,7 +528,7 @@
                                                          <?php if($updatePermission && ($_SESSION['user_type'] == "admin" || $_SESSION['user_type'] == "developer")){ ?> 
 
                                                             <li>
-                                                                <a href="javascript:void(0)" id="item_<?=$content->stu_id?>" class="verified_action" data-vstatus="<?=($content->verified_status=='1'?'0':'1')?>" data-sid="<?=$content->stu_id?>" data-toggle="tooltip" data-placement="bottom" title="Make this receipt's status <?=($content->verified_status=='1'?'not verified':'verified')?>"><i class="<?=($content->verified_status=='1'?'fa fa-check-circle':'fa fa-info-circle')?>"></i> <?=($content->verified_status=='1'?'Verified':'Not-Verified')?> 
+                                                                <a href="javascript:void(0)" id="item_<?=$content->stu_id?>" class="verified_action" data-vstatus="<?=($content->verified_status=='y'?'n':'y')?>" data-sid="<?=$content->stu_id?>" data-toggle="tooltip" data-placement="bottom" title="Make this receipt's status <?=($content->verified_status=='y'?'not verified':'verified')?>"><i class="<?=($content->verified_status=='y'?'fa fa-check-circle':'fa fa-info-circle')?>"></i> <?=($content->verified_status=='y'?'Verified':'Not-Verified')?> 
                                                                 </a>
                                                             </li>
 
@@ -1383,7 +1383,7 @@
 
                   var thisItem = $(this);
 
-                  if(verified_status == '1'){
+                  if(verified_status == 'y'){
                     var toastrText = 'This student has been marked as verified successfully!';
                   }else{
                     var toastrText = 'This student has been marked as not verified successfully!';
@@ -1413,8 +1413,8 @@
 
                           //Check response
                           if(data.check == 'success'){
-                              if(verified_Status == '1'){
-                                $(thisItem).data('vstatus', '0');
+                              if(verified_status == 'y'){
+                                $(thisItem).data('vstatus', 'n');
                                 $(thisItem).attr('data-original-title',"Make this receipt's status not verified!");
                                 $(thisItem).html('<i class="fa fa-check-circle"></i> Verified');
 
@@ -1424,7 +1424,7 @@
                                 toastr.success(toastrText, 'Success!');
 
                               }else{
-                                $(thisItem).data('vstatus', '1');
+                                $(thisItem).data('vstatus', 'y');
                                 $(thisItem).attr('data-original-title',"Make this receipt's status verified!");
                                 $(thisItem).html('<i class="fa fa-info-circle"></i> Not Verified');
                                 //Chnage table tr background color
