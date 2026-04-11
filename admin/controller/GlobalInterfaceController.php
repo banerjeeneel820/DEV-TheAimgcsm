@@ -1454,22 +1454,83 @@ class GlobalInterfaceController
        return $resultArr;
    }
 
-   public function fetch_Fresh_Students($dataArr)
+   public function fetch_Fresh_Students($dataArr = [])
    {
-
-      $where_Clause = "WHERE stu.student_status = 'admitted' AND stu.created_at >= DATE_SUB(CURDATE(), INTERVAL 2 DAY)";
-
-      if (!empty($dataArr['franchise_id'])) {
-         $franchise_id = $dataArr['franchise_id'];
-         $where_Clause .= " AND stu.franchise_id = '$franchise_id'";
-      }
-
-      $sql = "SELECT stu.id,stu.stu_id,stu.stu_name,stu.stu_father_name,stu.stu_phone,stu.student_status,stu.created_at,frn.center_name,crs.course_title FROM " . DB_AIMGCSM . "." . TABLEPREFIX . "students stu LEFT JOIN " . DB_AIMGCSM . "." . TABLEPREFIX . "franchise frn ON stu.franchise_id = frn.id LEFT JOIN " . DB_AIMGCSM . "." . TABLEPREFIX . "course crs ON stu.course_id = crs.id " . $where_Clause . " GROUP BY stu.id ORDER BY stu.id DESC";
-
-      //echo $sql;exit(); 
-
-      $resultArr = $this->conn->global_Fetch_All_DB($sql);
-      return $resultArr;
+       // =========================
+       // BASE WHERE CONDITIONS
+       // =========================
+       $where = [];
+       $where[] = "stu.student_status = 'admitted'";
+       $where[] = "stu.created_at >= DATE_SUB(CURDATE(), INTERVAL 2 DAY)";
+   
+       // =========================
+       // OPTIONAL FILTERS
+       // =========================
+       if (!empty($dataArr['franchise_id'])) {
+           $franchise_id = (int)$dataArr['franchise_id']; // safe
+           $where[] = "stu.franchise_id = {$franchise_id}";
+       }
+   
+       // Combine WHERE clause
+       $whereClause = "WHERE " . implode(" AND ", $where);
+   
+       // =========================
+       // MAIN QUERY
+       // =========================
+       $sql = "
+           SELECT 
+               stu.id,
+               stu.stu_id,
+               stu.stu_name,
+               stu.stu_father_name,
+               stu.stu_phone,
+               stu.student_status,
+               stu.created_at,
+   
+               frn.center_name,
+               crs.course_title,
+   
+               rcpt.id AS receipt_row_id,
+               rcpt.receipt_id AS receipt_id,
+               rcpt.receipt_amount,
+               rcpt.extra_fees,
+               rcpt.created_at AS receipt_date,
+               pc.name AS category
+   
+           FROM " . DB_AIMGCSM . "." . TABLEPREFIX . "students stu
+   
+           LEFT JOIN " . DB_AIMGCSM . "." . TABLEPREFIX . "franchise frn 
+               ON stu.franchise_id = frn.id
+   
+           LEFT JOIN " . DB_AIMGCSM . "." . TABLEPREFIX . "course crs 
+               ON stu.course_id = crs.id
+   
+           LEFT JOIN " . DB_AIMGCSM . "." . TABLEPREFIX . "student_receipts rcpt 
+               ON rcpt.id = (
+                   SELECT r.id 
+                   FROM " . DB_AIMGCSM . "." . TABLEPREFIX . "student_receipts r
+                   WHERE r.stu_id = stu.stu_id
+                   ORDER BY r.id ASC 
+                   LIMIT 1
+               )
+   
+           LEFT JOIN " . DB_AIMGCSM . "." . TABLEPREFIX . "parent_category pc 
+               ON rcpt.category_id = pc.id
+   
+           $whereClause
+   
+           ORDER BY stu.id DESC
+         ";
+   
+       // Debug (optional)
+       //echo $sql; exit;
+   
+       // =========================
+       // EXECUTE
+       // =========================
+       $resultArr = $this->conn->global_Fetch_All_DB($sql);
+   
+       return $resultArr ?: [];
    }
 
    public function fetch_Tmp_Students($dataArr)

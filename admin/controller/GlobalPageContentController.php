@@ -6,12 +6,14 @@
 
         private $_page_handler;
         private $GlobalLibraryHandlerObj;
+        private $GlobalViewDataControllerObj;
         private $GlobalInterfaceControllerObj;
         private $globalReturnArr = array();
 
         public function __construct($page_Action){
             $this->_page_handler = $page_Action;
             $this->GlobalLibraryHandlerObj = new GlobalLibraryHandler();
+            $this->GlobalViewDataControllerObj = new GlobalViewDataController();
             $this->GlobalInterfaceControllerObj = new GlobalInterfaceController();
             $this->globalReturnArr['check_site_maintenance'] = $this->check_Site_Maintenance_Status();
         }
@@ -34,7 +36,7 @@
             switch ($this->_page_handler){
 
                 case 'view_franchises':
-                     $this->globalReturnArr['pageData'] = $this->GlobalLibraryHandlerObj->view_Franchise_Required_Data();
+                     $this->globalReturnArr['pageData'] = $this->GlobalViewDataControllerObj->view_Franchise_Required_Data();
 
                      $this->globalReturnArr['pageData']['page_title'] = "Franchise List";
 
@@ -48,7 +50,7 @@
                      break;
 
                 case 'view_courses':
-                     $this->globalReturnArr['pageData'] = $this->GlobalLibraryHandlerObj->view_Course_Required_Data();
+                     $this->globalReturnArr['pageData'] = $this->GlobalViewDataControllerObj->view_Course_Required_Data();
 
                      $this->globalReturnArr['pageData']['page_title'] = "Course List";
 
@@ -62,7 +64,7 @@
                      break;  
 
                 case 'view_students':
-                     $this->globalReturnArr['pageData'] = $this->GlobalLibraryHandlerObj->view_Student_Required_Data();
+                     $this->globalReturnArr['pageData'] = $this->GlobalViewDataControllerObj->view_Student_Required_Data();
 
                      $this->globalReturnArr['pageData']['page_title'] = "Student List";
 
@@ -76,7 +78,7 @@
                      break;
 
                 case 'view_receipts':
-                     $this->globalReturnArr['pageData'] = $this->GlobalLibraryHandlerObj->manage_Receipt_Required_Data();
+                     $this->globalReturnArr['pageData'] = $this->GlobalViewDataControllerObj->manage_Receipt_Required_Data();
 
                      $this->globalReturnArr['pageData']['page_title'] = "Receipt List";
 
@@ -90,7 +92,7 @@
                      break;  
                 
                 case 'view_due_students':
-                    $this->globalReturnArr['pageData'] = $this->GlobalLibraryHandlerObj->view_Due_Students_Data();
+                    $this->globalReturnArr['pageData'] = $this->GlobalViewDataControllerObj->view_Due_Students_Data();
 
                     $this->globalReturnArr['pageData']['page_title'] = "Due Students List";
 
@@ -104,7 +106,7 @@
                     break;       
 
                  case 'view_exams':
-                     $this->globalReturnArr['pageData'] = $this->GlobalLibraryHandlerObj->view_Exam_Required_Data();
+                     $this->globalReturnArr['pageData'] = $this->GlobalViewDataControllerObj->view_Exam_Required_Data();
 
                      $this->globalReturnArr['pageData']['page_title'] = "Exam List";
 
@@ -118,7 +120,7 @@
                      break;                             
 
                 case 'view_category':
-                     $this->globalReturnArr['pageData'] = $this->GlobalLibraryHandlerObj->view_Category_Required_Data();
+                     $this->globalReturnArr['pageData'] = $this->GlobalViewDataControllerObj->view_Category_Required_Data();
 
                      $this->globalReturnArr['pageData']['page_title'] = "Category List";
 
@@ -132,7 +134,7 @@
                      break;
 
                 case 'gallery':
-                     $this->globalReturnArr['pageData'] = $this->GlobalLibraryHandlerObj->fetch_Gallery_Item_Detail();
+                     $this->globalReturnArr['pageData'] = $this->GlobalViewDataControllerObj->fetch_Gallery_Item_Detail();
 
                      $this->globalReturnArr['pageData']['page_title'] = "Gallery List";
 
@@ -146,7 +148,7 @@
                     break;   
 
                case 'view_email_templates':
-                     $this->globalReturnArr['pageData'] = $this->GlobalLibraryHandlerObj->view_Email_Templates_Required_Data();
+                     $this->globalReturnArr['pageData'] = $this->GlobalViewDataControllerObj->view_Email_Templates_Required_Data();
 
                      $this->globalReturnArr['pageData']['page_title'] = "Email Template List";
 
@@ -160,7 +162,7 @@
                      break; 
 
                 case 'view_news':
-                     $this->globalReturnArr['pageData'] = $this->GlobalLibraryHandlerObj->view_News_Required_Data();
+                     $this->globalReturnArr['pageData'] = $this->GlobalViewDataControllerObj->view_News_Required_Data();
 
                      $this->globalReturnArr['pageData']['page_title'] = "News List";
 
@@ -174,7 +176,7 @@
                      break;      
 
                 case 'view_enquiry':
-                     $this->globalReturnArr['pageData'] = $this->GlobalLibraryHandlerObj->view_Enquiry_Required_Data();
+                     $this->globalReturnArr['pageData'] = $this->GlobalViewDataControllerObj->view_Enquiry_Required_Data();
 
                      $this->globalReturnArr['pageData']['page_title'] = "Enquiry List";
 
@@ -190,7 +192,7 @@
                 case "add_franchise":
                 case "edit_franchise":
                      $fetch_type = 'manage_franchise';  
-                     $this->globalReturnArr['pageData'] = $this->GlobalLibraryHandlerObj->manage_Franchise_Required_Data($fetch_type);
+                     $this->globalReturnArr['pageData'] = $this->GlobalViewDataControllerObj->manage_Franchise_Required_Data($fetch_type);
 
                      $this->globalReturnArr['pageData']['page_title'] = "Manage Franchise";
 
@@ -205,7 +207,7 @@
 
                 case "add_course":
                 case "edit_course":
-                     $this->globalReturnArr['pageData'] = $this->GlobalLibraryHandlerObj->manage_Course_Required_Data();
+                     $this->globalReturnArr['pageData'] = $this->GlobalViewDataControllerObj->manage_Course_Required_Data();
 
                      $this->globalReturnArr['pageData']['page_title'] = "Manage Course";
 
@@ -221,7 +223,7 @@
                 case "add_student":
                 case "edit_student":
                 case "clone_student":
-                     $this->globalReturnArr['pageData'] = $this->GlobalLibraryHandlerObj->manage_Student_Required_Data();
+                     $this->globalReturnArr['pageData'] = $this->GlobalViewDataControllerObj->manage_Student_Required_Data();
 
                      $this->globalReturnArr['pageData']['page_title'] = "Manage Student";
 
@@ -235,7 +237,7 @@
                      break;
 
                 case "student_admission":
-                      $this->globalReturnArr['pageData'] = $this->GlobalLibraryHandlerObj->manage_Student_Admission_Data();
+                      $this->globalReturnArr['pageData'] = $this->GlobalViewDataControllerObj->manage_Student_Admission_Data();
 
                       $this->globalReturnArr['pageData']['page_title'] = "Manage Student Admission";
 
@@ -249,7 +251,7 @@
                      break; 
 
                 case "manage_temp_students":
-                      $this->globalReturnArr['pageData'] = $this->GlobalLibraryHandlerObj->manage_Temp_Student_Data();
+                      $this->globalReturnArr['pageData'] = $this->GlobalViewDataControllerObj->manage_Temp_Student_Data();
 
                       $this->globalReturnArr['pageData']['page_title'] = "Manage Temporary Students";
 
@@ -264,7 +266,7 @@
 
                 case "add_exam":
                 case "edit_exam":
-                     $this->globalReturnArr['pageData'] = $this->GlobalLibraryHandlerObj->manage_Exam_Required_Data();
+                     $this->globalReturnArr['pageData'] = $this->GlobalViewDataControllerObj->manage_Exam_Required_Data();
 
                      $this->globalReturnArr['pageData']['page_title'] = "Manage Exam";
 
@@ -278,7 +280,7 @@
                      break;
 
                 case "manage_questions":
-                     $this->globalReturnArr['pageData'] = $this->GlobalLibraryHandlerObj->manage_Exam_Questions_Required_Data();
+                     $this->globalReturnArr['pageData'] = $this->GlobalViewDataControllerObj->manage_Exam_Questions_Required_Data();
 
                      $this->globalReturnArr['pageData']['page_title'] = "Manage Exam Questions";
 
@@ -292,7 +294,7 @@
                      break; 
 
                  case "start_exam":
-                     $this->globalReturnArr['pageData'] = $this->GlobalLibraryHandlerObj->manage_Start_Exam();
+                     $this->globalReturnArr['pageData'] = $this->GlobalViewDataControllerObj->manage_Start_Exam();
 
                      $this->globalReturnArr['pageData']['page_title'] = "Exam Page";
 
@@ -307,7 +309,7 @@
 
                 case "add_email_template":
                 case "edit_email_template":
-                     $this->globalReturnArr['pageData'] = $this->GlobalLibraryHandlerObj->manage_Email_Template_Required_Data();
+                     $this->globalReturnArr['pageData'] = $this->GlobalViewDataControllerObj->manage_Email_Template_Required_Data();
 
                      $this->globalReturnArr['pageData']['page_title'] = "Manage Email Templates";
 
@@ -322,7 +324,7 @@
 
                 case "add_news":
                 case "edit_news":
-                     $this->globalReturnArr['pageData'] = $this->GlobalLibraryHandlerObj->manage_News_Required_Data();
+                     $this->globalReturnArr['pageData'] = $this->GlobalViewDataControllerObj->manage_News_Required_Data();
 
                      $this->globalReturnArr['pageData']['page_title'] = "Manage News";
 
@@ -337,7 +339,7 @@
 
                 case 'home_sliders':
                   //configuring page title
-                  $this->globalReturnArr['pageData'] = $this->GlobalLibraryHandlerObj->manage_Home_Sliders_Required_Data();
+                  $this->globalReturnArr['pageData'] = $this->GlobalViewDataControllerObj->manage_Home_Sliders_Required_Data();
 
                   $this->globalReturnArr['pageData']['page_title'] = "Manage Home Sliders";
 
@@ -352,7 +354,7 @@
 
                 case 'manage_cities':
                   //configuring page title
-                  $this->globalReturnArr['pageData'] = $this->GlobalLibraryHandlerObj->view_Cities_Required_Data();
+                  $this->globalReturnArr['pageData'] = $this->GlobalViewDataControllerObj->view_Cities_Required_Data();
 
                   $this->globalReturnArr['pageData']['page_title'] = "Manage Cities";
 
@@ -367,7 +369,7 @@
 
                 case 'edit_site_setting':
                   //configuring page title
-                  $this->globalReturnArr['pageData'] = $this->GlobalLibraryHandlerObj->manage_Site_Setting_Required_Data();
+                  $this->globalReturnArr['pageData'] = $this->GlobalViewDataControllerObj->manage_Site_Setting_Required_Data();
 
                   $this->globalReturnArr['pageData']['page_title'] = "Manage Site Settings";
 
@@ -381,7 +383,7 @@
                   break;   
 
                 case 'edit_admin_profile': 
-                     $this->globalReturnArr['pageData'] = $this->GlobalLibraryHandlerObj->edit_Admin_Profile_Required_Data();
+                     $this->globalReturnArr['pageData'] = $this->GlobalViewDataControllerObj->edit_Admin_Profile_Required_Data();
 
                      $this->globalReturnArr['pageData']['page_title'] = "Manage Admin Prifile";
 
@@ -397,16 +399,16 @@
                 case 'edit_profile':
 
                     if($_SESSION['user_type'] == 'developer'){
-                      $this->globalReturnArr['pageData'] = $this->GlobalLibraryHandlerObj->edit_Developer_Profile_Required_Data();
+                      $this->globalReturnArr['pageData'] = $this->GlobalViewDataControllerObj->edit_Developer_Profile_Required_Data();
                     }  
 
                     elseif($_SESSION['user_type'] == 'admin'){
-                      $this->globalReturnArr['pageData'] = $this->GlobalLibraryHandlerObj->edit_Admin_Profile_Required_Data();
+                      $this->globalReturnArr['pageData'] = $this->GlobalViewDataControllerObj->edit_Admin_Profile_Required_Data();
                     }
 
                     elseif($_SESSION['user_type'] == 'franchise'){
                       $fetch_type = 'edit_profile';  
-                      $this->globalReturnArr['pageData'] = $this->GlobalLibraryHandlerObj->edit_Franchise_Profile_Data($fetch_type);
+                      $this->globalReturnArr['pageData'] = $this->GlobalViewDataControllerObj->edit_Franchise_Profile_Data($fetch_type);
                     }
 
                     $this->globalReturnArr['pageData']['page_title'] = "Manage My Profile";
@@ -423,15 +425,15 @@
                 default:
                    
                   if($_SESSION['user_type'] == 'admin' || $_SESSION['user_type'] == 'developer'){
-                    $this->globalReturnArr['pageData'] = $this->GlobalLibraryHandlerObj->fetchUserDashboardData();
+                    $this->globalReturnArr['pageData'] = $this->GlobalViewDataControllerObj->fetchUserDashboardData();
                   }
 
                   elseif($_SESSION['user_type'] == 'franchise'){
-                    $this->globalReturnArr['pageData'] = $this->GlobalLibraryHandlerObj->fetchUserDashboardData();
+                    $this->globalReturnArr['pageData'] = $this->GlobalViewDataControllerObj->fetchUserDashboardData();
                   }
 
                   elseif($_SESSION['user_type'] == 'student'){
-                    $this->globalReturnArr['pageData'] = $this->GlobalLibraryHandlerObj->fetchStudentExamDashboard();
+                    $this->globalReturnArr['pageData'] = $this->GlobalViewDataControllerObj->fetchStudentExamDashboard();
                   }
 
                   $this->globalReturnArr['pageData']['page_title'] = "Manage Dashboard";

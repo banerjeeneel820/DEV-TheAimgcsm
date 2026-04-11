@@ -373,7 +373,7 @@ $backupLimit = $_SESSION['user_type'] == "developer" ? true : ($_COOKIE["backupC
             <div class="table-responsive">
               <input type="text" class="form-control form-control-sm m-b-xs" id="student_filter" placeholder="Search in student table...">
 
-              <table class="table table-stripped table-bordered toggle-arrow-tiny text-center footable" data-page-size="50" data-filter=#student_filter>
+              <table class="table table-stripped table-bordered toggle-arrow-tiny text-center footable" data-page-size="20" data-filter=#student_filter>
                 <thead>
                   <tr>
                     <th style="width:8%;">Image</th>
@@ -510,7 +510,7 @@ $backupLimit = $_SESSION['user_type'] == "developer" ? true : ($_COOKIE["backupC
                 <div class="table-responsive project-list">
                   <input type="text" class="form-control form-control-sm m-b-xs" id="receipt_filter" placeholder="Search in receipt table...">
 
-                  <table class="table table-stripped table-bordered toggle-arrow-tiny text-center footable" data-page-size="50" data-filter=#receipt_filter>
+                  <table class="table table-stripped table-bordered toggle-arrow-tiny text-center footable" data-page-size="20" data-filter=#receipt_filter>
                     <thead class="cursor-pointer">
                       <tr>
                         <!--<th>ID.</th>-->

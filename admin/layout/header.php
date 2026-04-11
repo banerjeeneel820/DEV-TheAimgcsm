@@ -41,7 +41,7 @@ if (empty($_SESSION['user_id'])) {
 
 <body>
     <div id="wrapper">
-        <div id="preloader" class="show"></div>
+        <!-- <div id="preloader" class="show"></div> -->
         <nav class="navbar-default navbar-static-side sidebar-position" id="sidebar-wrapper" role="navigation">
             <div class="sidebar-collapse">
                 <ul class="nav metismenu" id="side-menu">

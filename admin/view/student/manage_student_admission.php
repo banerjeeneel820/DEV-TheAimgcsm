@@ -478,10 +478,8 @@
                                 <tbody>
                                   <?php 
                                     foreach($studentList as $index => $student){
-           
-                                        $receiptInfo = $this->globalLibraryHandlerObj->fetch_Student_Admission_Receipt($student->stu_id);
-                                        
-                                        $total_receipt_amount = round( (int)$receiptInfo->receipt_amount+ (int)$receiptInfo->extra_fees);
+                                                   
+                                        $total_receipt_amount = round( (int)$student->receipt_amount+ (int)$student->extra_fees);
                                   ?> 
                                       <tr>
                                         <td><?=$index+1?></td>
@@ -505,14 +503,14 @@
 
                                         <td class="project-title">
                                             <span class="cursor-pointer" data-toggle="tooltip" data-placement="bottom" title="Student ID: <?=$student->stu_id?>"><?=$student->stu_id?></span><br/>
-                                             <?php if($receiptInfo->receipt_amount>0){ ?> 
-                                                <small><strong>Receipt ID:</strong> <?=$receiptInfo->receipt_id?></small>
+                                             <?php if($student->receipt_amount>0){ ?> 
+                                                <small><strong>Receipt ID:</strong> <?=$student->receipt_id?></small>
                                              <?php } ?>    
                                         </td>
 
                                         <td class="project-title">
                                             <span class="cursor-pointer" data-toggle="tooltip" data-placement="bottom" title="Receipt Amount: <?=$total_receipt_amount?>"><i class="fa fa-inr"></i> <?=sprintf("%.2f",$total_receipt_amount)?></span><br/>
-                                            <small><strong>Receipt Type:</strong> <?=ucfirst($receiptInfo->category)?></small>
+                                            <small><strong>Receipt Type:</strong> <?=ucfirst($student->category)?></small>
                                         </td>
 
                                         <!--<td class="project-status">
@@ -530,24 +528,24 @@
                                                    </li>
                                                 <?php } ?>
                                                 
-                                                <?php if($updateReceiptPermission && $receiptInfo->receipt_amount>0){ ?>   
+                                                <?php if($updateReceiptPermission && $student->receipt_amount>0){ ?>   
 
                                                    <li>
-                                                     <a href="<?=SITE_URL.'?route=view_receipts&actionType=edit&rcpt_id='.$receiptInfo->id?>" target="_blank"  data-toggle="tooltip" data-placement="bottom" title="Edit Admission Receipt"><i class="fa fa-money"></i> Edit Receipt</a>
+                                                     <a href="<?=SITE_URL.'?route=view_receipts&actionType=edit&rcpt_id='.$student->receipt_row_id?>" target="_blank"  data-toggle="tooltip" data-placement="bottom" title="Edit Admission Receipt"><i class="fa fa-money"></i> Edit Receipt</a>
                                                    </li>
                                                 <?php } ?>   
 
-                                                <?php if($receiptInfo->receipt_amount>0){ ?> 
+                                                <?php if($student->receipt_amount>0){ ?> 
 
                                                     <li>
-                                                      <a href="javascript:void(0);" class="exportReceiptData" data-toggle="tooltip" data-placement="bottom" title="Print PDF file for this receipt" data-rid="<?=$receiptInfo->id?>" data-rcptid="<?=$receiptInfo->receipt_id?>" data-extype="print">
+                                                      <a href="javascript:void(0);" class="exportReceiptData" data-toggle="tooltip" data-placement="bottom" title="Print PDF file for this receipt" data-rid="<?=$student->receipt_row_id?>" data-rcptid="<?=$student->receipt_id?>" data-extype="print">
                                                           <i class="fa fa-print"></i> Print Receipt
                                                       </a>
                                                     </li>
 
 
                                                     <li>
-                                                       <a href="javascript:void(0);" class="exportReceiptData" data-toggle="tooltip" data-placement="bottom" title="Download PDF file for this receipt" data-rid="<?=$receiptInfo->id?>" data-rcptid="<?=$receiptInfo->receipt_id?>" data-extype="download">
+                                                       <a href="javascript:void(0);" class="exportReceiptData" data-toggle="tooltip" data-placement="bottom" title="Download PDF file for this receipt" data-rid="<?=$student->receipt_row_id?>" data-rcptid="<?=$student->receipt_id?>" data-extype="download">
                                                             <i class="fa fa-download"></i> Download
                                                         </a> 
                                                     </li>
@@ -809,10 +807,7 @@
                            $('#export_receipt_href').attr("href",result.file_url);
                            $( "#hidden_export_receipt_button").click(); 
                         }else{
-                           //Generating dynamic button for print pdf
-                           var printPdfBtn = '<button id="print_receipt_btn" onclick="printJS(\''+result.file_url+'\')" style="display:none;">'+'<i class="fa fa-print"></i> Print</button>';
-                           $("body").append(printPdfBtn); 
-                           $( "#print_receipt_btn").click();          
+                          printDocument(result.file_url);       
                         }
                       }, 500);
 

@@ -129,8 +129,14 @@ require_once(ROOTPATH . "/model/GlobalInterfaceModel.php");
 //Controller included
 require_once(ROOTPATH . "/controller/GlobalInterfaceController.php");
 
+// Global View Data Controller handler included
+require_once(ROOTPATH . "/controller/GlobalViewDataController.php");
+
 //Controller handler included
 require_once(ROOTPATH . "/controller/GlobalPageContentController.php");
+
+//Validation Controller included
+require_once(ROOTPATH . "/controller/GlobalValidationController.php");
 
 //View Controller included
 require_once(ROOTPATH . "/controller/GlobalViewController.php");

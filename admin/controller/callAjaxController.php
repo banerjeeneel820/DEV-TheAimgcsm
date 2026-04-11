@@ -9,10 +9,14 @@ defined('ROOTPATH') or exit('No direct script access allowed');
 //print_r($_POST);exit;
 
 $action = $_POST['action'];
-//Creating object for global controller
+//Creating object for global model controller
 $GlobalInterfaceControllerObj = new GlobalInterfaceController();
+
 //Creating object for global library
 $GlobalLibraryHandlerObj = new GlobalLibraryHandler();
+
+//Creating object for global validation controller
+$GlobalValidationControllerObj = new GlobalValidationController();
 
 //Checking runtime folder existance 
 $GlobalLibraryHandlerObj->checkRunTimeFolderExistance();
@@ -351,19 +355,12 @@ switch ($action) {
   case 'manageGlobalStudent':
 
     $formDataArr = [];
+    $validationDataArr = [];
     $returnArr = [];
     $dir = 'student';
 
-    // helper for sanitization
-    function post($key)
-    {
-      return isset($_POST[$key])
-        ? mysqli_real_escape_string(DB::$WRITELINK, trim($_POST[$key]))
-        : null;
-    }
-
-    $action_type = post('action_type');
-    $formDataArr['stu_row_id'] = post('stu_row_id');
+    $action_type = $GlobalLibraryHandlerObj->postDataSanitize('action_type');
+    $formDataArr['stu_row_id'] = $GlobalLibraryHandlerObj->postDataSanitize('stu_row_id');
 
     $isUpdate = !empty($formDataArr['stu_row_id']) && $formDataArr['stu_row_id'] != "null";
     $user_role_slug = $isUpdate ? 'update_student' : 'create_student';
@@ -396,16 +393,16 @@ switch ($action) {
     }
 
     // ===== COMMON FIELDS =====
-    $formDataArr['stu_name'] = post('stu_name');
-    $formDataArr['stu_father_name'] = post('stu_father_name');
-    $formDataArr['stu_phone'] = post('stu_phone');
-    $formDataArr['stu_email'] = post('stu_email');
-    $formDataArr['stu_address'] = post('stu_address');
-    $formDataArr['course_id'] = post('course_id');
-    $formDataArr['stu_qualification'] = post('stu_qualification');
+    $formDataArr['stu_name'] = $GlobalLibraryHandlerObj->postDataSanitize('stu_name');
+    $formDataArr['stu_father_name'] = $GlobalLibraryHandlerObj->postDataSanitize('stu_father_name');
+    $formDataArr['stu_phone'] = $GlobalLibraryHandlerObj->postDataSanitize('stu_phone');
+    $formDataArr['stu_email'] = $GlobalLibraryHandlerObj->postDataSanitize('stu_email');
+    $formDataArr['stu_address'] = $GlobalLibraryHandlerObj->postDataSanitize('stu_address');
+    $formDataArr['course_id'] = $GlobalLibraryHandlerObj->postDataSanitize('course_id');
+    $formDataArr['stu_qualification'] = $GlobalLibraryHandlerObj->postDataSanitize('stu_qualification');
 
-    $formDataArr['stu_gender'] = post('stu_gender') ?: 'none';
-    $formDataArr['stu_marital_status'] = post('stu_marital_status') ?: 'none';
+    $formDataArr['stu_gender'] = $GlobalLibraryHandlerObj->postDataSanitize('stu_gender') ?: 'none';
+    $formDataArr['stu_marital_status'] = $GlobalLibraryHandlerObj->postDataSanitize('stu_marital_status') ?: 'none';
 
     // ===== USER TYPE LOGIC =====
     if ($_SESSION['user_type'] == 'franchise') {
@@ -435,36 +432,36 @@ switch ($action) {
       } else {
 
         // flexible franchise
-        $formDataArr['student_status'] = post('student_status') ?? ($isUpdate ? $studentDetailArr->student_status : 'admitted');
-        $formDataArr['conversion_status'] = post('conversion_status') ?? ($isUpdate ? $studentDetailArr->conversion_status : 'n');
-        $formDataArr['stu_result'] = post('stu_result') ?? ($isUpdate ? $studentDetailArr->stu_result : 'unqualified');
-        $formDataArr['record_status'] = post('record_status') ?? ($isUpdate ? $studentDetailArr->record_status : 'active');
+        $formDataArr['student_status'] = $GlobalLibraryHandlerObj->postDataSanitize('student_status') ?? ($isUpdate ? $studentDetailArr->student_status : 'admitted');
+        $formDataArr['conversion_status'] = $GlobalLibraryHandlerObj->postDataSanitize('conversion_status') ?? ($isUpdate ? $studentDetailArr->conversion_status : 'n');
+        $formDataArr['stu_result'] = $GlobalLibraryHandlerObj->postDataSanitize('stu_result') ?? ($isUpdate ? $studentDetailArr->stu_result : 'unqualified');
+        $formDataArr['record_status'] = $GlobalLibraryHandlerObj->postDataSanitize('record_status') ?? ($isUpdate ? $studentDetailArr->record_status : 'active');
 
         if (!$isUpdate) {
           $formDataArr['stu_id'] = $GlobalLibraryHandlerObj->create_Student_ID();
         }
 
         foreach (['stu_course_fees', 'monthly_course_fees', 'month_exclude_receipt', 'stu_course_discount', 'fees_paid_before_dr'] as $f) {
-          $formDataArr[$f] = post($f);
+          $formDataArr[$f] = $GlobalLibraryHandlerObj->postDataSanitize($f);
         }
 
       }
     } else {
 
       // admin
-      $formDataArr['franchise_id'] = post('franchise_id');
+      $formDataArr['franchise_id'] = $GlobalLibraryHandlerObj->postDataSanitize('franchise_id');
 
-      $formDataArr['student_status'] = post('student_status') ?? ($isUpdate ? $studentDetailArr->student_status : 'admitted');
-      $formDataArr['conversion_status'] = post('conversion_status') ?? ($isUpdate ? $studentDetailArr->conversion_status : null);
-      $formDataArr['stu_result'] = post('stu_result') ?? ($isUpdate ? $studentDetailArr->stu_result : 'unqualified');
-      $formDataArr['record_status'] = post('record_status') ?? ($isUpdate ? $studentDetailArr->record_status : 'active');
+      $formDataArr['student_status'] = $GlobalLibraryHandlerObj->postDataSanitize('student_status') ?? ($isUpdate ? $studentDetailArr->student_status : 'admitted');
+      $formDataArr['conversion_status'] = $GlobalLibraryHandlerObj->postDataSanitize('conversion_status') ?? ($isUpdate ? $studentDetailArr->conversion_status : null);
+      $formDataArr['stu_result'] = $GlobalLibraryHandlerObj->postDataSanitize('stu_result') ?? ($isUpdate ? $studentDetailArr->stu_result : 'unqualified');
+      $formDataArr['record_status'] = $GlobalLibraryHandlerObj->postDataSanitize('record_status') ?? ($isUpdate ? $studentDetailArr->record_status : 'active');
 
       if (!$isUpdate) {
         $formDataArr['stu_id'] = $GlobalLibraryHandlerObj->create_Student_ID();
       }
 
       foreach (['stu_course_fees', 'monthly_course_fees', 'month_exclude_receipt', 'stu_course_discount', 'fees_paid_before_dr'] as $f) {
-        $formDataArr[$f] = post($f);
+        $formDataArr[$f] = $GlobalLibraryHandlerObj->postDataSanitize($f);
       }
 
     }
@@ -486,10 +483,10 @@ switch ($action) {
     }
 
     // ===== DATE =====
-    $dob = str_replace('/', '-', post('stu_dob'));
+    $dob = str_replace('/', '-', $GlobalLibraryHandlerObj->postDataSanitize('stu_dob'));
     $formDataArr['stu_dob'] = date('Y-m-d', strtotime($dob));
 
-    $formDataArr['stu_notes'] = post('stu_notes');
+    $formDataArr['stu_notes'] = $GlobalLibraryHandlerObj->postDataSanitize('stu_notes');
 
     // ===== FILE UPLOAD =====
     $uploadReturnArr = ['check' => 'skip'];
@@ -532,6 +529,16 @@ switch ($action) {
       }
     }
 
+    // ===== VALIDATE STUDENT DATA BEFORE CREATE OR UPDATE =====
+    $validationDataArr = $formDataArr;
+    $validationDataArr['fran_own_status'] = $owned_status;
+    $validationResult = $GlobalValidationControllerObj->validateGlobalStudentData($validationDataArr);
+
+    if ($validationResult['check'] == 'failure') {
+      echo json_encode($validationResult);
+      exit;
+    }
+
     // ===== SAVE =====
     $returnArr = $GlobalInterfaceControllerObj->manage_Global_Student($formDataArr);
 
@@ -547,8 +554,8 @@ switch ($action) {
         unlink(USER_UPLOAD_DIR . $dir . '/' . $_POST['hidden_stu_image']);
       }
 
-      $returnArr['stu_id'] = $isUpdate ? post('stu_id') : $formDataArr['stu_id'];
-      $returnArr['course'] = post('course_name');
+      $returnArr['stu_id'] = $isUpdate ? $GlobalLibraryHandlerObj->postDataSanitize('stu_id') : $formDataArr['stu_id'];
+      $returnArr['course'] = $GlobalLibraryHandlerObj->postDataSanitize('course_name');
 
       if (!$isUpdate) {
         $GlobalLibraryHandlerObj->purgeSiteCache("student");

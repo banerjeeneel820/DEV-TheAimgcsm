@@ -9,6 +9,7 @@
     	private $page_content;
 		private $isTinyEditorAllowed;
     	private $site_setting_data;
+		private $GlobalViewDataControllerObj;
     	private $globalLibraryHandlerObj;
 
     	public function __construct($route,$_dataArr){
@@ -19,8 +20,9 @@
     		$this->site_setting_data = $this->page_content['site_setting_data'];
 			$this->isTinyEditorAllowed = $_dataArr['pageData']['tiny_allowed'] ?? true;
             
-    		//Creating object for global library class
+    		//Creating object for global library & view data class
     		$this->globalLibraryHandlerObj = new GlobalLibraryHandler();
+			$this->GlobalViewDataControllerObj = new GlobalViewDataController();
     	}
 
     	public function render(){
