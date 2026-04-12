@@ -1,0 +1,521 @@
+<?php
+defined('ROOTPATH') or exit('No direct script access allowed');
+
+class StudentController extends BaseController
+{
+
+    public function __construct()
+    {
+        parent::__construct();
+    }
+
+    public function manage_student($data)
+    {
+        $formDataArr = [];
+        $validationDataArr = [];
+        $returnArr = [];
+        $dir = 'student';
+
+        // helper
+        $post = fn ($key) => $this->GlobalLibraryHandlerObj->postDataSanitize($key);
+
+        $action_type = $post('action_type');
+        $formDataArr['stu_row_id'] = $post('stu_row_id');
+
+        $isUpdate = !empty($formDataArr['stu_row_id']) && $formDataArr['stu_row_id'] != "null";
+        $user_role_slug = $isUpdate ? 'update_student' : 'create_student';
+
+        // fetch student if update
+        if ($isUpdate) {
+            $studentDetailArr = $this->GlobalInterfaceControllerObj->fetch_Detail_Single_Student($formDataArr['stu_row_id']);
+        }
+
+        // check for valid student data
+        if ($isUpdate && empty($studentDetailArr)) {
+            return ['check' => 'failure', 'message' => 'Student not found'];
+        }
+
+        // franchise check
+        if ($_SESSION['user_type'] == "franchise") {
+
+            $franchise_id = $_SESSION['user_id'];
+
+            if ($isUpdate && $studentDetailArr->franchise_id != $franchise_id) {
+                return ['check' => 'failure', 'message' => "You don't have the permission to perform this action!"];
+            }
+
+            $franchiseDetailArr = $this->GlobalInterfaceControllerObj->fetch_Global_Single_Franchise($franchise_id);
+            $owned_status = $franchiseDetailArr->owned_status;
+        } else {
+            $owned_status = "yes";
+        }
+
+        // permission check
+        if (!$this->GlobalLibraryHandlerObj->checkUserRolePermission($user_role_slug, "hard")) {
+            return ['check' => 'failure', 'message' => "You don't have the permission to perform this action!"];
+        }
+
+        // ===== COMMON FIELDS =====
+        $formDataArr['stu_name'] = $post('stu_name');
+        $formDataArr['stu_father_name'] = $post('stu_father_name');
+        $formDataArr['stu_phone'] = $post('stu_phone');
+        $formDataArr['stu_email'] = $post('stu_email');
+        $formDataArr['stu_address'] = $post('stu_address');
+        $formDataArr['course_id'] = $post('course_id');
+        $formDataArr['stu_qualification'] = $post('stu_qualification');
+
+        $formDataArr['stu_gender'] = $post('stu_gender') ?: 'none';
+        $formDataArr['stu_marital_status'] = $post('stu_marital_status') ?: 'none';
+
+        // ===== USER TYPE LOGIC =====
+        if ($_SESSION['user_type'] == 'franchise') {
+
+            $formDataArr['franchise_id'] = $_SESSION['user_id'];
+
+            if ($owned_status == "no") {
+
+                if ($isUpdate) {
+                    foreach (['student_status', 'record_status', 'stu_result', 'conversion_status'] as $f) {
+                        $formDataArr[$f] = $studentDetailArr->$f;
+                    }
+                } else {
+                    $formDataArr += [
+                        'student_status' => "admitted",
+                        'record_status' => "blocked",
+                        'stu_result' => "unqualified",
+                        'conversion_status' => 'n',
+                        'stu_id' => $this->GlobalLibraryHandlerObj->create_Student_ID()
+                    ];
+                }
+
+                // restricted fields
+                foreach (['stu_course_fees', 'monthly_course_fees', 'month_exclude_receipt', 'fees_paid_before_dr'] as $f) {
+                    $formDataArr[$f] = null;
+                }
+            } else {
+
+                // flexible franchise
+                $formDataArr['student_status'] = $post('student_status') ?? ($isUpdate ? $studentDetailArr->student_status : 'admitted');
+                $formDataArr['conversion_status'] = $post('conversion_status') ?? ($isUpdate ? $studentDetailArr->conversion_status : 'n');
+                $formDataArr['stu_result'] = $post('stu_result') ?? ($isUpdate ? $studentDetailArr->stu_result : 'unqualified');
+                $formDataArr['record_status'] = $post('record_status') ?? ($isUpdate ? $studentDetailArr->record_status : 'active');
+
+                if (!$isUpdate) {
+                    $formDataArr['stu_id'] = $this->GlobalLibraryHandlerObj->create_Student_ID();
+                }
+
+                foreach (['stu_course_fees', 'monthly_course_fees', 'month_exclude_receipt', 'stu_course_discount', 'fees_paid_before_dr'] as $f) {
+                    $formDataArr[$f] = $post($f);
+                }
+            }
+        } else {
+
+            // admin
+            $formDataArr['franchise_id'] = $post('franchise_id');
+
+            $formDataArr['student_status'] = $post('student_status') ?? ($isUpdate ? $studentDetailArr->student_status : 'admitted');
+            $formDataArr['conversion_status'] = $post('conversion_status') ?? ($isUpdate ? $studentDetailArr->conversion_status : null);
+            $formDataArr['stu_result'] = $post('stu_result') ?? ($isUpdate ? $studentDetailArr->stu_result : 'unqualified');
+            $formDataArr['record_status'] = $post('record_status') ?? ($isUpdate ? $studentDetailArr->record_status : 'active');
+
+            if (!$isUpdate) {
+                $formDataArr['stu_id'] = $this->GlobalLibraryHandlerObj->create_Student_ID();
+            }
+
+            foreach (['stu_course_fees', 'monthly_course_fees', 'month_exclude_receipt', 'stu_course_discount', 'fees_paid_before_dr'] as $f) {
+                $formDataArr[$f] = $post($f);
+            }
+        }
+
+        if ($isUpdate) {
+
+            if (
+                isset($formDataArr['stu_course_discount'], $formDataArr['fees_paid_before_dr']) &&
+                ($formDataArr['stu_course_discount'] != $studentDetailArr->stu_course_discount ||
+                    $formDataArr['fees_paid_before_dr'] != $studentDetailArr->fees_paid_before_dr
+                )
+            ) {
+                $formDataArr['verified_status'] = 'n';
+            } else {
+                $formDataArr['verified_status'] = $studentDetailArr->verified_status;
+            }
+        }
+
+        // ===== DATE =====
+        $dobInput = $post('stu_dob');
+
+        if (!empty($dobInput)) {
+            $dob = str_replace('/', '-', $dobInput);
+            $formDataArr['stu_dob'] = date('Y-m-d', strtotime($dob));
+        } else {
+            $formDataArr['stu_dob'] = null;
+        }
+
+        $formDataArr['stu_notes'] = $post('stu_notes');
+
+        // ===== VALIDATE STUDENT DATA BEFORE CREATE OR UPDATE =====
+        $validationDataArr = $formDataArr;
+        $validationDataArr['fran_own_status'] = $owned_status;
+        $validationResult = $this->GlobalValidationControllerObj->validateGlobalStudentData($validationDataArr);
+
+        if ($validationResult['check'] == 'failure') {
+            return $validationResult;
+        }
+
+        // ===== FILE UPLOAD =====
+        $uploadReturnArr = ['check' => 'skip'];
+
+        if (!empty($_FILES["local_stu_image"]["size"])) {
+
+            $uploadReturnArr = $this->GlobalLibraryHandlerObj->upload_file('local_stu_image', $dir);
+
+            if ($uploadReturnArr['check'] != 'success') {
+                return ['check' => 'failure', 'msg' => "Image upload failed!"];
+            }
+
+            $formDataArr['image_file_name'] = $uploadReturnArr['fileName'];
+        } else {
+            if ($isUpdate) {
+                $formDataArr['image_file_name'] = $post('hidden_stu_image');
+            } elseif ($action_type == "clone") {
+
+                $oldFile = $post('hidden_stu_image');
+
+                if (!empty($oldFile)) {
+
+                    $ext = pathinfo($oldFile, PATHINFO_EXTENSION);
+                    $newFileName = $this->GlobalLibraryHandlerObj->generateRandomString() . '_' . time() . '.' . $ext;
+
+                    $source = USER_UPLOAD_DIR . $dir . '/' . $oldFile;
+                    $dest   = USER_UPLOAD_DIR . $dir . '/' . $newFileName;
+
+                    if (file_exists($source) && copy($source, $dest)) {
+                        $formDataArr['image_file_name'] = $newFileName;
+                    } else {
+                        $formDataArr['image_file_name'] = null;
+                    }
+                } else {
+                    $formDataArr['image_file_name'] = null;
+                }
+            } else {
+                $formDataArr['image_file_name'] = null;
+            }
+        }
+
+        // ===== SAVE =====
+        $returnArr = $this->GlobalInterfaceControllerObj->manage_Global_Student($formDataArr);
+
+        if ($returnArr['check'] == 'success') {
+
+            // delete old image
+            if (
+                $isUpdate &&
+                $action_type != "clone" &&
+                $uploadReturnArr['check'] == 'success' &&
+                !empty($_FILES["local_stu_image"]["size"])
+            ) {
+                $filePath = USER_UPLOAD_DIR . $dir . '/' . $post('hidden_stu_image');
+                if (!empty($hiddenImage) && file_exists($filePath)) {
+                    unlink($filePath);
+                }
+            }
+
+            $returnArr['stu_id'] = $isUpdate ? $post('stu_id') : $formDataArr['stu_id'];
+            $returnArr['course'] = $post('course_name');
+
+            if (!$isUpdate) {
+                $this->GlobalLibraryHandlerObj->purgeSiteCache("student");
+            }
+        } else {
+
+            if ($uploadReturnArr['check'] == 'success') {
+                $filePath = USER_UPLOAD_DIR . $dir . '/' . $post('image_file_name');
+                if (!empty($hiddenImage) && file_exists($filePath)) {
+                    unlink($filePath);
+                }
+            }
+
+            return ['check' => 'failure', 'message' => "Something went wrong!"];
+        }
+
+        return $returnArr;
+    }
+
+    public function manage_student_admission($data)
+    {
+        //Declaring necessary variables
+        $formDataArr = [];
+        $studentReturnArr = [];
+        $receiptReturnArr = [];
+        $returnArr = [];
+
+        // helper
+        $post = fn ($key) => $this->GlobalLibraryHandlerObj->postDataSanitize($key);
+
+        // -----------------------------
+        // Basic Data
+        // -----------------------------
+        $formDataArr['student_id'] = $post('student_id');
+
+        $isUpdate = !empty($formDataArr['student_id']) && $formDataArr['student_id'] != "null";
+        $user_role_slug = $isUpdate ? 'update_student' : 'create_student';
+        $receipt_role_slug = 'create_receipt';
+
+        // -----------------------------
+        // Permission Check
+        // -----------------------------
+        if (!$this->GlobalLibraryHandlerObj->checkUserRolePermission($user_role_slug, "hard")) {
+            return ['check' => 'failure', 'message' => "You don't have the permission to perform this action!"];
+        }
+
+        // permission check
+        if (!$this->GlobalLibraryHandlerObj->checkUserRolePermission($receipt_role_slug, "hard")) {
+            return ['check' => 'failure', 'message' => "No permission to create receipt"];
+        }
+
+        // -----------------------------
+        // Fetch Student (if update)
+        // -----------------------------
+        if ($isUpdate) {
+            $studentDetailArr = $this->GlobalInterfaceControllerObj
+                ->fetch_Detail_Single_Student($formDataArr['student_id']);
+        }
+
+        // check for valid student data
+        if ($isUpdate && empty($studentDetailArr)) {
+            return ['check' => 'failure', 'message' => 'Student not found'];
+        }
+
+        // -----------------------------
+        // Fees & Franchise Logic
+        // -----------------------------
+        $formDataArr['stu_course_fees']     = $post('stu_course_fees');
+        $formDataArr['monthly_course_fees'] = $post('monthly_course_fees');
+        $formDataArr['stu_course_discount'] = $post('stu_course_discount');
+        $formDataArr['fees_paid_before_dr'] = $post('fees_paid_before_dr');
+
+        if ($_SESSION['user_type'] == "franchise" && $_SESSION['owned_status'] == "yes") {
+
+            $franchise_id = $_SESSION['user_id'];
+
+            if ($isUpdate && $studentDetailArr->franchise_id != $franchise_id) {
+                return ['check' => 'failure', 'message' => "You don't have the permission to perform this action!"];
+            }
+
+            if ($isUpdate) {
+                $formDataArr['verified_status'] =
+                    ($formDataArr['stu_course_discount'] != $studentDetailArr->stu_course_discount)
+                    ? 'n'
+                    : $studentDetailArr->verified_status;
+            }
+        } else {
+
+            $franchise_id = $post('franchise_id');
+
+            if ($isUpdate) {
+                $formDataArr['verified_status'] = 'y';
+            }
+        }
+
+        // -----------------------------
+        // Basic Fields
+        // -----------------------------
+        $formDataArr['stu_name']         = $post('stu_name');
+        $formDataArr['stu_father_name']  = $post('stu_father_name');
+        $formDataArr['stu_phone']        = $post('stu_phone');
+        $formDataArr['course_id']        = $post('course_id');
+        $formDataArr['franchise_id']     = $franchise_id;
+
+        $formDataArr['student_status']   = "admitted";
+        $formDataArr['record_status']    = "active";
+
+        // -----------------------------
+        // Create Student ID
+        // -----------------------------
+        if (!$isUpdate) {
+            $formDataArr['stu_id'] = $this->GlobalLibraryHandlerObj->create_Student_ID();
+        }
+
+        // -----------------------------
+        // Temp Record
+        // -----------------------------
+        $formDataArr['tmp_stu_record_id'] = $post('tmp_stu_record_id') ?: null;
+
+        // -----------------------------
+        // Save Student
+        // -----------------------------
+        $studentReturnArr = $this->GlobalInterfaceControllerObj->manage_Student_Admission($formDataArr);
+
+        // -----------------------------
+        // Receipt Creation + Rollback
+        // -----------------------------
+        $receiptAmount = (float) $post('receipt_amount');
+        $receiptResult = ['check' => 'skip'];
+
+        if (
+            $studentReturnArr['check'] == 'success' &&
+            $studentReturnArr['last_insert_id'] > 0 &&
+            !$isUpdate && $receiptAmount > 0
+        ) {
+            $receiptResult = $this->createAdmissionReceipt($formDataArr, $post);
+
+            // ROLLBACK if receipt fails
+            if ($receiptResult['check'] === 'failure') {
+
+                // delete created student (rollback)
+                $this->GlobalInterfaceControllerObj
+                    ->delete_Student_By_Id($formDataArr['stu_id']);
+
+                return [
+                    'check'   => 'failure',
+                    'message' => 'Student created but receipt failed. Operation rolled back.'
+                ];
+            }
+        }
+
+        // -----------------------------
+        // Temp Conversion Update
+        // -----------------------------
+        $tmp_id = $post('tmp_id');
+
+        if ($studentReturnArr['check'] == 'success' && !empty($tmp_id)) {
+            $this->GlobalInterfaceControllerObj->update_Tmp_Student_Conversion_Status($tmp_id, 'y');
+        }
+
+        // -----------------------------
+        // Final Response
+        // -----------------------------
+        if ($studentReturnArr['check'] == 'success') {
+
+            $returnArr = $studentReturnArr;
+
+            $returnArr['stu_id'] = $isUpdate
+                ? $post('stu_id')
+                : $formDataArr['stu_id'];
+
+            $returnArr['course'] = $post('course_name');
+        } else {
+            $returnArr = ['check' => 'failure', 'message' => "Something went wrong!"];
+        }
+
+        return $returnArr;
+    }
+
+    private function createAdmissionReceipt($formDataArr, $post)
+    {
+        $receipt_role_slug = 'create_receipt';
+
+        // permission check
+        if (!$this->GlobalLibraryHandlerObj->checkUserRolePermission($receipt_role_slug, "hard")) {
+            return ['check' => 'failure', 'message' => "No permission to create receipt"];
+        }
+
+        $receiptAmount = (float) $post('receipt_amount');
+
+        if ($receiptAmount <= 0) {
+            return ['check' => 'skip']; // nothing to do
+        }
+
+        $receiptFormArr = [
+            'receipt_id'             => $this->GlobalLibraryHandlerObj->create_Receipt_ID(),
+            'stu_id'                 => $formDataArr['stu_id'],
+            'category_id'            => $post('category_id'),
+            'receipt_amount'         => $receiptAmount,
+            'extra_fees'             => $post('extra_fees'),
+            'extra_fees_description' => "Registration Fees",
+            'record_status'          => 'active'
+        ];
+
+        return $this->GlobalInterfaceControllerObj
+            ->create_Student_Admission_Receipt($receiptFormArr);
+    }
+
+    public function manage_temp_student($formDataArr, $post)
+    {
+        //Declaring necessary variables
+        $formDataArr = [];
+        $returnArr = [];
+
+        // helper
+        $post = fn ($key) => $this->GlobalLibraryHandlerObj->postDataSanitize($key);
+
+        // -----------------------------
+        // Basic Data
+        // -----------------------------
+        $formDataArr['tmp_id'] = $post('tmp_id');
+
+        $isUpdate = !empty($formDataArr['tmp_id']) && $formDataArr['tmp_id'] != "null";
+        $user_role_slug = $isUpdate ? 'update_student' : 'create_student';
+
+        // -----------------------------
+        // Permission Check
+        // -----------------------------
+        if (!$this->GlobalLibraryHandlerObj->checkUserRolePermission($user_role_slug, "hard")) {
+            return ['check' => 'failure', 'message' => "You don't have the permission to perform this action!"];
+        }
+
+        // -----------------------------
+        // Franchise Logic
+        // -----------------------------
+        if ($_SESSION['user_type'] == "franchise") {
+
+            $franchise_id = $_SESSION['user_id'];
+
+            if ($isUpdate) {
+                $studentDetailArr = $this->GlobalInterfaceControllerObj
+                    ->fetch_Detail_Single_Student($formDataArr['tmp_id']);
+
+                if ($studentDetailArr->franchise_id != $franchise_id) {
+                    return ['check' => 'failure', 'message' => "You don't have the permission to perform this action!"];
+                }
+            }
+
+            // kept for future use (as in your original code)
+            // $franchiseDetailArr = $this->GlobalInterfaceControllerObj
+            //     ->fetch_Global_Single_Franchise($franchise_id);
+
+            // $owned_status = $franchiseDetailArr->owned_status;
+        } else {
+            $franchise_id = $post('franchise_id');
+        }
+
+        // -----------------------------
+        // Core Fields
+        // -----------------------------
+        $formDataArr['stu_name']        = $post('stu_name');
+        $formDataArr['stu_father_name'] = $post('stu_father_name');
+        $formDataArr['stu_phone']       = $post('stu_phone');
+        $formDataArr['course_id']       = $post('course_id');
+        $formDataArr['franchise_id']    = $franchise_id;
+
+        $formDataArr['advanced_fees']   = $post('receipt_amount');
+
+        // -----------------------------
+        // Create Temp Student ID
+        // -----------------------------
+        if (!$isUpdate) {
+            $formDataArr['tmp_stu_id'] = $this->GlobalLibraryHandlerObj->create_Tmp_Student_ID();
+        }
+
+        // -----------------------------
+        // DB Operation
+        // -----------------------------
+        $returnArr = $this->GlobalInterfaceControllerObj->manage_Temp_Student($formDataArr);
+
+        // -----------------------------
+        // Response Handling
+        // -----------------------------
+        if ($returnArr['check'] == 'success') {
+
+            $returnArr['tmp_stu_id'] = $isUpdate
+                ? $post('tmp_stu_id')
+                : $formDataArr['tmp_stu_id'];
+
+            $returnArr['course'] = $post('course_name');
+        } else {
+            $returnArr = ['check' => 'failure', 'message' => "Something went wrong!"];
+        }
+
+        return $returnArr;
+    }
+}

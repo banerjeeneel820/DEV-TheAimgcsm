@@ -99,54 +99,33 @@ if (!defined("APP_DEFAULT_SALT")) {
 }
 /*-------------End here------------------*/
 
-/*-------------Local text API KEY----------*/
-/*if(!defined("LOCAL_TEXT_API_KEY")){	
-  	define("LOCAL_TEXT_API_KEY", "NTY1NjY3NzczODUxNDczMTcxNzkzNzZkNDI2MTQzNDg=");
-  }*/
-if (!defined("SINCH_PLAN_ID")) {
-	define("SINCH_PLAN_ID", "035965c634444c0aa425bd7e83da6b02");
-}
-if (!defined("SINCH_API_TOKEN")) {
-	define("SINCH_API_TOKEN", "3e28763eef4a4cc686fb5ebb5910bbfd");
-}
-if (!defined("MY_SINCH_NO")) {
-	define("MY_SINCH_NO", "447520651436");
-}
-/*-------------End here------------------*/
-
 //DB class include
 include_once("database/DB.php");
 if (!DB::$connected) {
 	DB::connect();
 }
 
-//Declaring variables
-$globalPageContent = array();
-
-//Model included
-require_once(ROOTPATH . "/model/GlobalInterfaceModel.php");
-
-//Controller included
-require_once(ROOTPATH . "/controller/GlobalInterfaceController.php");
-
-// Global View Data Controller handler included
-require_once(ROOTPATH . "/controller/GlobalViewDataController.php");
-
-//Controller handler included
-require_once(ROOTPATH . "/controller/GlobalPageContentController.php");
-
-//Validation Controller included
-require_once(ROOTPATH . "/controller/GlobalValidationController.php");
-
-//View Controller included
-require_once(ROOTPATH . "/controller/GlobalViewController.php");
-
 // somewhere early in your project's loading, require the Composer autoloader
 // see: http://getcomposer.org/doc/00-intro.md
 require ROOTPATH . '/../vendor/autoload.php';
 
-//Library loader included
-require_once(ROOTPATH . "/library/GlobalLibraryHandler.php");
+// Autoload any class as required
+spl_autoload_register(function ($class) {
+	$paths = [
+		ROOTPATH . '/core/',
+		ROOTPATH . '/controller/',
+		ROOTPATH . '/model/',
+		ROOTPATH . '/library/',
+	];
+
+	foreach ($paths as $path) {
+		$file = $path . $class . '.php';
+		if (file_exists($file)) {
+		require_once $file;
+		return;
+		}
+	}
+});
 
 //define("MAIL_USERNAME", "");
 //define("MAIL_PASSWORD", "");

@@ -30,14 +30,6 @@ class GlobalLibraryHandler
       $this->memObj = null;
     }
   }
-
-  public function checkUserLogin($paramArr)
-  {
-    $returnArr = array();
-    $returnArr = $this->GlobalInterfaceControllerObj->check_User_Login($paramArr);
-
-    return $returnArr;
-  }
   
   public function buildBackUrl($newRoute) {
     $scheme = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? "https" : "http";

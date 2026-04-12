@@ -2,7 +2,7 @@
 
     defined('ROOTPATH') OR exit('No direct script access allowed');
 
-    class GlobalPageContentController{
+    class GlobalPageController{
 
         private $_page_handler;
         private $GlobalLibraryHandlerObj;
@@ -456,6 +456,3 @@
         }
 
     }
-    
-?>
- 

@@ -3567,6 +3567,14 @@ class GlobalInterfaceController
       $this->conn->global_CRUD_DB($sql_block_temp_student);
    }
 
+   public function delete_Student_By_Id($stu_id)
+   {
+      //Deleting student result  
+      $sql_delete_receipt = "DELETE FROM " . DB_AIMGCSM . "." . TABLEPREFIX . "students WHERE stu_id = '$stu_id'";
+      //echo $sql_delete_receipt;exit;
+      $this->conn->global_CRUD_DB($sql_delete_receipt);
+   }
+
    public function delete_Student_Dependent_Data($stu_id)
    {
       //Deleting student result  

@@ -23,1043 +23,234 @@ $GlobalLibraryHandlerObj->checkRunTimeFolderExistance();
 
 switch ($action) {
 
-  case 'check_user_login':
-    if ($_POST['action'] == 'check_user_login') {
-      $paramArr['user_email'] = mysqli_real_escape_string(DB::$WRITELINK, trim($_POST['user_email']));
-      $paramArr['user_pswd'] = md5(mysqli_real_escape_string(DB::$WRITELINK, trim($_POST['user_pswd'])));
-      $paramArr['user_type'] = mysqli_real_escape_string(DB::$WRITELINK, trim($_POST['user_type']));
-      $paramArr['user_signin_method'] = mysqli_real_escape_string(DB::$WRITELINK, trim($_POST['user_signin_method']));
-      //Validating captch & collecting response 
-      $recaptcha_response = $_POST['g-recaptcha-response'];
-
-      $validate_captcha = true; //$GlobalLibraryHandlerObj->checkCaptchaResponse($recaptcha_response);
-
-      if ($validate_captcha) {
-        $returnArr = $GlobalLibraryHandlerObj->checkUserLogin($paramArr);
-
-        if ($returnArr['check'] == 'success') {
-          //Setting cookies for browser
-          if ($_POST['remember_me'] == 'on') {
-            setcookie('user_email', $_POST['user_email'], time() + 86400 * 30);
-            setcookie('user_pswd', $_POST['user_pswd'], time() + 86400 * 30);
-          } else {
-            setcookie('user_email', '', time() + 86400 * 30);
-            setcookie('user_pswd', '', time() + 86400 * 30);
-          }
-        }
-      } else {
-        $returnArr = array('check' => 'failure', 'msg' => 'Not a valid captcha response; Please try again.');
-      }
-      echo json_encode($returnArr);
-    }
-    break;
-
-  case 'manageGlobalFranchise':
-
-    //Declaring necessary variables
-    $formDataArr = array();
-    $returnArr = array();
-
-    //print_r($_POST);exit;
-
-    $formDataArr['fran_row_id'] = mysqli_real_escape_string(DB::$WRITELINK, trim($_POST['fran_row_id']));
-
-    if ($formDataArr['fran_row_id'] != 'null') {
-      $user_role_slug = 'update_franchise';
-    } else {
-      $user_role_slug = 'create_franchise';
-    }
-
-    //check action permission        
-    $checkActionPermission = $GlobalLibraryHandlerObj->checkUserRolePermission($user_role_slug, "hard");
-
-    if ($checkActionPermission) {
-
-      //Checking if we are creating a franchise or trying to modify one
-      if ($formDataArr['fran_row_id'] == 'null') {
-        $formDataArr['fran_id'] = $GlobalLibraryHandlerObj->create_Frnachise_ID();
-      }
-
-      //determining franchise password
-      $fran_pass = mysqli_real_escape_string(DB::$WRITELINK, trim($_POST['fran_pass']));
-
-      if (strlen($fran_pass) > 0) {
-        $formDataArr['fran_pass'] = md5($fran_pass);
-        $formDataArr['fran_og_pass'] = $fran_pass;
-      } else {
-        $formDataArr['fran_pass'] = $_POST['fran_hidden_password'];
-        $formDataArr['fran_og_pass'] = $_POST['fran_hidden_og_password'];
-      }
-
-      //Storing form data into form data array
-      $dir = 'franchise';
-      $formDataArr['center_name'] = mysqli_real_escape_string(DB::$WRITELINK, trim($_POST['center_name']));
-
-      //Configuring blog seo url structure 
-      $formDataArr['seo_url_structure'] = $GlobalLibraryHandlerObj->seoUrlStructure($formDataArr['center_name'], 'seo');
-
-      if ($formDataArr['fran_row_id'] != 'null') {
-
-        $fran_slug_find_id = $GlobalLibraryHandlerObj->checkSlugAvailibility('franchise', 'seo_url_structure', $formDataArr['seo_url_structure'])->id;
-
-        if (!empty($fran_slug_find_id) && $fran_slug_find_id != $formDataArr['fran_row_id']) {
-          echo json_encode(array('check' => 'failure', 'message' => 'This title is already taken; Please try another.'));
-          return false;
-        }
-      } else {
-        if ($GlobalLibraryHandlerObj->checkSlugAvailibility('franchise', 'seo_url_structure', $formDataArr['seo_url_structure'])->id > 0) {
-          echo json_encode(array('check' => 'failure', 'message' => 'This title is already taken; Please try another.'));
-          return false;
-        }
-      }
-
-      $formDataArr['owner_name'] = mysqli_real_escape_string(DB::$WRITELINK, trim($_POST['owner_name']));
-
-      $formDataArr['fran_phone'] = mysqli_real_escape_string(DB::$WRITELINK, trim($_POST['fran_phone']));
-      $formDataArr['fran_email'] = mysqli_real_escape_string(DB::$WRITELINK, trim($_POST['fran_email']));
-
-      $formDataArr['fran_address'] = mysqli_real_escape_string(DB::$WRITELINK, trim($_POST['fran_address']));
-      $formDataArr['owned_status'] = mysqli_real_escape_string(DB::$WRITELINK, trim($_POST['owned_status']));
-      $formDataArr['record_status'] = mysqli_real_escape_string(DB::$WRITELINK, trim($_POST['record_status']));
-      $formDataArr['featured_status'] = mysqli_real_escape_string(DB::$WRITELINK, trim($_POST['featured_status']));
-
-      $formDataArr['user_role'] = serialize($_POST['user_role']);
-
-      $formDataArr['fran_description'] = mysqli_real_escape_string(DB::$WRITELINK, trim($_POST['fran_description']));
-
-      $formDataArr['image_upload_type'] = mysqli_real_escape_string(DB::$WRITELINK, trim($_POST['image_upload_type']));
-      $formDataArr['pdf_upload_type'] = mysqli_real_escape_string(DB::$WRITELINK, trim($_POST['pdf_upload_type']));
-
-      if ($_FILES["local_fran_image"]["size"] > 0) {
-        $uploadImgReturnArr = $GlobalLibraryHandlerObj->upload_file('local_fran_image', $dir);
-        //checking file upload return data
-        if ($uploadImgReturnArr['check'] == 'success') {
-          $formDataArr['fran_image'] = $uploadImgReturnArr['fileName'];
-        } else {
-          echo json_encode(array('check' => 'failure', 'msg' => "An error occurred while trying to upload franchise image!"));
-          exit;
-        }
-      } else {
-        if ($formDataArr['fran_row_id'] != 'null') {
-          $formDataArr['fran_image'] = $_POST['hidden_fran_image'];
-        } else {
-          $formDataArr['fran_image'] = null;
-        }
-      }
-
-      if ($_FILES["local_fran_pdf"]["size"] > 0) {
-        $uploadPdfReturnArr = $GlobalLibraryHandlerObj->upload_file('local_fran_pdf', $dir);
-        //checking file upload return data
-        if ($uploadPdfReturnArr['check'] == 'success') {
-          $formDataArr['fran_pdf_name'] = $uploadPdfReturnArr['fileName'];
-        } else {
-          echo json_encode(array('check' => 'failure', 'msg' => "An error occurred while trying to upload franchise pdf!"));
-          exit;
-        }
-      } else {
-        if ($formDataArr['fran_row_id'] != 'null') {
-          $formDataArr['fran_pdf_name'] = $_POST['hidden_fran_pdf'];
-        } else {
-          $formDataArr['fran_pdf_name'] = null;
-        }
-      }
-
-      //print_r($formDataArr);exit; 
-      //Call create global hotel method
-      $returnArr = $GlobalInterfaceControllerObj->manage_Global_Franchise($formDataArr);
-
-      if ($returnArr['check'] == 'success') {
-        if ($returnArr['last_insert_id'] > 0) {
-          //Purge franchise data cache
-          $GlobalLibraryHandlerObj->purgeSiteCache("franchise");
-          $returnArr = array('check' => 'success', 'message' => "Franchise has been successfully created!", "last_insert_id" => $returnArr['last_insert_id']);
-        } else {
-          //unlinking previous file from server 
-          if ($formDataArr['fran_row_id'] != 'null') {
-            if ($_FILES["local_fran_image"]["size"] > 0 && $uploadImgReturnArr['check'] == 'success') {
-              //unlinking uploaded file from server 
-              unlink(USER_UPLOAD_DIR . $dir . '/' . $_POST['hidden_fran_image']);
-            }
-
-            if ($_FILES["local_fran_pdf"]["size"] > 0 && $uploadPdfReturnArr['check'] == 'success') {
-              //unlinking uploaded file from server 
-              unlink(USER_UPLOAD_DIR . $dir . '/' . $_POST['hidden_fran_pdf']);
-            }
-          }
-        }
-      } else {
-        if ($_FILES["local_fran_image"]["size"] > 0 && $uploadImgReturnArr['check'] == 'success') {
-          //unlinking uploaded file from server 
-          unlink(USER_UPLOAD_DIR . $dir . '/' . $formDataArr['fran_image']);
-        }
-
-        if ($_FILES["local_fran_pdf"]["size"] > 0 && $uploadPdfReturnArr['check'] == 'success') {
-          unlink(USER_UPLOAD_DIR . $dir . '/' . $formDataArr['fran_pdf_name']);
-        }
-        $returnArr = array('check' => 'failure', 'message' => "Something went wrong!");
-      }
-    } else {
-      $returnArr = array('check' => 'failure', 'message' => "You don't have the permission to perform this action!");
-    }
-
-    echo json_encode($returnArr);
-
-    break;
-
-  case 'manageGlobalCourse':
-
-    //Declaring necessary variables
-    $formDataArr = array();
-    $returnArr = array();
-
-    //print_r($_POST);exit;
-
-    $formDataArr['course_id'] = mysqli_real_escape_string(DB::$WRITELINK, trim($_POST['course_id']));
-
-    if ($formDataArr['course_id'] > 0) {
-      $user_role_slug = 'update_course';
-    } else {
-      $user_role_slug = 'create_course';
-    }
-
-    //check action permission        
-    $checkActionPermission = $GlobalLibraryHandlerObj->checkUserRolePermission($user_role_slug, "hard");
-
-    if ($checkActionPermission) {
-
-      //Storing form data into form data array
-      $dir = 'course';
-      $formDataArr['course_title'] = mysqli_real_escape_string(DB::$WRITELINK, trim($_POST['course_title']));
-      //Configuring blog seo url structure 
-      $formDataArr['seo_url_structure'] = $GlobalLibraryHandlerObj->seoUrlStructure($formDataArr['course_title'], 'seo');
-
-      if ($formDataArr['course_id'] > 0) {
-
-        $course_slug_find_id = $GlobalLibraryHandlerObj->checkSlugAvailibility('course', 'seo_url_structure', $formDataArr['seo_url_structure'])->id;
-
-        if (!empty($course_slug_find_id) && $course_slug_find_id != $formDataArr['course_id']) {
-          echo json_encode(array('check' => 'failure', 'message' => 'This title is already taken; Please try another.'));
-          return false;
-        }
-      } else {
-        if ($GlobalLibraryHandlerObj->checkSlugAvailibility('course', 'seo_url_structure', $formDataArr['seo_url_structure'])->id > 0) {
-          echo json_encode(array('check' => 'failure', 'message' => 'This title is already taken; Please try another.'));
-          return false;
-        }
-      }
-
-      $formDataArr['course_fees'] = mysqli_real_escape_string(DB::$WRITELINK, trim($_POST['course_fees']));
-      $formDataArr['course_duration'] = mysqli_real_escape_string(DB::$WRITELINK, trim($_POST['course_duration']));
-
-      $formDataArr['record_status'] = mysqli_real_escape_string(DB::$WRITELINK, trim($_POST['record_status']));
-      $formDataArr['featured_status'] = mysqli_real_escape_string(DB::$WRITELINK, trim($_POST['featured_status']));
-      $formDataArr['course_description'] = mysqli_real_escape_string(DB::$WRITELINK, trim($_POST['course_description']));
-
-      $formDataArr['image_upload_type'] = mysqli_real_escape_string(DB::$WRITELINK, trim($_POST['image_upload_type']));
-      $formDataArr['pdf_upload_type'] = mysqli_real_escape_string(DB::$WRITELINK, trim($_POST['pdf_upload_type']));
-
-      if ($_FILES["course_thumbnail_local"]["size"] > 0) {
-        $uploadImgReturnArr = $GlobalLibraryHandlerObj->upload_file('course_thumbnail_local', $dir);
-        //checking file upload return data
-        if ($uploadImgReturnArr['check'] == 'success') {
-          $formDataArr['course_thumbnail'] = $uploadImgReturnArr['fileName'];
-        } else {
-          echo json_encode(array('check' => 'failure', 'msg' => "An error occurred while trying to upload franchise image!"));
-          exit;
-        }
-      } else {
-        if ($formDataArr['course_id'] > 0) {
-          $formDataArr['course_thumbnail'] = $_POST['hidden_course_thumbnail'];
-        } else {
-          $formDataArr['course_thumbnail'] = null;
-        }
-      }
-
-      if ($_FILES["local_course_pdf"]["size"] > 0) {
-        $uploadPdfReturnArr = $GlobalLibraryHandlerObj->upload_file('local_course_pdf', $dir);
-        //checking file upload return data
-        if ($uploadPdfReturnArr['check'] == 'success') {
-          $formDataArr['course_pdf'] = $uploadPdfReturnArr['fileName'];
-        } else {
-          echo json_encode(array('check' => 'failure', 'msg' => "An error occurred while trying to upload franchise pdf!"));
-          exit;
-        }
-      } else {
-        if ($formDataArr['course_id'] > 0) {
-          $formDataArr['course_pdf'] = $_POST['hidden_course_pdf'];
-        } else {
-          $formDataArr['course_pdf'] = null;
-        }
-      }
-
-      //print_r($formDataArr);exit; 
-      //Call create global hotel method
-      $returnArr = $GlobalInterfaceControllerObj->manage_Global_Course($formDataArr);
-
-      if ($returnArr['check'] == "success") {
-
-        //unlinking previous file from server 
-        if ($formDataArr['course_id'] > 0) {
-          if ($_FILES["course_thumbnail_local"]["size"] > 0 && $uploadImgReturnArr['check'] == 'success') {
-            //unlinking uploaded file from server 
-            unlink(USER_UPLOAD_DIR . $dir . '/' . $_POST['hidden_course_thumbnail']);
-          }
-
-          if ($_FILES["local_course_pdf"]["size"] > 0 && $uploadPdfReturnArr['check'] == 'success') {
-            //unlinking uploaded file from server 
-            unlink(USER_UPLOAD_DIR . $dir . '/' . $_POST['hidden_course_pdf']);
-          }
-        } else {
-          //Purge course data cache
-          $GlobalLibraryHandlerObj->purgeSiteCache("course");
-        }
-      } else {
-        if ($_FILES["course_thumbnail_local"]["size"] > 0 && $uploadImgReturnArr['check'] == 'success') {
-          //unlinking uploaded file from server 
-          unlink(USER_UPLOAD_DIR . $dir . '/' . $formDataArr['course_thumbnail']);
-        }
-
-        if ($_FILES["local_course_pdf"]["size"] > 0 && $uploadPdfReturnArr['check'] == 'success') {
-          unlink(USER_UPLOAD_DIR . $dir . '/' . $formDataArr['course_pdf']);
-        }
-        $returnArr = array('check' => 'failure', 'message' => "Something went wrong!");
-      }
-    } else {
-      $returnArr = array('check' => 'failure', 'message' => "You don't have the permission to perform this action!");
-    }
-
-    echo json_encode($returnArr);
-
-    break;
-
-  case 'fetchStudentBatch':
-
-    //Declaring necessary variables
-    $paramArr = array();
-    $returnArr = array();
-
-    //print_r($_POST);exit;
-    $paramArr['franchise_id'] = mysqli_real_escape_string(DB::$WRITELINK, trim($_POST['franchise_id']));
-    $paramArr['course_id'] = mysqli_real_escape_string(DB::$WRITELINK, trim($_POST['course_id']));
-
-    $batchList = $GlobalInterfaceControllerObj->fetch_Dependent_Batch_Arr($paramArr);
-
-    if (count($batchList) > 0) {
-      echo json_encode(array('check' => 'success', 'batchList' => $batchList));
-    } else {
-      echo json_encode(array('check' => 'failure', 'batchList' => array()));
-    }
-
-    break;
-
-  case 'manageGlobalStudent':
-
-    $formDataArr = [];
-    $validationDataArr = [];
-    $returnArr = [];
-    $dir = 'student';
-
-    $action_type = $GlobalLibraryHandlerObj->postDataSanitize('action_type');
-    $formDataArr['stu_row_id'] = $GlobalLibraryHandlerObj->postDataSanitize('stu_row_id');
-
-    $isUpdate = !empty($formDataArr['stu_row_id']) && $formDataArr['stu_row_id'] != "null";
-    $user_role_slug = $isUpdate ? 'update_student' : 'create_student';
-
-    // fetch student if update
-    if ($isUpdate) {
-      $studentDetailArr = $GlobalInterfaceControllerObj->fetch_Detail_Single_Student($formDataArr['stu_row_id']);
-    }
-
-    // franchise check
-    if ($_SESSION['user_type'] == "franchise") {
-
-      $franchise_id = $_SESSION['user_id'];
-
-      if ($isUpdate && $studentDetailArr->franchise_id != $franchise_id) {
-        echo json_encode(['check' => 'failure', 'message' => "You don't have the permission to perform this action!"]);
-        exit;
-      }
-
-      $franchiseDetailArr = $GlobalInterfaceControllerObj->fetch_Global_Single_Franchise($franchise_id);
-      $owned_status = $franchiseDetailArr->owned_status;
-    } else {
-      $owned_status = "yes";
-    }
-
-    // permission check
-    if (!$GlobalLibraryHandlerObj->checkUserRolePermission($user_role_slug, "hard")) {
-      echo json_encode(['check' => 'failure', 'message' => "You don't have the permission to perform this action!"]);
-      exit;
-    }
-
-    // ===== COMMON FIELDS =====
-    $formDataArr['stu_name'] = $GlobalLibraryHandlerObj->postDataSanitize('stu_name');
-    $formDataArr['stu_father_name'] = $GlobalLibraryHandlerObj->postDataSanitize('stu_father_name');
-    $formDataArr['stu_phone'] = $GlobalLibraryHandlerObj->postDataSanitize('stu_phone');
-    $formDataArr['stu_email'] = $GlobalLibraryHandlerObj->postDataSanitize('stu_email');
-    $formDataArr['stu_address'] = $GlobalLibraryHandlerObj->postDataSanitize('stu_address');
-    $formDataArr['course_id'] = $GlobalLibraryHandlerObj->postDataSanitize('course_id');
-    $formDataArr['stu_qualification'] = $GlobalLibraryHandlerObj->postDataSanitize('stu_qualification');
-
-    $formDataArr['stu_gender'] = $GlobalLibraryHandlerObj->postDataSanitize('stu_gender') ?: 'none';
-    $formDataArr['stu_marital_status'] = $GlobalLibraryHandlerObj->postDataSanitize('stu_marital_status') ?: 'none';
-
-    // ===== USER TYPE LOGIC =====
-    if ($_SESSION['user_type'] == 'franchise') {
-
-      $formDataArr['franchise_id'] = $_SESSION['user_id'];
-
-      if ($owned_status == "no") {
-
-        if ($isUpdate) {
-          foreach (['student_status', 'record_status', 'stu_result', 'conversion_status'] as $f) {
-            $formDataArr[$f] = $studentDetailArr->$f;
-          }
-        } else {
-          $formDataArr += [
-            'student_status' => "admitted",
-            'record_status' => "blocked",
-            'stu_result' => "unqualified",
-            'conversion_status' => 'n',
-            'stu_id' => $GlobalLibraryHandlerObj->create_Student_ID()
-          ];
-        }
-
-        // restricted fields
-        foreach (['stu_course_fees', 'monthly_course_fees', 'month_exclude_receipt', 'fees_paid_before_dr'] as $f) {
-          $formDataArr[$f] = null;
-        }
-      } else {
-
-        // flexible franchise
-        $formDataArr['student_status'] = $GlobalLibraryHandlerObj->postDataSanitize('student_status') ?? ($isUpdate ? $studentDetailArr->student_status : 'admitted');
-        $formDataArr['conversion_status'] = $GlobalLibraryHandlerObj->postDataSanitize('conversion_status') ?? ($isUpdate ? $studentDetailArr->conversion_status : 'n');
-        $formDataArr['stu_result'] = $GlobalLibraryHandlerObj->postDataSanitize('stu_result') ?? ($isUpdate ? $studentDetailArr->stu_result : 'unqualified');
-        $formDataArr['record_status'] = $GlobalLibraryHandlerObj->postDataSanitize('record_status') ?? ($isUpdate ? $studentDetailArr->record_status : 'active');
-
-        if (!$isUpdate) {
-          $formDataArr['stu_id'] = $GlobalLibraryHandlerObj->create_Student_ID();
-        }
-
-        foreach (['stu_course_fees', 'monthly_course_fees', 'month_exclude_receipt', 'stu_course_discount', 'fees_paid_before_dr'] as $f) {
-          $formDataArr[$f] = $GlobalLibraryHandlerObj->postDataSanitize($f);
-        }
-
-      }
-    } else {
-
-      // admin
-      $formDataArr['franchise_id'] = $GlobalLibraryHandlerObj->postDataSanitize('franchise_id');
-
-      $formDataArr['student_status'] = $GlobalLibraryHandlerObj->postDataSanitize('student_status') ?? ($isUpdate ? $studentDetailArr->student_status : 'admitted');
-      $formDataArr['conversion_status'] = $GlobalLibraryHandlerObj->postDataSanitize('conversion_status') ?? ($isUpdate ? $studentDetailArr->conversion_status : null);
-      $formDataArr['stu_result'] = $GlobalLibraryHandlerObj->postDataSanitize('stu_result') ?? ($isUpdate ? $studentDetailArr->stu_result : 'unqualified');
-      $formDataArr['record_status'] = $GlobalLibraryHandlerObj->postDataSanitize('record_status') ?? ($isUpdate ? $studentDetailArr->record_status : 'active');
-
-      if (!$isUpdate) {
-        $formDataArr['stu_id'] = $GlobalLibraryHandlerObj->create_Student_ID();
-      }
-
-      foreach (['stu_course_fees', 'monthly_course_fees', 'month_exclude_receipt', 'stu_course_discount', 'fees_paid_before_dr'] as $f) {
-        $formDataArr[$f] = $GlobalLibraryHandlerObj->postDataSanitize($f);
-      }
-
-    }
-
-    if ($isUpdate) {
-
-      if (
-        isset($formDataArr['stu_course_discount'], $formDataArr['fees_paid_before_dr']) &&
-        (
-          $formDataArr['stu_course_discount'] != $studentDetailArr->stu_course_discount ||
-          $formDataArr['fees_paid_before_dr'] != $studentDetailArr->fees_paid_before_dr
-        )
-      ) {
-        $formDataArr['verified_status'] = 'n';
-      } else {
-        $formDataArr['verified_status'] = $studentDetailArr->verified_status;
-      }
-    
-    }
-
-    // ===== DATE =====
-    $dob = str_replace('/', '-', $GlobalLibraryHandlerObj->postDataSanitize('stu_dob'));
-    $formDataArr['stu_dob'] = date('Y-m-d', strtotime($dob));
-
-    $formDataArr['stu_notes'] = $GlobalLibraryHandlerObj->postDataSanitize('stu_notes');
-
-    // ===== FILE UPLOAD =====
-    $uploadReturnArr = ['check' => 'skip'];
-
-    if (!empty($_FILES["local_stu_image"]["size"])) {
-
-      $uploadReturnArr = $GlobalLibraryHandlerObj->upload_file('local_stu_image', $dir);
-
-      if ($uploadReturnArr['check'] != 'success') {
-        echo json_encode(['check' => 'failure', 'msg' => "Image upload failed!"]);
-        exit;
-      }
-
-      $formDataArr['image_file_name'] = $uploadReturnArr['fileName'];
-    } else {
-      if ($isUpdate) {
-        $formDataArr['image_file_name'] = $_POST['hidden_stu_image'];
-      } elseif ($action_type == "clone") {
-         
-        $oldFile = $_POST['hidden_stu_image'];
-
-        if (!empty($oldFile)) {
-      
-          $ext = pathinfo($oldFile, PATHINFO_EXTENSION);
-          $newFileName =$GlobalLibraryHandlerObj->generateRandomString() . '_' . time() . '.' . $ext;
-      
-          copy(
-            USER_UPLOAD_DIR . $dir . '/' . $oldFile,
-            USER_UPLOAD_DIR . $dir . '/' . $newFileName
-          );
-      
-          $formDataArr['image_file_name'] = $newFileName;
-      
-        } else {
-          $formDataArr['image_file_name'] = null;
-        }
-
-      } else {
-        $formDataArr['image_file_name'] = null;
-      }
-    }
-
-    // ===== VALIDATE STUDENT DATA BEFORE CREATE OR UPDATE =====
-    $validationDataArr = $formDataArr;
-    $validationDataArr['fran_own_status'] = $owned_status;
-    $validationResult = $GlobalValidationControllerObj->validateGlobalStudentData($validationDataArr);
-
-    if ($validationResult['check'] == 'failure') {
-      echo json_encode($validationResult);
-      exit;
-    }
-
-    // ===== SAVE =====
-    $returnArr = $GlobalInterfaceControllerObj->manage_Global_Student($formDataArr);
-
-    if ($returnArr['check'] == 'success') {
-
-      // delete old image
-      if (
-        $isUpdate &&
-        $action_type != "clone" &&
-        $uploadReturnArr['check'] == 'success' &&
-        !empty($_FILES["local_stu_image"]["size"])
-      ) {
-        unlink(USER_UPLOAD_DIR . $dir . '/' . $_POST['hidden_stu_image']);
-      }
-
-      $returnArr['stu_id'] = $isUpdate ? $GlobalLibraryHandlerObj->postDataSanitize('stu_id') : $formDataArr['stu_id'];
-      $returnArr['course'] = $GlobalLibraryHandlerObj->postDataSanitize('course_name');
-
-      if (!$isUpdate) {
-        $GlobalLibraryHandlerObj->purgeSiteCache("student");
-      }
-    } else {
-
-      if ($uploadReturnArr['check'] == 'success') {
-        unlink(USER_UPLOAD_DIR . $dir . '/' . $formDataArr['image_file_name']);
-      }
-
-      $returnArr = ['check' => 'failure', 'message' => "Something went wrong!"];
-    }
-
-    echo json_encode($returnArr);
-    break;
-
-  case 'manageStudentAdmission':
-
-    //Declaring necessary variables
-    $formDataArr = array();
-    $studentReturnArr = array();
-    $receiptReturnArr = array();
-
-    //print_r($_POST);exit;
-
-    //echo json_encode(array('check'=>'success',"last_insert_id"=>6168));exit;
-
-    $formDataArr['student_id'] = mysqli_real_escape_string(DB::$WRITELINK, trim($_POST['student_id']));
-
-    if (!empty($formDataArr['student_id']) && $formDataArr['student_id'] != "null") {
-      $user_role_slug = 'update_student';
-    } else {
-      $user_role_slug = 'create_student';
-    }
-
-    $checkActionPermission = $GlobalLibraryHandlerObj->checkUserRolePermission($user_role_slug, "hard");
-
-    if ($checkActionPermission) {
-
-      if ($user_role_slug == "update_student") {
-        //Fetching current student
-        $studentDetailArr =  $GlobalInterfaceControllerObj->fetch_Detail_Single_Student($formDataArr['student_id']);
-      }
-
-      if ($_SESSION['user_type'] == "franchise" && $_SESSION['owned_status'] == "yes") {
-
-        $franchise_id = $_SESSION['user_id'];
-
-        $formDataArr['stu_course_fees'] = mysqli_real_escape_string(DB::$WRITELINK, trim($_POST['stu_course_fees']));
-        $formDataArr['monthly_course_fees'] = mysqli_real_escape_string(DB::$WRITELINK, trim($_POST['monthly_course_fees']));
-        $formDataArr['stu_course_discount'] = mysqli_real_escape_string(DB::$WRITELINK, trim($_POST['stu_course_discount']));
-        $formDataArr['fees_paid_before_dr'] = mysqli_real_escape_string(DB::$WRITELINK, trim($_POST['fees_paid_before_dr']));
-
-        if (!empty($formDataArr['student_id']) && $formDataArr['student_id'] != "null") {
-          //Checking if this student belongs to this franchise
-          if ($studentDetailArr->franchise_id != $_SESSION['user_id']) {
-            echo json_encode(array('check' => 'failure', 'message' => "You don't have the permission to perform this action!"));
-            exit;
-          }
-
-          if ($formDataArr['stu_course_discount'] != $studentDetailArr->stu_course_discount) {
-            $formDataArr['verified_status'] = 'n';
-          } else {
-            $formDataArr['verified_status'] = $studentDetailArr->verified_status;
-          }
-        }
-
-        $franchiseDetailArr = $GlobalInterfaceControllerObj->fetch_Global_Single_Franchise($franchise_id);
-        $owned_status = $franchiseDetailArr->owned_status;
-      } else {
-        $franchise_id = mysqli_real_escape_string(DB::$WRITELINK, trim($_POST['franchise_id']));
-        $formDataArr['stu_course_fees'] = mysqli_real_escape_string(DB::$WRITELINK, trim($_POST['stu_course_fees']));
-        $formDataArr['monthly_course_fees'] = mysqli_real_escape_string(DB::$WRITELINK, trim($_POST['monthly_course_fees']));
-        $formDataArr['stu_course_discount'] = mysqli_real_escape_string(DB::$WRITELINK, trim($_POST['stu_course_discount']));
-        $formDataArr['fees_paid_before_dr'] = mysqli_real_escape_string(DB::$WRITELINK, trim($_POST['fees_paid_before_dr']));
-
-        if (!empty($formDataArr['student_id']) && $formDataArr['student_id'] != "null") {
-          $formDataArr['verified_status'] = 'y';
-        }
-      }
-
-      $formDataArr['stu_name'] = mysqli_real_escape_string(DB::$WRITELINK, trim($_POST['stu_name']));
-      $formDataArr['stu_father_name'] = mysqli_real_escape_string(DB::$WRITELINK, trim($_POST['stu_father_name']));
-      $formDataArr['stu_phone'] = mysqli_real_escape_string(DB::$WRITELINK, trim($_POST['stu_phone']));
-
-      //Checking if we are creating a franchise or trying to modify one
-      if ($user_role_slug == 'create_student') {
-        $formDataArr['stu_id'] = $GlobalLibraryHandlerObj->create_Student_ID();
-      }
-
-      if (!empty($_POST['tmp_stu_record_id'])) {
-        $formDataArr['tmp_stu_record_id'] = $_POST['tmp_stu_record_id'];
-      } else {
-        $formDataArr['tmp_stu_record_id'] = null;
-      }
-
-      $formDataArr['course_id'] = mysqli_real_escape_string(DB::$WRITELINK, trim($_POST['course_id']));
-      $formDataArr['franchise_id'] = $franchise_id;
-      $formDataArr['student_status'] = "admitted";
-      $formDataArr['record_status'] = "active";
-
-      $receipt_amount = mysqli_real_escape_string(DB::$WRITELINK, trim($_POST['receipt_amount']));
-
-      //print_r($formDataArr);exit;
-
-      //Call manage student admission method
-      $studentReturnArr = $GlobalInterfaceControllerObj->manage_Student_Admission($formDataArr);
-
-      if ($studentReturnArr['check'] == 'success' && $studentReturnArr['last_insert_id'] > 0 && $user_role_slug == "create_student" && $_POST['receipt_amount'] > 0) {
-
-        $receipt_role_slug = 'create_receipt';
-
-        $receiptFormArr['receipt_id'] = $GlobalLibraryHandlerObj->create_Receipt_ID();
-        $receiptFormArr['stu_id'] = $formDataArr['stu_id'];
-        $receiptFormArr['category_id'] = mysqli_real_escape_string(DB::$WRITELINK, trim($_POST['category_id']));
-
-        $receiptFormArr['receipt_amount'] = mysqli_real_escape_string(DB::$WRITELINK, trim($_POST['receipt_amount']));
-        $receiptFormArr['extra_fees'] = mysqli_real_escape_string(DB::$WRITELINK, trim($_POST['extra_fees']));
-        $receiptFormArr['extra_fees_description'] = "Registration Fees";
-        $receiptFormArr['record_status'] = 'active';
-
-        //check action permission        
-        $checkReceiptPermission = $GlobalLibraryHandlerObj->checkUserRolePermission($receipt_role_slug, "hard");
-
-        //Call manage receipt hotel method
-        $receiptReturnArr = $GlobalInterfaceControllerObj->create_Student_Admission_Receipt($receiptFormArr);
-      }
-
-      if ($studentReturnArr['check'] == 'success' && !empty($_POST['tmp_id'])) {
-        //Updating temporary student conversion status
-        $tmp_id = $_POST['tmp_id'];
-        $GlobalInterfaceControllerObj->update_Tmp_Student_Conversion_Status($tmp_id, 'y');
-      }
-
-      if ($studentReturnArr['check'] == 'success') {
-        $returnArr = $studentReturnArr;
-
-        if ($user_role_slug == "update_student") {
-          $returnArr['stu_id'] = mysqli_real_escape_string(DB::$WRITELINK, trim($_POST['stu_id']));
-        } else {
-          $returnArr['stu_id'] = $formDataArr['stu_id'];
-        }
-        $returnArr['course'] = mysqli_real_escape_string(DB::$WRITELINK, trim($_POST['course_name']));
-      } else {
-        $returnArr = array("check" => "failure", "message" => "Something went wrong!");
-      }
-    } else {
-      $returnArr = array('check' => 'failure', 'message' => "You don't have the permission to perform this action!");
-    }
-
-    echo json_encode($returnArr);
-
-    break;
-
-  case 'manageTempStudents':
-
-    //Declaring necessary variables
-    $formDataArr = array();
-    $studentReturnArr = array();
-
-    //print_r($_POST);exit;
-
-    //echo json_encode(array('check'=>'success',"last_insert_id"=>6168));exit;
-
-    $formDataArr['tmp_id'] = mysqli_real_escape_string(DB::$WRITELINK, trim($_POST['tmp_id']));
-
-    if (!empty($formDataArr['tmp_id']) && $formDataArr['tmp_id'] != "null") {
-      $user_role_slug = 'update_student';
-    } else {
-      $user_role_slug = 'create_student';
-    }
-
-    $checkActionPermission = $GlobalLibraryHandlerObj->checkUserRolePermission($user_role_slug, "hard");
-
-    if ($checkActionPermission) {
-
-      if ($_SESSION['user_type'] == "franchise") {
-
-        $franchise_id = $_SESSION['user_id'];
-
-        if (!empty($formDataArr['tmp_id']) && $formDataArr['tmp_id'] != "null") {
-          //Checking if this student belongs to this franchise
-          $studentDetailArr =  $GlobalInterfaceControllerObj->fetch_Detail_Single_Student($formDataArr['tmp_id']);
-          if ($studentDetailArr->franchise_id != $_SESSION['user_id']) {
-            echo json_encode(array('check' => 'failure', 'message' => "You don't have the permission to perform this action!"));
-            exit;
-          }
-        }
-
-        $franchiseDetailArr = $GlobalInterfaceControllerObj->fetch_Global_Single_Franchise($franchise_id);
-        $owned_status = $franchiseDetailArr->owned_status;
-      } else {
-        $franchise_id = mysqli_real_escape_string(DB::$WRITELINK, trim($_POST['franchise_id']));
-      }
-
-      $formDataArr['stu_name'] = mysqli_real_escape_string(DB::$WRITELINK, trim($_POST['stu_name']));
-      $formDataArr['stu_father_name'] = mysqli_real_escape_string(DB::$WRITELINK, trim($_POST['stu_father_name']));
-      $formDataArr['stu_phone'] = mysqli_real_escape_string(DB::$WRITELINK, trim($_POST['stu_phone']));
-
-      //Checking if we are creating a franchise or trying to modify one
-      if ($formDataArr['tmp_id'] == 'null') {
-        $formDataArr['tmp_stu_id'] = $GlobalLibraryHandlerObj->create_Tmp_Student_ID();
-      }
-
-      $formDataArr['course_id'] = mysqli_real_escape_string(DB::$WRITELINK, trim($_POST['course_id']));
-      $formDataArr['franchise_id'] = $franchise_id;
-
-      $formDataArr['advanced_fees'] = mysqli_real_escape_string(DB::$WRITELINK, trim($_POST['receipt_amount']));
-
-      //print_r($formDataArr);exit;
-
-      //Call manage student admission method
-      $returnArr = $GlobalInterfaceControllerObj->manage_Temp_Student($formDataArr);
-
-      if ($returnArr['check'] == 'success') {
-
-        if ($user_role_slug == "update_student") {
-          $returnArr['tmp_stu_id'] = mysqli_real_escape_string(DB::$WRITELINK, trim($_POST['tmp_stu_id']));
-        } else {
-          $returnArr['tmp_stu_id'] = $formDataArr['tmp_stu_id'];
-        }
-        $returnArr['course'] = mysqli_real_escape_string(DB::$WRITELINK, trim($_POST['course_name']));
-      } else {
-        $returnArr = array("check" => "failure", "message" => "Something went wrong!");
-      }
-    } else {
-      $returnArr = array('check' => 'failure', 'message' => "You don't have the permission to perform this action!");
-    }
-
-    echo json_encode($returnArr);
-
-    break;
-
-  case 'manageAdmissionReceipt':
-
-    $formDataArr = array();
-    $returnArr = array();
-
-    $user_role_slug = "update_receipt";
-
-    //check action permission        
-    $checkActionPermission = $GlobalLibraryHandlerObj->checkUserRolePermission($user_role_slug, "hard");
-
-    if ($checkActionPermission) {
-
-      $formDataArr['receipt_row_id'] = mysqli_real_escape_string(DB::$WRITELINK, trim($_POST['receipt_row_id']));
-      $formDataArr['receipt_amount'] = mysqli_real_escape_string(DB::$WRITELINK, trim($_POST['receipt_amount']));
-
-      //Call manage receipt hotel method
-      $returnArr = $GlobalInterfaceControllerObj->update_Student_Admission_Receipt($formDataArr);
-    } else {
-      $returnArr = array('check' => 'failure', 'message' => "You don't have the permission to perform this action!");
-    }
-
-    echo json_encode($returnArr);
-
-    break;
 
   case 'manageStudentReceipt':
 
-    //print_r($_POST);exit;
+      $formDataArr = [];
+      $returnArr = [];
+      $dir = 'receipt';
+    
+      // helper
+      $post = fn($key) => $GlobalLibraryHandlerObj->postDataSanitize($key);
 
-    //Declaring necessary variables
-    $formDataArr = array();
-    $returnArr = array();
+      $rawData = [
+        'student_id' => $post('stu_id'),
+        'record_status' => $post('record_status'),
+        'send_mail' => $post('send_mail'),
+        'category_id' => $post('category_id'),
+        'receipt_amount' => $post('receipt_amount'),
+        'extra_fees' => $post('extra_fees'),
+        'extra_fees_description' => $post('extra_fees_description')
+      ];
 
-    $dir = 'receipt';
+      $validationResult = $GlobalValidationControllerObj->validateStudentReceiptData($rawData);
 
-    //Storing form data into formdata array
-    //Checking if we are creating a receipt or trying to modify one
-    if (empty($_POST['receipt_row_id'])) {
-      $user_role_slug = 'create_receipt';
-      $formDataArr['receipt_id'] = $GlobalLibraryHandlerObj->create_Receipt_ID();
-      $formDataArr['receipt_row_id'] = null;
-    } else {
-      $user_role_slug = 'update_receipt';
-      $formDataArr['receipt_row_id'] = mysqli_real_escape_string(DB::$WRITELINK, trim($_POST['receipt_row_id']));
-      $formDataArr['receipt_id'] = mysqli_real_escape_string(DB::$WRITELINK, trim($_POST['receipt_id']));
-    }
-
-    $formDataArr['category_id'] = mysqli_real_escape_string(DB::$WRITELINK, trim($_POST['category_id']));
-
-    $send_mail = mysqli_real_escape_string(DB::$WRITELINK, trim($_POST['send_mail']));
-
-    //check action permission        
-    $checkActionPermission = $GlobalLibraryHandlerObj->checkUserRolePermission($user_role_slug, "hard");
-
-    if ($checkActionPermission) {
-
-      //Fetch receipt details
-      // =========================
-      // FETCH EXISTING RECEIPT (if update)
-      // =========================
-      $receiptDetailArr = !empty($formDataArr['receipt_row_id'])
+      if ($validationResult['check'] == 'failure') {
+        echo json_encode($validationResult);
+        exit;
+      }
+    
+      // ===== CREATE / UPDATE =====
+      $isUpdate = !empty($post('receipt_row_id'));
+    
+      if ($isUpdate) {
+        $user_role_slug = 'update_receipt';
+        $formDataArr['receipt_row_id'] = $post('receipt_row_id');
+        $formDataArr['receipt_id'] = $post('receipt_id');
+      } else {
+        $user_role_slug = 'create_receipt';
+        $formDataArr['receipt_row_id'] = null;
+        $formDataArr['receipt_id'] = $GlobalLibraryHandlerObj->create_Receipt_ID();
+      }
+    
+      $formDataArr['category_id'] = $post('category_id');
+      $send_mail = $post('send_mail');
+    
+      // ===== PERMISSION =====
+      if (!$GlobalLibraryHandlerObj->checkUserRolePermission($user_role_slug, "hard")) {
+        echo json_encode(['check' => 'failure', 'message' => "You don't have the permission to perform this action!"]);
+        exit;
+      }
+    
+      // ===== FETCH EXISTING RECEIPT =====
+      $receiptDetailArr = $isUpdate
         ? $GlobalInterfaceControllerObj->fetch_Receipt_Detail($formDataArr['receipt_row_id'])
         : null;
-
-      // =========================
-      // SANITIZE INPUT
-      // =========================
-      $formDataArr['student_id'] = mysqli_real_escape_string(DB::$WRITELINK, trim($_POST['stu_id']));
-      $formDataArr['record_status'] = mysqli_real_escape_string(DB::$WRITELINK, trim($_POST['record_status']));
-
-      $receipt_amount = (int)trim($_POST['receipt_amount']);
-      $late_fine = (int)trim($_POST['late_fine']);
-      $extra_fees = (int)trim($_POST['extra_fees']);
-
-      $formDataArr['receipt_amount'] = $receipt_amount;
-      $formDataArr['late_fine'] = $late_fine;
-      $formDataArr['extra_fees'] = $extra_fees;
-
-      // =========================
-      // SET ORIGINAL VALUES (ONLY ON CREATE)
-      // =========================
-      if (empty($formDataArr['receipt_row_id'])) {
-        $formDataArr['original_receipt_amount'] = $receipt_amount;
-        $formDataArr['original_late_fine'] = $late_fine;
-        $formDataArr['original_extra_fees'] = $extra_fees;
+      
+      // ===== VALIDATE RECEIPT EXISTS =====
+      if ($isUpdate && empty($receiptDetailArr)) {
+        echo json_encode([
+          'check' => 'failure',
+          'message' => 'Invalid receipt! Receipt does not exist.'
+        ]);
+        exit;
+      }  
+    
+      // ===== INPUT =====
+      $formDataArr['student_id'] = $post('stu_id');
+      $formDataArr['record_status'] = $post('record_status');
+    
+      $receipt_amount = (int)$post('receipt_amount');
+      $late_fine = (int)$post('late_fine');
+      $extra_fees = (int)$post('extra_fees');
+    
+      $formDataArr += [
+        'receipt_amount' => $receipt_amount,
+        'late_fine' => $late_fine,
+        'extra_fees' => $extra_fees
+      ];
+    
+      // ===== ORIGINAL VALUES (CREATE) =====
+      if (!$isUpdate) {
+        $formDataArr += [
+          'original_receipt_amount' => $receipt_amount,
+          'original_late_fine' => $late_fine,
+          'original_extra_fees' => $extra_fees
+        ];
       }
-
-      // =========================
-      // FETCH STUDENT DETAILS
-      // =========================
+    
+      // ===== STUDENT DETAILS =====
       $stuReceiptDetails = $GlobalInterfaceControllerObj->fetch_Global_Single_Student($formDataArr['student_id']);
 
-      // =========================
-      // COURSE FEE SELECTION (FIXED)
-      // =========================
-      $course_fee = isset($stuReceiptDetails->stu_course_fees) && $stuReceiptDetails->stu_course_fees !== ''
+      // ===== VALIDATE RECEIPT EXISTS =====
+      if (empty($stuReceiptDetails)) {
+        echo json_encode([
+          'check' => 'failure',
+          'message' => 'Invalid student! Student does not exist.'
+        ]);
+        exit;
+      }  
+    
+      $course_fee = !empty($stuReceiptDetails->stu_course_fees)
         ? (int)$stuReceiptDetails->stu_course_fees
         : (int)$stuReceiptDetails->course_default_fees;
-
-      // =========================
-      // CALCULATE DUE FEES
-      // =========================
+    
+      // ===== DUE FEES =====
       $course_due_fees = $course_fee
         - (int)$stuReceiptDetails->stu_course_discount
         - (int)$stuReceiptDetails->course_fees_paid
         - (int)$stuReceiptDetails->advanced_fees
         - (int)$stuReceiptDetails->fees_paid_before_dr;
-
-      // Add back old receipt if updating
-      if (!empty($formDataArr['receipt_row_id'])) {
+    
+      if ($isUpdate) {
         $course_due_fees += (int)$receiptDetailArr->receipt_amount;
       }
-
-      // Prevent negative
+    
       $course_due_fees = max(0, $course_due_fees);
-
-      // =========================
-      // VALIDATION
-      // =========================
+    
+      // ===== VALIDATION =====
       if ($course_due_fees == 0 && $formDataArr["category_id"] != 109501) {
         echo json_encode(['check' => 'failure', 'message' => 'This student has cleared their fees!']);
         exit;
       }
-
+    
       if ($receipt_amount <= 0) {
         echo json_encode(['check' => 'failure', 'message' => 'Invalid receipt amount!']);
         exit;
       }
-
+    
       if ($receipt_amount > $course_due_fees) {
         echo json_encode(['check' => 'failure', 'message' => 'Receipt amount is greater than due course fees!']);
         exit;
       }
-
-      // =========================
-      // FRANCHISE PERMISSION CHECK
-      // =========================
+    
+      // ===== FRANCHISE CHECK =====
       if ($_SESSION['user_type'] == "franchise") {
         $studentDetailArr = $GlobalInterfaceControllerObj->fetch_Detail_Single_Student($formDataArr['student_id']);
-
+    
         if ($studentDetailArr->franchise_id != $_SESSION['user_id']) {
           echo json_encode(['check' => 'failure', 'message' => "You don't have the permission to perform this action!"]);
           exit;
         }
       }
-
-      // =========================
-      // EXTRA FEES DESCRIPTION
-      // =========================
-      $formDataArr['extra_fees_description'] = !empty($extra_fees)
-        ? mysqli_real_escape_string(DB::$WRITELINK, trim($_POST['extra_fees_description']))
+    
+      // ===== EXTRA FEES DESC =====
+      $formDataArr['extra_fees_description'] = $extra_fees
+        ? $post('extra_fees_description')
         : null;
-
-      // =========================
-      // EDIT DESCRIPTION LOGIC (UPDATE ONLY)
-      // =========================
-      if (!empty($formDataArr['receipt_row_id'])) {
-
-        $receipt_edit_desc = [];
-
-        // ORIGINAL VALUES (fixed reference)
-        $original_receipt_amount = (int)$receiptDetailArr->og_receipt_amount;
-        $original_late_fine = (int)$receiptDetailArr->og_late_fine;
-        $original_extra_fees = (int)$receiptDetailArr->og_extra_fees;
-
-        // =========================
-        // RECEIPT AMOUNT
-        // =========================
-        if ($receipt_amount < $original_receipt_amount) {
-          $receipt_edit_desc[] = "Receipt amount reduced from Rs. $original_receipt_amount to Rs. $receipt_amount.";
+    
+      // ===== UPDATE LOGIC =====
+      if ($isUpdate) {
+    
+        $changes = [];
+    
+        $original = [
+          'receipt_amount' => (int)$receiptDetailArr->og_receipt_amount,
+          'late_fine' => (int)$receiptDetailArr->og_late_fine,
+          'extra_fees' => (int)$receiptDetailArr->og_extra_fees
+        ];
+    
+        if ($receipt_amount < $original['receipt_amount']) {
+          $changes[] = "Receipt amount reduced from Rs. {$original['receipt_amount']} to Rs. $receipt_amount.";
         }
-
-        // =========================
-        // LATE FINE
-        // =========================
-        if ($late_fine < $original_late_fine) {
-          $receipt_edit_desc[] = "Late fine reduced from Rs. $original_late_fine to Rs. $late_fine.";
+    
+        if ($late_fine < $original['late_fine']) {
+          $changes[] = "Late fine reduced from Rs. {$original['late_fine']} to Rs. $late_fine.";
         }
-
-        // =========================
-        // EXTRA FEES
-        // =========================
-        if ($extra_fees < $original_extra_fees) {
-          $receipt_edit_desc[] = "Additional fees reduced from Rs. $original_extra_fees to Rs. $extra_fees.";
+    
+        if ($extra_fees < $original['extra_fees']) {
+          $changes[] = "Additional fees reduced from Rs. {$original['extra_fees']} to Rs. $extra_fees.";
         }
-
-        // =========================
-        // VERIFIED STATUS
-        // =========================
-        $formDataArr['verified_status'] = !empty($receipt_edit_desc) ? 'n' : 'y';
-
-        // =========================
-        // EDIT DESCRIPTION
-        // =========================
-        $formDataArr['edit_description'] = !empty($receipt_edit_desc)
-          ? serialize($receipt_edit_desc)
-          : null; // cleared if restored
+    
+        $formDataArr['verified_status'] = !empty($changes) ? 'n' : 'y';
+        $formDataArr['edit_description'] = !empty($changes) ? serialize($changes) : null;
       }
-
-      //Call manage receipt hotel method
+    
+      // ===== SAVE =====
       $returnArr = $GlobalInterfaceControllerObj->manage_Student_Receipt($formDataArr);
-
-      if ($returnArr['check'] == 'success') {
-
-        if (!empty($_POST['receipt_row_id'])) {
-          $receipt_id = $formDataArr['receipt_row_id'];
-          $receiptDetails = $receiptDetailArr;
-
-          //Remove old receipt pdf if any update on the receipt amount
-          if (!empty($formDataArr['edit_description'])) {
-            $file_upload_dir =  USER_UPLOAD_DIR . 'runtime_upload/' . "Receipt_" . $receiptDetails->receipt_id . '.pdf';
-
-            if (file_exists($file_upload_dir)) {
-              unlink($file_upload_dir);
-            }
-          }
-        } else {
-          $receipt_id = $returnArr['last_insert_id'];
-          //Receipt details
-          $receiptDetails = $GlobalInterfaceControllerObj->fetch_Single_Receipt_Data($receipt_id);
-        }
-
-        if ($send_mail == "yes") {
-
-          //Create student receipt pdf
-          $receiptPdfRslt = $GlobalLibraryHandlerObj->createStudentReceiptPdf($receipt_id);
-
-          //Configuring email param array
-          $emailParamArr['receiver_name'] = $stuReceiptDetails->stu_name;
-          $emailParamArr['receiver_email'] = $stuReceiptDetails->stu_email;
-
-          //$emailParamArr['receipt_season'] = date('Y', time());
-          //$emailParamArr['receipt_status'] = ucfirst($receiptDetails->receipt_status);
-          //$emailParamArr['email_code'] = "student-receipt-invoice";
-
-          if ($receiptPdfRslt['file_upload_dir'] !== null) {
-            $emailParamArr['attachment_path'] = $receiptPdfRslt['file_upload_dir'];
-          } else {
-            $emailParamArr['attachment_path'] = null;
-          }
-          $emailReturnParamArr['attachment_type'] = "dynamic";
-
-          $emailParamArr['email_subject'] = $receiptPdfRslt['email_subject'];
-          $emailParamArr['email_template'] = $receiptPdfRslt['email_template'];
-          //print_r($emailParamArr);exit;
-          $sendMailResult = $GlobalLibraryHandlerObj->php_mailer_send_mail($emailParamArr);
-
-          if ($sendMailResult) {
-            if (!empty($_POST['receipt_row_id'])) {
-              $returnArr = array('check' => 'success', 'file_url' => $receiptPdfRslt['file_url'], 'receipt_id' => $receiptDetails->receipt_id);
-            } else {
-              $returnArr = array('check' => 'success', 'file_url' => $receiptPdfRslt['file_url'], 'last_insert_id' => $receipt_id, 'receipt_id' => $receiptDetails->receipt_id);
-            }
-          }
-        } else {
-          if (!empty($_POST['receipt_row_id'])) {
-            $returnArr = array('check' => 'success', 'file_url' => $receiptPdfRslt['file_url'], 'receipt_id' => $receiptDetails->receipt_id);
-          } else {
-            //Purge student data cache
-            $GlobalLibraryHandlerObj->purgeSiteCache("student_receipts");
-            $returnArr = array('check' => 'success', 'file_url' => $receiptPdfRslt['file_url'], 'last_insert_id' => $receipt_id, 'receipt_id' => $receiptDetails->receipt_id);
-          }
-        }
-      } else {
-        $returnArr = array('check' => 'failure', 'message' => "Something went wrong!");
+    
+      if ($returnArr['check'] != 'success') {
+        echo json_encode(['check' => 'failure', 'message' => "Something went wrong!"]);
+        exit;
       }
-    } else {
-      $returnArr = array('check' => 'failure', 'message' => "You don't have the permission to perform this action!");
-    }
-
-    echo json_encode($returnArr);
+    
+      // ===== FETCH RECEIPT =====
+      if ($isUpdate) {
+        $receipt_id = $formDataArr['receipt_row_id'];
+        $receiptDetails = $receiptDetailArr;
+    
+        if (!empty($formDataArr['edit_description'])) {
+          $file = USER_UPLOAD_DIR . "runtime_upload/Receipt_{$receiptDetails->receipt_id}.pdf";
+          if (file_exists($file)) unlink($file);
+        }
+    
+      } else {
+        $receipt_id = $returnArr['last_insert_id'];
+        $receiptDetails = $GlobalInterfaceControllerObj->fetch_Single_Receipt_Data($receipt_id);
+    
+        $GlobalLibraryHandlerObj->purgeSiteCache("student_receipts");
+      }
+    
+      // ===== PDF GENERATION =====
+      $receiptPdfRslt = $GlobalLibraryHandlerObj->createStudentReceiptPdf($receipt_id);
+    
+      // ===== EMAIL =====
+      if ($send_mail == "yes") {
+    
+        $emailParamArr = [
+          'receiver_name' => $stuReceiptDetails->stu_name,
+          'receiver_email' => $stuReceiptDetails->stu_email,
+          'attachment_path' => $receiptPdfRslt['file_upload_dir'] ?? null,
+          'email_subject' => $receiptPdfRslt['email_subject'],
+          'email_template' => $receiptPdfRslt['email_template']
+        ];
+    
+        $GlobalLibraryHandlerObj->php_mailer_send_mail($emailParamArr);
+      }
+    
+      // ===== FINAL RESPONSE =====
+      $returnArr = [
+        'check' => 'success',
+        'file_url' => $receiptPdfRslt['file_url'] ?? null,
+        'receipt_id' => $receiptDetails->receipt_id
+      ];
+    
+      if (!$isUpdate) {
+        $returnArr['last_insert_id'] = $receipt_id;
+      }
+    
+      echo json_encode($returnArr);
+      break;  
 
     break;
 

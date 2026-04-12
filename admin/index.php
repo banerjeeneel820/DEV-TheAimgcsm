@@ -1,36 +1,12 @@
 <?php
-    ob_start();
-	//Loading Constants
-	require_once("constants.php");
+ob_start();
 
-	//print_r($_SESSION);exit;
-    
-	//Getting page route
-	if(!empty($_SESSION['user_id'])){
-      if(!empty($_GET["route"])){
-        $page_Route = $_GET["route"];
-      }else{
-        $page_Route = 'home';
-      }		
-	}else{
-	  $page_Route = 'login';	
-	}  
+require_once("constants.php");
 
-	if(!empty($_SESSION['user_id'])){
-		//Creating controller handler object
-		$GlobalPageContentControllerObj = new GlobalPageContentController($page_Route);
-		//Calling controller method
-		$globalPageContent = $GlobalPageContentControllerObj->get_PageContent();
-	}else{
-		$globalPageContent = array();
-	}
+// if (session_status() === PHP_SESSION_NONE) {
+//     session_start();
+// }
 
-	//print_r($globalPageContent);exit;
+Router::handle();
 
-	//Creating view object
-	$GlobalViewObj = new GlobalViewController($page_Route,$globalPageContent);
-
-	//Loading view method
-	$GlobalViewObj->render();
-	ob_end_flush();
-?>
+ob_end_flush();

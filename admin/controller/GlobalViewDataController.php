@@ -601,12 +601,6 @@ class GlobalViewDataController
       return $this->globalReturnArr;
   }
 
-  public function fetch_Student_Admission_Receipt($student_id)
-  {
-    $receiptDetails = $this->GlobalInterfaceControllerObj->fetch_Student_Admission_Receipt($student_id);
-    return $receiptDetails;
-  }
-
   public function manage_Student_Admission_Data()
   {
     $type = 'student_admission';
@@ -1044,71 +1038,80 @@ class GlobalViewDataController
 
   public function view_Due_Students_Data()
   {
+    $type = 'due_students';
+    $GLH  = $this->GlobalLibraryHandlerObj;
 
-    $user_role_slug = 'view_due_students';
-    //Check user permission for this section
-    $this->globalReturnArr['page_permission'] = $this->GlobalLibraryHandlerObj->checkUserRolePermission($user_role_slug);
+    // =========================
+    // PERMISSION
+    // =========================
+    $this->globalReturnArr['page_permission'] =
+        $GLH->checkUserRolePermission('view_due_students');
 
-    if ($this->globalReturnArr['page_permission']) {
-      //Construting Query Params Array
-      if (isset($_GET['record_status'])) {
-        $dataArr['record_status'] = $_GET['record_status'];
-      } else {
-        $dataArr['record_status'] = 'active';
-      }
+    $this->globalReturnArr['page_type'] = $type;
 
-      if (!empty($_GET['stu_id'])) {
-        $dataArr['student_id'] = $_GET['stu_id'];
-      } else {
-        $dataArr['student_id'] = null;
-      }
+    // =========================
+    // COMMON DATA (ALWAYS LOAD)
+    // =========================
+    $activeData = $this->fetch_Active_Course_Franchise_Data();
 
-      if ($_GET['course_id'] > 0) {
-        $dataArr['course_id'] = $_GET['course_id'];
-      }
+    $this->globalReturnArr['franchise_data'] = $activeData['franchise'];
+    $this->globalReturnArr['course_data']    = $activeData['course'];
 
-      if ($_SESSION['user_type'] == 'franchise') {
-        $dataArr['franchise_id'] = $_SESSION['user_id'];
-      } else {
-        if ($_GET['franchise_id'] > 0) {
-          $dataArr['franchise_id'] = $_GET['franchise_id'];
-        }
-      }
-
-      if (isset($_GET['pageNo'])) {
-        $dataArr['pageNo'] = $_GET['pageNo'];
-      } else {
-        $dataArr['pageNo'] = 1;
-      }
-
-      $dataArr['limit'] = 20;
-      //Fetch all active course & franchise list
-      $activeCourseFranchiseList = $this->fetch_Active_Course_Franchise_Data();
-
-      $this->globalReturnArr['franchise_data'] = $activeCourseFranchiseList['franchise'];
-      $this->globalReturnArr['course_data'] = $activeCourseFranchiseList['course'];
-
-      if (!isset($_GET['fetchType']) || $_GET['fetchType'] == "dueList") {
-        //Student details
-        $this->globalReturnArr['student_data'] = $this->GlobalInterfaceControllerObj->fetch_Due_Students_Data($dataArr);
-      } else {
-        //Student details
-        $this->globalReturnArr['student_data'] = $this->GlobalInterfaceControllerObj->fetch_Updated_Markup_Students_Data($dataArr);
-      }
-    } else {
-      //Fetch all active course & franchise list
-      $activeCourseFranchiseList = $this->fetch_Active_Course_Franchise_Data();
-
-      $this->globalReturnArr['franchise_data'] = $activeCourseFranchiseList['franchise'];
-      $this->globalReturnArr['course_data'] = $activeCourseFranchiseList['course'];
-      //Student details
-      $this->globalReturnArr['student_data'] = [];
+    // =========================
+    // EARLY EXIT (NO PERMISSION)
+    // =========================
+    if (!$this->globalReturnArr['page_permission']) {
+        $this->globalReturnArr['student_data'] = [];
+        return $this->globalReturnArr;
     }
 
-    // print"<pre>";
-    // print_r($this->globalReturnArr['student_data']);
-    // print"</pre>";
-    // exit;
+    // =========================
+    // SANITIZED INPUTS
+    // =========================
+    $student_id = $GLH->getDataSanitize('stu_id');
+    $fetchType  = $GLH->getDataSanitize('fetchType');
+
+    $student_id = !empty($student_id) ? trim($student_id) : null;
+
+    // =========================
+    // BASE PARAMS
+    // =========================
+    $dataArr = [
+        'record_status' => $GLH->getDataSanitize('record_status') ?: 'active',
+        'student_id'    => $student_id,
+        'pageNo'        => (int)($GLH->getDataSanitize('pageNo') ?: 1),
+        'limit'         => 20
+    ];
+
+    // =========================
+    // OPTIONAL FILTERS
+    // =========================
+    if (!empty($_GET['course_id']) && (int)$_GET['course_id'] > 0) {
+        $dataArr['course_id'] = (int)$GLH->getDataSanitize('course_id');
+    }
+
+    // Franchise logic
+    if ($_SESSION['user_type'] === 'franchise') {
+        $dataArr['franchise_id'] = (int)$_SESSION['user_id'];
+    } elseif (!empty($_GET['franchise_id']) && (int)$_GET['franchise_id'] > 0) {
+        $dataArr['franchise_id'] = (int)$GLH->getDataSanitize('franchise_id');
+    }
+
+    // =========================
+    // FETCH DATA
+    // =========================
+    if (empty($fetchType) || $fetchType === 'dueList') {
+
+        $this->globalReturnArr['student_data'] =
+            $this->GlobalInterfaceControllerObj
+                ->fetch_Due_Students_Data($dataArr);
+
+    } else {
+
+        $this->globalReturnArr['student_data'] =
+            $this->GlobalInterfaceControllerObj
+                ->fetch_Updated_Markup_Students_Data($dataArr);
+    }
 
     return $this->globalReturnArr;
   }
