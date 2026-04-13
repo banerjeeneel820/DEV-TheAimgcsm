@@ -16,7 +16,7 @@ class Pdf extends Dompdf
 class GlobalLibraryHandler
 {
 
-  
+
   private $GlobalInterfaceControllerObj;
   private $memObj;
 
@@ -30,8 +30,9 @@ class GlobalLibraryHandler
       $this->memObj = null;
     }
   }
-  
-  public function buildBackUrl($newRoute) {
+
+  public function buildBackUrl($newRoute)
+  {
     $scheme = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? "https" : "http";
     $host = $_SERVER['HTTP_HOST'];
     $currentUrl = $_SERVER['REQUEST_URI'];
@@ -44,8 +45,8 @@ class GlobalLibraryHandler
 
     // build params with route FIRST
     $finalParams = array_merge(
-        ['route' => $newRoute],
-        $params
+      ['route' => $newRoute],
+      $params
     );
 
     $newQuery = http_build_query($finalParams);
@@ -95,8 +96,8 @@ class GlobalLibraryHandler
   }
 
   public function purgeSiteCache($section)
-  { 
-    if(SERVER_ENV == "PRODUCTION"){
+  {
+    if (SERVER_ENV == "PRODUCTION") {
       switch ($section) {
         case 'student':
           if ($_SESSION['user_type'] == 'developer' || $_SESSION['user_type'] == 'admin') {
@@ -150,7 +151,7 @@ class GlobalLibraryHandler
           break;
       }
     }
-    return true;  
+    return true;
   }
 
   public function fetchSiteBackupFiles()
@@ -344,10 +345,9 @@ class GlobalLibraryHandler
         //Removing file from server
         unlink($newsPdfDir);
         break;
-      
+
       default:
-        return true;  
-        
+        return true;
     }
     return true;
   }
@@ -817,14 +817,14 @@ class GlobalLibraryHandler
         $dompdf->render();
         $file = $dompdf->output();
         file_put_contents($file_upload_dir, $file);
-        
       }
 
       //Returning file path and email template for student receipt
-      $returnArr = array('check' => 'success', 'email_subject' => $pdfParamArr['email_subject'], 
-      'email_template' => $pdfParamArr['email_template'], 
-      'file_upload_dir' => $file_upload_dir, 'file_url' => $file_url);
-      
+      $returnArr = array(
+        'check' => 'success', 'email_subject' => $pdfParamArr['email_subject'],
+        'email_template' => $pdfParamArr['email_template'],
+        'file_upload_dir' => $file_upload_dir, 'file_url' => $file_url
+      );
     } else {
       $returnArr = array('check' => 'failure', 'message' => "You don't have the permission to perform this action!");
     }
@@ -840,6 +840,40 @@ class GlobalLibraryHandler
       $randomString .= $characters[rand(0, strlen($characters) - 1)];
     }
     return $randomString;
+  }
+
+  public function validateFile($file, $type = 'image')
+  {
+    // no file uploaded
+    if (empty($file) || !isset($file['tmp_name']) || $file['error'] !== UPLOAD_ERR_OK) {
+      return ['check' => 'failure', 'message' => 'No valid file uploaded'];
+    }
+
+    // allowed mime types
+    $allowedTypes = [
+      'image' => ['image/jpeg', 'image/png', 'image/jpg', 'image/webp'],
+      'pdf'   => ['application/pdf'],
+      'doc'   => [
+        'application/msword',
+        'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+      ]
+    ];
+
+    // get actual mime type (more secure than extension)
+    $fileMimeType = mime_content_type($file['tmp_name']);
+
+    if (!isset($allowedTypes[$type])) {
+      return ['check' => 'failure', 'message' => 'Invalid validation type'];
+    }
+
+    if (!in_array($fileMimeType, $allowedTypes[$type])) {
+      return [
+        'check' => 'failure',
+        'message' => "Invalid file type. Only " . $type . " files are allowed."
+      ];
+    }
+
+    return ['check' => 'success'];
   }
 
   public function compressImage($sourcePath, $targetPath, $compressedQuality = 30)
@@ -1132,50 +1166,50 @@ class GlobalLibraryHandler
     return !empty($createdZips) ? true : false;
   }
 
-  public function buildExportCriteria($params) 
+  public function buildExportCriteria($params)
   {
-      $filters = [];
+    $filters = [];
 
-      // Record Status
-      if (!empty($params['record_status'])) {
-          $filters[] = "Status: " . ucfirst($params['record_status']);
-      }
+    // Record Status
+    if (!empty($params['record_status'])) {
+      $filters[] = "Status: " . ucfirst($params['record_status']);
+    }
 
-      // Course
-      if (!empty($params['course_id'])) {
-          // Ideally fetch course name from DB
-          $filters[] = "Course: " . $params['course_name'];
-      }
+    // Course
+    if (!empty($params['course_id'])) {
+      // Ideally fetch course name from DB
+      $filters[] = "Course: " . $params['course_name'];
+    }
 
-      // Franchise
-      if (!empty($params['franchise_id'])) {
-          // Ideally fetch franchise name from DB
-          $filters[] = "Franchise: " . $params['franchise_name'];
-      }
+    // Franchise
+    if (!empty($params['franchise_id'])) {
+      // Ideally fetch franchise name from DB
+      $filters[] = "Franchise: " . $params['franchise_name'];
+    }
 
-      // Created filter (today / this month etc.)
-      if (!empty($params['created'])) {
-          $filters[] = "Created: " . ucfirst($params['created']);
-      }
+    // Created filter (today / this month etc.)
+    if (!empty($params['created'])) {
+      $filters[] = "Created: " . ucfirst($params['created']);
+    }
 
-      // Date Range
-      if (!empty($params['receipt_season_start']) && !empty($params['receipt_season_end'])) {
-          $filters[] = "Date: " . date('d M Y', strtotime($params['receipt_season_start'])) .
-                      " to " . date('d M Y', strtotime($params['receipt_season_end']));
-      }
+    // Date Range
+    if (!empty($params['receipt_season_start']) && !empty($params['receipt_season_end'])) {
+      $filters[] = "Date: " . date('d M Y', strtotime($params['receipt_season_start'])) .
+        " to " . date('d M Y', strtotime($params['receipt_season_end']));
+    }
 
-      // Student ID
-      if (!empty($params['student_id'])) {
-          $filters[] = "Student ID: " . $params['student_id'];
-      }
+    // Student ID
+    if (!empty($params['student_id'])) {
+      $filters[] = "Student ID: " . $params['student_id'];
+    }
 
-      // Protocol (source)
-      if (!empty($params['protocol'])) {
-          $source = ($params['protocol'] == 'dashboard') ? 'Dashboard' : 'Receipt Module';
-          $filters[] = "Source: " . $source;
-      }
+    // Protocol (source)
+    if (!empty($params['protocol'])) {
+      $source = ($params['protocol'] == 'dashboard') ? 'Dashboard' : 'Receipt Module';
+      $filters[] = "Source: " . $source;
+    }
 
-      return !empty($filters) ? implode(' | ', $filters) : 'No Filters Applied';
+    return !empty($filters) ? implode(' | ', $filters) : 'No Filters Applied';
   }
 
   // Method to log request data in a file
@@ -1241,36 +1275,36 @@ class GlobalLibraryHandler
   // helper for sanitization
   private function inputDataSanitize($key, $method = 'post', $escape = false)
   {
-      $sources = [
-          'get' => $_GET,
-          'post' => $_POST,
-          'request' => $_REQUEST
-      ];
-  
-      $data = $sources[strtolower($method)] ?? [];
-  
-      if (!isset($data[$key])) {
-          return null;
-      }
-  
-      $value = trim($data[$key]);
-  
-      if ($escape) {
-          return mysqli_real_escape_string(DB::$WRITELINK, $value);
-      }
-  
-      return $value;
+    $sources = [
+      'get' => $_GET,
+      'post' => $_POST,
+      'request' => $_REQUEST
+    ];
+
+    $data = $sources[strtolower($method)] ?? [];
+
+    if (!isset($data[$key])) {
+      return null;
+    }
+
+    $value = trim($data[$key]);
+
+    if ($escape) {
+      return mysqli_real_escape_string(DB::$WRITELINK, $value);
+    }
+
+    return $value;
   }
 
   public function getDataSanitize($key, $default = null)
   {
-      $value = $this->inputDataSanitize($key, 'get', false);
-      return $value !== null ? $value : $default;
+    $value = $this->inputDataSanitize($key, 'get', false);
+    return $value !== null ? $value : $default;
   }
 
   public function postDataSanitize($key, $default = null)
   {
-      $value = $this->inputDataSanitize($key, 'post', true);
-      return $value !== null ? $value : $default;
+    $value = $this->inputDataSanitize($key, 'post', true);
+    return $value !== null ? $value : $default;
   }
 }

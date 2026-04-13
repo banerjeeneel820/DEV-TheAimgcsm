@@ -430,7 +430,7 @@ class StudentController extends BaseController
             ->create_Student_Admission_Receipt($receiptFormArr);
     }
 
-    public function manage_temp_student($formDataArr, $post)
+    public function manage_temp_student($data)
     {
         //Declaring necessary variables
         $formDataArr = [];
@@ -517,5 +517,104 @@ class StudentController extends BaseController
         }
 
         return $returnArr;
+    }
+
+    public function change_student_status($data)
+    {
+        //Declaring necessary variables
+        $formDataArr = [];
+        $returnArr = [];
+
+        // helper
+        $post = fn ($key) => $this->GlobalLibraryHandlerObj->postDataSanitize($key);
+
+        // -----------------------------
+        // Determine Status Type & Permission
+        // -----------------------------
+        $status_type = $post('status_type');
+        $user_role_slug = ($status_type === "status") ? 'update_student' : 'update_result';
+
+        // -----------------------------
+        // Permission Check
+        // -----------------------------
+        if (!$this->GlobalLibraryHandlerObj->checkUserRolePermission($user_role_slug, "hard")) {
+            return ['check' => 'failure', 'message' => "You don't have the permission to perform this action!"];
+        }
+
+        // -----------------------------
+        // Collect Data
+        // -----------------------------
+        $formDataArr['student_id'] = $post('stu_id');
+        $formDataArr['status_type'] = $status_type;
+
+        $statusData = $post('status_data');
+
+        if ($status_type === "status") {
+            $formDataArr['student_status'] = $statusData;
+        } else {
+            $formDataArr['stu_result'] = $statusData;
+        }
+
+        // -----------------------------
+        // DB Operation
+        // -----------------------------
+        $returnArr = $this->GlobalInterfaceControllerObj
+            ->manage_Student_Status($formDataArr);
+
+        // -----------------------------
+        // Response
+        // -----------------------------
+        return $returnArr;
+    }
+
+    public function update_student_bulk_status($data)
+    {
+        // helper
+        $post = fn ($key) => $this->GlobalLibraryHandlerObj->postDataSanitize($key);
+
+        // -----------------------------
+        // Permission Check
+        // -----------------------------
+        $user_role_slug = "update_student";
+
+        if (!$this->GlobalLibraryHandlerObj->checkUserRolePermission($user_role_slug, "hard")) {
+            return ['check' => 'failure', 'message' => "You don't have the permission to perform this action!"];
+        }
+
+        // -----------------------------
+        // Collect Data
+        // -----------------------------
+        $idData = $post('row_id');
+
+        // -----------------------------
+        // Prepare IDs
+        // -----------------------------
+        if (empty($idData)) {
+            return ['check' => 'failure', 'message' => "You haven't selected any data!"];
+        }
+
+        $rowIdArr = strpos($idData, ',') !== false
+            ? array_filter(array_map('trim', explode(',', $idData)))
+            : [$idData];
+
+        if (empty($rowIdArr)) {
+            return ['check' => 'failure', 'message' => "Invalid data provided!"];
+        }
+
+        $paramArr = [
+            'row_ids'       => $rowIdArr,
+            'record_status' => $post('record_status'),
+            'student_status' => $post('student_status'),
+            'result_status' => $post('result_status')
+        ];
+
+        // -----------------------------
+        // Process Bulk Update
+        // -----------------------------
+        $response = $this->GlobalInterfaceControllerObj->update_Bulk_Student_Status($paramArr);
+
+        return $response['responseArr']['check'] === 'success'
+            ? ['check' => 'success', 'message' => 'Bulk update successful']
+            : ['check' => 'failure', 'message' => 'Bulk update failed'];
     }
 }

@@ -233,4 +233,73 @@ class StudentReceiptController extends BaseController
             $returnArr['last_insert_id'] = $receipt_id;
         }
     }
+
+    public function fetch_total_receipt($data)
+    {
+        //Declaring necessary variables
+        $formDataArr = [];
+        $returnArr = [];
+
+        // helper
+        $post = fn ($key) => $this->GlobalLibraryHandlerObj->postDataSanitize($key);
+
+        // -----------------------------
+        // Permission Check
+        // -----------------------------
+        $user_role_slug = "view_receipt";
+
+        if (!$this->GlobalLibraryHandlerObj->checkUserRolePermission($user_role_slug, "hard")) {
+            return ['check' => 'failure', 'message' => "You don't have the permission to perform this action!"];
+        }
+
+        // -----------------------------
+        // Basic Filters
+        // -----------------------------
+        $formDataArr['record_status'] = $post('record_status');
+        $formDataArr['course_id']     = $post('course_id');
+        $formDataArr['franchise_id']  = $post('franchise_id');
+        $formDataArr['stu_id']        = $post('student_id');
+
+        // -----------------------------
+        // Date Helper
+        // -----------------------------
+        $formatDate = function ($date) {
+            $date = str_replace('/', '-', $date);
+            return date('Y-m-d', strtotime($date));
+        };
+
+        // -----------------------------
+        // Optional Date Filters
+        // -----------------------------
+        if ($post('created')) {
+            $formDataArr['created'] = $formatDate($post('created'));
+        }
+
+        if ($post('receipt_season_start')) {
+            $formDataArr['receipt_season_start'] = $formatDate($post('receipt_season_start'));
+        }
+
+        if ($post('receipt_season_end')) {
+            $formDataArr['receipt_season_end'] = $formatDate($post('receipt_season_end'));
+        }
+
+        // -----------------------------
+        // Fetch Data
+        // -----------------------------
+        $receiptDataArr = json_decode(
+            json_encode(
+                $this->GlobalInterfaceControllerObj->fetch_Receipt_Collection($formDataArr)
+            ),
+            true
+        );
+
+        // -----------------------------
+        // Response
+        // -----------------------------
+        return [
+            'check'        => 'success',
+            'receiptData'  => $receiptDataArr,
+            'message'      => "Receipt Collection was successfully fetched!"
+        ];
+    }
 }

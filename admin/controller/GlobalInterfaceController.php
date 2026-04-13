@@ -603,14 +603,12 @@ class GlobalInterfaceController
 
          $where[] = "rcpt.created_at >= ?";
          $params[] = $dataArr['receipt_season_start'];
-
       } elseif (empty($dataArr['receipt_season_start']) && !empty($dataArr['receipt_season_end'])) {
 
          $endDate = date('Y-m-d', strtotime($dataArr['receipt_season_end'] . ' +1 day'));
 
          $where[] = "rcpt.created_at < ?";
          $params[] = $endDate;
-
       } elseif (!empty($dataArr['receipt_season_start']) && !empty($dataArr['receipt_season_end'])) {
 
          $startDate = $dataArr['receipt_season_start'];
@@ -732,14 +730,12 @@ class GlobalInterfaceController
 
          $where[] = "rcpt.created_at >= ?";
          $params[] = $dataArr['receipt_season_start'];
-
       } elseif (empty($dataArr['receipt_season_start']) && !empty($dataArr['receipt_season_end'])) {
 
          $endDate = date('Y-m-d', strtotime($dataArr['receipt_season_end'] . ' +1 day'));
 
          $where[] = "rcpt.created_at < ?";
          $params[] = $endDate;
-
       } elseif (!empty($dataArr['receipt_season_start']) && !empty($dataArr['receipt_season_end'])) {
 
          $startDate = $dataArr['receipt_season_start'];
@@ -993,85 +989,85 @@ class GlobalInterfaceController
 
    public function fetch_Global_Student($dataArr)
    {
-       $where = [];
-       $params = [];
-   
-       // =========================
-       // BASE CONDITION
-       // =========================
-       $where[] = "stu.record_status = ?";
-       $params[] = $dataArr['record_status'];
-   
-       // =========================
-       // VERIFIED STATUS
-       // =========================
-       if (!empty($dataArr['verified_status'])) {
-           $where[] = "stu.verified_status = ?";
-           $params[] = $dataArr['verified_status'];
-       }
-   
-       // =========================
-       // STUDENT STATUS
-       // =========================
-       if (!empty($dataArr['student_status'])) {
-           $where[] = "stu.student_status = ?";
-           $params[] = $dataArr['student_status'];
-       }
-   
-       // =========================
-       // COURSE FILTER
-       // =========================
-       if (!empty($dataArr['course_id']) && $dataArr['course_id'] > 0) {
-           $where[] = "stu.course_id = ?";
-           $params[] = (int)$dataArr['course_id'];
-       }
-   
-       // =========================
-       // FRANCHISE FILTER
-       // =========================
-       if (!empty($dataArr['franchise_id']) && $dataArr['franchise_id'] > 0) {
-           $where[] = "stu.franchise_id = ?";
-           $params[] = (int)$dataArr['franchise_id'];
-       }
-   
-       // =========================
-       // RESULT STATUS
-       // =========================
-       if (!empty($dataArr['result_status'])) {
-           $where[] = "stu.stu_result = ?";
-           $params[] = $dataArr['result_status'];
-       }
-   
-       // =========================
-       // SINGLE DATE FILTER (INDEX FRIENDLY)
-       // =========================
-       if (!empty($dataArr['created'])) {
-           $date = date('Y-m-d', strtotime($dataArr['created']));
-           $where[] = "stu.created_at >= ? AND stu.created_at < ?";
-           $params[] = $date . " 00:00:00";
-           $params[] = $date . " 23:59:59";
-       }
-   
-       // =========================
-       // DATE RANGE FILTER
-       // =========================
-       if (!empty($dataArr['search_start'])) {
-           $where[] = "stu.created_at >= ?";
-           $params[] = $dataArr['search_start'] . " 00:00:00";
-       }
-   
-       if (!empty($dataArr['search_end'])) {
-           $where[] = "stu.created_at <= ?";
-           $params[] = $dataArr['search_end'] . " 23:59:59";
-       }
-   
-       // =========================
-       // SEARCH STRING (SAFE LIKE)
-       // =========================
-       if (!empty($dataArr['search_string'])) {
-           $search = "%" . $dataArr['search_string'] . "%";
-   
-           $where[] = "(
+      $where = [];
+      $params = [];
+
+      // =========================
+      // BASE CONDITION
+      // =========================
+      $where[] = "stu.record_status = ?";
+      $params[] = $dataArr['record_status'];
+
+      // =========================
+      // VERIFIED STATUS
+      // =========================
+      if (!empty($dataArr['verified_status'])) {
+         $where[] = "stu.verified_status = ?";
+         $params[] = $dataArr['verified_status'];
+      }
+
+      // =========================
+      // STUDENT STATUS
+      // =========================
+      if (!empty($dataArr['student_status'])) {
+         $where[] = "stu.student_status = ?";
+         $params[] = $dataArr['student_status'];
+      }
+
+      // =========================
+      // COURSE FILTER
+      // =========================
+      if (!empty($dataArr['course_id']) && $dataArr['course_id'] > 0) {
+         $where[] = "stu.course_id = ?";
+         $params[] = (int)$dataArr['course_id'];
+      }
+
+      // =========================
+      // FRANCHISE FILTER
+      // =========================
+      if (!empty($dataArr['franchise_id']) && $dataArr['franchise_id'] > 0) {
+         $where[] = "stu.franchise_id = ?";
+         $params[] = (int)$dataArr['franchise_id'];
+      }
+
+      // =========================
+      // RESULT STATUS
+      // =========================
+      if (!empty($dataArr['result_status'])) {
+         $where[] = "stu.stu_result = ?";
+         $params[] = $dataArr['result_status'];
+      }
+
+      // =========================
+      // SINGLE DATE FILTER (INDEX FRIENDLY)
+      // =========================
+      if (!empty($dataArr['created'])) {
+         $date = date('Y-m-d', strtotime($dataArr['created']));
+         $where[] = "stu.created_at >= ? AND stu.created_at < ?";
+         $params[] = $date . " 00:00:00";
+         $params[] = $date . " 23:59:59";
+      }
+
+      // =========================
+      // DATE RANGE FILTER
+      // =========================
+      if (!empty($dataArr['search_start'])) {
+         $where[] = "stu.created_at >= ?";
+         $params[] = $dataArr['search_start'] . " 00:00:00";
+      }
+
+      if (!empty($dataArr['search_end'])) {
+         $where[] = "stu.created_at <= ?";
+         $params[] = $dataArr['search_end'] . " 23:59:59";
+      }
+
+      // =========================
+      // SEARCH STRING (SAFE LIKE)
+      // =========================
+      if (!empty($dataArr['search_string'])) {
+         $search = "%" . $dataArr['search_string'] . "%";
+
+         $where[] = "(
                stu.stu_id LIKE ? OR
                stu.stu_name LIKE ? OR
                stu.stu_father_name LIKE ? OR
@@ -1082,29 +1078,29 @@ class GlobalInterfaceController
                stu.stu_qualification LIKE ? OR
                stu.stu_marital_status LIKE ?
            )";
-   
-           // push same param multiple times
-           for ($i = 0; $i < 9; $i++) {
-               $params[] = $search;
-           }
-       }
-   
-       // =========================
-       // FINAL WHERE
-       // =========================
-       $whereSql = !empty($where) ? "WHERE " . implode(" AND ", $where) : "";
-   
-       // =========================
-       // PAGINATION
-       // =========================
-       $limit = (int) $dataArr['limit'];
-       $pageNo = (int) $dataArr['pageNo'];
-       $offset = ($pageNo - 1) * $limit;
-   
-       // =========================
-       // BASE QUERY
-       // =========================
-       $baseSql = "
+
+         // push same param multiple times
+         for ($i = 0; $i < 9; $i++) {
+            $params[] = $search;
+         }
+      }
+
+      // =========================
+      // FINAL WHERE
+      // =========================
+      $whereSql = !empty($where) ? "WHERE " . implode(" AND ", $where) : "";
+
+      // =========================
+      // PAGINATION
+      // =========================
+      $limit = (int) $dataArr['limit'];
+      $pageNo = (int) $dataArr['pageNo'];
+      $offset = ($pageNo - 1) * $limit;
+
+      // =========================
+      // BASE QUERY
+      // =========================
+      $baseSql = "
            FROM " . DB_AIMGCSM . "." . TABLEPREFIX . "students stu
    
            LEFT JOIN " . DB_AIMGCSM . "." . TABLEPREFIX . "franchise frn 
@@ -1115,11 +1111,11 @@ class GlobalInterfaceController
    
            $whereSql
        ";
-   
-       // =========================
-       // DATA QUERY
-       // =========================
-       $dataSql = "
+
+      // =========================
+      // DATA QUERY
+      // =========================
+      $dataSql = "
            SELECT 
                stu.id,
                stu.stu_id,
@@ -1141,29 +1137,29 @@ class GlobalInterfaceController
            ORDER BY stu.id DESC
            LIMIT ?, ?
        ";
-   
-       // =========================
-       // COUNT QUERY
-       // =========================
-       $countSql = "SELECT COUNT(*) as total $baseSql";
-   
-       // =========================
-       // EXECUTION
-       // =========================
-       $dataParams = array_merge($params, [$offset, $limit]);
-   
-       // Debug if needed
-       // $this->debugQuery($dataSql, $dataParams);
-   
-       $data = $this->conn->global_Fetch_All_DB($dataSql, $dataParams);
-       $total = $this->conn->global_Count_Value_DB($countSql, $params);
-   
-       return [
-           'data' => $data,
-           'row_count' => $total,
-           'pageNo' => $pageNo,
-           'limit' => $limit
-       ];
+
+      // =========================
+      // COUNT QUERY
+      // =========================
+      $countSql = "SELECT COUNT(*) as total $baseSql";
+
+      // =========================
+      // EXECUTION
+      // =========================
+      $dataParams = array_merge($params, [$offset, $limit]);
+
+      // Debug if needed
+      // $this->debugQuery($dataSql, $dataParams);
+
+      $data = $this->conn->global_Fetch_All_DB($dataSql, $dataParams);
+      $total = $this->conn->global_Count_Value_DB($countSql, $params);
+
+      return [
+         'data' => $data,
+         'row_count' => $total,
+         'pageNo' => $pageNo,
+         'limit' => $limit
+      ];
    }
 
    public function fetch_Due_Students_Data($dataArr)
@@ -1332,53 +1328,53 @@ class GlobalInterfaceController
 
    public function fetch_Updated_Markup_Students_Data($dataArr)
    {
-       // =========================
-       // PAGINATION
-       // =========================
-       $limit  = (int)$dataArr['limit'];
-       $pageNo = (int)$dataArr['pageNo'];
-       $offset = ($pageNo - 1) * $limit;
-   
-       // =========================
-       // WHERE BUILDER
-       // =========================
-       $where = [];
-       $params = [];
-   
-       // BASE CONDITIONS
-       $where[] = "stu.student_status IN ('admitted', 'continue')";
-       $where[] = "stu.stu_result = 'unqualified'";
-       $where[] = "COALESCE(stu.stu_course_fees, 0) > 0";
-       $where[] = "COALESCE(stu.monthly_course_fees, 0) > 0";
-       $where[] = "frn.owned_status = 'yes'";
-   
-       $where[] = "stu.record_status = ?";
-       $params[] = $dataArr['record_status'];
-   
-       // =========================
-       // OPTIONAL FILTERS
-       // =========================
-       if (!empty($dataArr['student_id'])) {
-           $where[] = "stu.stu_id = ?";
-           $params[] = $dataArr['student_id'];
-       }
-   
-       if (!empty($dataArr['course_id']) && $dataArr['course_id'] > 0) {
-           $where[] = "stu.course_id = ?";
-           $params[] = (int)$dataArr['course_id'];
-       }
-   
-       if (!empty($dataArr['franchise_id']) && $dataArr['franchise_id'] > 0) {
-           $where[] = "stu.franchise_id = ?";
-           $params[] = (int)$dataArr['franchise_id'];
-       }
-   
-       $where_sql = "WHERE " . implode(" AND ", $where);
-   
-       // =========================
-       // BASE QUERY (NO GROUP BY NEEDED)
-       // =========================
-       $base_query = "
+      // =========================
+      // PAGINATION
+      // =========================
+      $limit  = (int)$dataArr['limit'];
+      $pageNo = (int)$dataArr['pageNo'];
+      $offset = ($pageNo - 1) * $limit;
+
+      // =========================
+      // WHERE BUILDER
+      // =========================
+      $where = [];
+      $params = [];
+
+      // BASE CONDITIONS
+      $where[] = "stu.student_status IN ('admitted', 'continue')";
+      $where[] = "stu.stu_result = 'unqualified'";
+      $where[] = "COALESCE(stu.stu_course_fees, 0) > 0";
+      $where[] = "COALESCE(stu.monthly_course_fees, 0) > 0";
+      $where[] = "frn.owned_status = 'yes'";
+
+      $where[] = "stu.record_status = ?";
+      $params[] = $dataArr['record_status'];
+
+      // =========================
+      // OPTIONAL FILTERS
+      // =========================
+      if (!empty($dataArr['student_id'])) {
+         $where[] = "stu.stu_id = ?";
+         $params[] = $dataArr['student_id'];
+      }
+
+      if (!empty($dataArr['course_id']) && $dataArr['course_id'] > 0) {
+         $where[] = "stu.course_id = ?";
+         $params[] = (int)$dataArr['course_id'];
+      }
+
+      if (!empty($dataArr['franchise_id']) && $dataArr['franchise_id'] > 0) {
+         $where[] = "stu.franchise_id = ?";
+         $params[] = (int)$dataArr['franchise_id'];
+      }
+
+      $where_sql = "WHERE " . implode(" AND ", $where);
+
+      // =========================
+      // BASE QUERY (NO GROUP BY NEEDED)
+      // =========================
+      $base_query = "
            FROM " . DB_AIMGCSM . "." . TABLEPREFIX . "students stu
    
            INNER JOIN " . DB_AIMGCSM . "." . TABLEPREFIX . "franchise frn 
@@ -1389,11 +1385,11 @@ class GlobalInterfaceController
    
            $where_sql
        ";
-   
-       // =========================
-       // MAIN QUERY
-       // =========================
-       $sql_fetch_student = "
+
+      // =========================
+      // MAIN QUERY
+      // =========================
+      $sql_fetch_student = "
            SELECT 
                stu.id,
                stu.stu_id,
@@ -1413,71 +1409,71 @@ class GlobalInterfaceController
    
            ORDER BY stu.id DESC
        ";
-   
-       // =========================
-       // PAGINATION (SAFE)
-       // =========================
-       if (empty($dataArr['student_id'])) {
-           $sql_fetch_student .= " LIMIT ? OFFSET ?";
-           $params[] = $limit;
-           $params[] = $offset;
-       }
-   
-       // =========================
-       // COUNT QUERY (OPTIMIZED)
-       // =========================
-       $sql_count = "SELECT COUNT(*) as total $base_query";
-   
-       // =========================
-       // DEBUG (OPTIONAL)
-       // =========================
-       // echo $this->debugQuery($sql_fetch_student, $params); exit;
-   
-       // =========================
-       // EXECUTION
-       // =========================
-       $resultArr = [];
-   
-       $resultArr['data'] = $this->conn->global_Fetch_All_DB($sql_fetch_student, $params);
-   
-       // remove limit params for count
-       $count_params = $params;
-       if (empty($dataArr['student_id'])) {
-           array_pop($count_params); // offset
-           array_pop($count_params); // limit
-       }
-   
-       $resultArr['row_count'] = $this->conn->global_Count_Value_DB($sql_count, $count_params);
-       $resultArr['pageNo'] = $pageNo;
-       $resultArr['limit'] = $limit;
-   
-       return $resultArr;
+
+      // =========================
+      // PAGINATION (SAFE)
+      // =========================
+      if (empty($dataArr['student_id'])) {
+         $sql_fetch_student .= " LIMIT ? OFFSET ?";
+         $params[] = $limit;
+         $params[] = $offset;
+      }
+
+      // =========================
+      // COUNT QUERY (OPTIMIZED)
+      // =========================
+      $sql_count = "SELECT COUNT(*) as total $base_query";
+
+      // =========================
+      // DEBUG (OPTIONAL)
+      // =========================
+      // echo $this->debugQuery($sql_fetch_student, $params); exit;
+
+      // =========================
+      // EXECUTION
+      // =========================
+      $resultArr = [];
+
+      $resultArr['data'] = $this->conn->global_Fetch_All_DB($sql_fetch_student, $params);
+
+      // remove limit params for count
+      $count_params = $params;
+      if (empty($dataArr['student_id'])) {
+         array_pop($count_params); // offset
+         array_pop($count_params); // limit
+      }
+
+      $resultArr['row_count'] = $this->conn->global_Count_Value_DB($sql_count, $count_params);
+      $resultArr['pageNo'] = $pageNo;
+      $resultArr['limit'] = $limit;
+
+      return $resultArr;
    }
 
    public function fetch_Fresh_Students($dataArr = [])
    {
-       // =========================
-       // BASE WHERE CONDITIONS
-       // =========================
-       $where = [];
-       $where[] = "stu.student_status = 'admitted'";
-       $where[] = "stu.created_at >= DATE_SUB(CURDATE(), INTERVAL 2 DAY)";
-   
-       // =========================
-       // OPTIONAL FILTERS
-       // =========================
-       if (!empty($dataArr['franchise_id'])) {
-           $franchise_id = (int)$dataArr['franchise_id']; // safe
-           $where[] = "stu.franchise_id = {$franchise_id}";
-       }
-   
-       // Combine WHERE clause
-       $whereClause = "WHERE " . implode(" AND ", $where);
-   
-       // =========================
-       // MAIN QUERY
-       // =========================
-       $sql = "
+      // =========================
+      // BASE WHERE CONDITIONS
+      // =========================
+      $where = [];
+      $where[] = "stu.student_status = 'admitted'";
+      $where[] = "stu.created_at >= DATE_SUB(CURDATE(), INTERVAL 2 DAY)";
+
+      // =========================
+      // OPTIONAL FILTERS
+      // =========================
+      if (!empty($dataArr['franchise_id'])) {
+         $franchise_id = (int)$dataArr['franchise_id']; // safe
+         $where[] = "stu.franchise_id = {$franchise_id}";
+      }
+
+      // Combine WHERE clause
+      $whereClause = "WHERE " . implode(" AND ", $where);
+
+      // =========================
+      // MAIN QUERY
+      // =========================
+      $sql = "
            SELECT 
                stu.id,
                stu.stu_id,
@@ -1521,16 +1517,16 @@ class GlobalInterfaceController
    
            ORDER BY stu.id DESC
          ";
-   
-       // Debug (optional)
-       //echo $sql; exit;
-   
-       // =========================
-       // EXECUTE
-       // =========================
-       $resultArr = $this->conn->global_Fetch_All_DB($sql);
-   
-       return $resultArr ?: [];
+
+      // Debug (optional)
+      //echo $sql; exit;
+
+      // =========================
+      // EXECUTE
+      // =========================
+      $resultArr = $this->conn->global_Fetch_All_DB($sql);
+
+      return $resultArr ?: [];
    }
 
    public function fetch_Tmp_Students($dataArr)
@@ -1607,7 +1603,7 @@ class GlobalInterfaceController
 
          // push same param 4 times
          for ($i = 0; $i < 4; $i++) {
-               $params[] = $search;
+            $params[] = $search;
          }
       }
 
@@ -2213,89 +2209,88 @@ class GlobalInterfaceController
 
    public function manage_Global_Student($stuDataArr)
    {
-       $params = [];
-   
-       // Common fields
-       $commonFields = [
-           'stu_name' => $stuDataArr['stu_name'],
-           'stu_father_name' => $stuDataArr['stu_father_name'],
-           'stu_phone' => $stuDataArr['stu_phone'],
-           'stu_email' => $stuDataArr['stu_email'],
-           'stu_gender' => $stuDataArr['stu_gender'],
-           'stu_marital_status' => $stuDataArr['stu_marital_status'],
-           'stu_address' => $stuDataArr['stu_address'],
-           'course_id' => $stuDataArr['course_id'],
-           'stu_qualification' => $stuDataArr['stu_qualification'],
-           'stu_course_fees' => $stuDataArr['stu_course_fees'],
-           'monthly_course_fees' => $stuDataArr['monthly_course_fees'],
-           'month_exclude_receipt' => $stuDataArr['month_exclude_receipt'],
-           'stu_course_discount' => $stuDataArr['stu_course_discount'],
-           'fees_paid_before_dr' => $stuDataArr['fees_paid_before_dr'],
-           'student_status' => $stuDataArr['student_status'],
-           'stu_result' => $stuDataArr['stu_result'],
-           'franchise_id' => $stuDataArr['franchise_id'],
-           'stu_dob' => $stuDataArr['stu_dob'],
-           'record_status' => $stuDataArr['record_status'],
-           'conversion_status' => $stuDataArr['conversion_status'],
-           'image_file_name' => $stuDataArr['image_file_name'],
-           'stu_notes' => $stuDataArr['stu_notes']
-       ];
+      $params = [];
 
-       // Fields ONLY for update
-       $updateOnlyFields = [
+      // Common fields
+      $commonFields = [
+         'stu_name' => $stuDataArr['stu_name'],
+         'stu_father_name' => $stuDataArr['stu_father_name'],
+         'stu_phone' => $stuDataArr['stu_phone'],
+         'stu_email' => $stuDataArr['stu_email'],
+         'stu_gender' => $stuDataArr['stu_gender'],
+         'stu_marital_status' => $stuDataArr['stu_marital_status'],
+         'stu_address' => $stuDataArr['stu_address'],
+         'course_id' => $stuDataArr['course_id'],
+         'stu_qualification' => $stuDataArr['stu_qualification'],
+         'stu_course_fees' => $stuDataArr['stu_course_fees'],
+         'monthly_course_fees' => $stuDataArr['monthly_course_fees'],
+         'month_exclude_receipt' => $stuDataArr['month_exclude_receipt'],
+         'stu_course_discount' => $stuDataArr['stu_course_discount'],
+         'fees_paid_before_dr' => $stuDataArr['fees_paid_before_dr'],
+         'student_status' => $stuDataArr['student_status'],
+         'stu_result' => $stuDataArr['stu_result'],
+         'franchise_id' => $stuDataArr['franchise_id'],
+         'stu_dob' => $stuDataArr['stu_dob'],
+         'record_status' => $stuDataArr['record_status'],
+         'conversion_status' => $stuDataArr['conversion_status'],
+         'image_file_name' => $stuDataArr['image_file_name'],
+         'stu_notes' => $stuDataArr['stu_notes']
+      ];
+
+      // Fields ONLY for update
+      $updateOnlyFields = [
          'verified_status' => $stuDataArr['verified_status']
-       ];
-   
-       // Decide UPDATE or INSERT
-       if (!empty($stuDataArr['stu_row_id']) && $stuDataArr['stu_row_id'] !== "null") {
+      ];
 
-            // Merge fields for update
-            $fields = array_merge($commonFields, $updateOnlyFields);
-   
-           // UPDATE
-           $setParts = [];
-   
-           foreach ($fields as $column => $value) {
-               $setParts[] = "$column = ?";
-               $params[] = $value;
-           }
-   
-           $sql = "
+      // Decide UPDATE or INSERT
+      if (!empty($stuDataArr['stu_row_id']) && $stuDataArr['stu_row_id'] !== "null") {
+
+         // Merge fields for update
+         $fields = array_merge($commonFields, $updateOnlyFields);
+
+         // UPDATE
+         $setParts = [];
+
+         foreach ($fields as $column => $value) {
+            $setParts[] = "$column = ?";
+            $params[] = $value;
+         }
+
+         $sql = "
                UPDATE " . DB_AIMGCSM . "." . TABLEPREFIX . "students 
                SET " . implode(", ", $setParts) . ", updated_at = NOW()
                WHERE id = ?
            ";
-   
-           $params[] = $stuDataArr['stu_row_id'];
-   
-       } else {
-           
-           // INSERT (exclude verified_status)
-           $fields = $commonFields;
-   
-           // INSERT
-           $fields['stu_id'] = $stuDataArr['stu_id']; // only for insert
-   
-           $columns = [];
-           $placeholders = [];
-   
-           foreach ($fields as $column => $value) {
-               $columns[] = $column;
-               $placeholders[] = "?";
-               $params[] = $value;
-           }
-   
-           $sql = "
+
+         $params[] = $stuDataArr['stu_row_id'];
+      } else {
+
+         // INSERT (exclude verified_status)
+         $fields = $commonFields;
+
+         // INSERT
+         $fields['stu_id'] = $stuDataArr['stu_id']; // only for insert
+
+         $columns = [];
+         $placeholders = [];
+
+         foreach ($fields as $column => $value) {
+            $columns[] = $column;
+            $placeholders[] = "?";
+            $params[] = $value;
+         }
+
+         $sql = "
                INSERT INTO " . DB_AIMGCSM . "." . TABLEPREFIX . "students 
                (" . implode(", ", $columns) . ", created_at)
                VALUES (" . implode(", ", $placeholders) . ", NOW())
            ";
-       }
-   
-       // Debug (optional)
-       // $this->debugQuery($sql, $params);
-   
-       return $this->conn->global_CRUD_DB($sql, $params);
+      }
+
+      // Debug (optional)
+      // $this->debugQuery($sql, $params);
+
+      return $this->conn->global_CRUD_DB($sql, $params);
    }
 
    public function manage_Student_Admission($stuDataArr)
@@ -2369,57 +2364,57 @@ class GlobalInterfaceController
 
    public function update_student_monthly_course_fees($paramArr)
    {
-       // =========================
-       // VALIDATION + SANITIZATION
-       // =========================
-       if (empty($paramArr['stu_id'])) {
-           return [
-               'check' => 'failure',
-               'message' => 'Student ID is required'
-           ];
-       }
-   
-       if (!isset($paramArr['monthly_course_fees'])) {
-           return [
-               'check' => 'failure',
-               'message' => 'Monthly course fees is required'
-           ];
-       }
-   
-       $stu_id = $paramArr['stu_id'];
-       $monthly_course_fees = (int)$paramArr['monthly_course_fees'];
-   
-       // Optional: prevent negative values
-       if ($monthly_course_fees < 0) {
-           return [
-               'check' => 'failure',
-               'message' => 'Monthly course fees cannot be negative'
-           ];
-       }
-   
-       // =========================
-       // QUERY (PARAM BINDING)
-       // =========================
-       $sql = "UPDATE " . DB_AIMGCSM . "." . TABLEPREFIX . "students 
+      // =========================
+      // VALIDATION + SANITIZATION
+      // =========================
+      if (empty($paramArr['stu_id'])) {
+         return [
+            'check' => 'failure',
+            'message' => 'Student ID is required'
+         ];
+      }
+
+      if (!isset($paramArr['monthly_course_fees'])) {
+         return [
+            'check' => 'failure',
+            'message' => 'Monthly course fees is required'
+         ];
+      }
+
+      $stu_id = $paramArr['stu_id'];
+      $monthly_course_fees = (int)$paramArr['monthly_course_fees'];
+
+      // Optional: prevent negative values
+      if ($monthly_course_fees < 0) {
+         return [
+            'check' => 'failure',
+            'message' => 'Monthly course fees cannot be negative'
+         ];
+      }
+
+      // =========================
+      // QUERY (PARAM BINDING)
+      // =========================
+      $sql = "UPDATE " . DB_AIMGCSM . "." . TABLEPREFIX . "students 
                SET monthly_course_fees = ?, updated_at = NOW() 
                WHERE stu_id = ?";
-   
-       $params = [
-           $monthly_course_fees,
-           $stu_id
-       ];
-   
-       // =========================
-       // DEBUG (OPTIONAL)
-       // =========================
-       // echo $this->debugQuery($sql, $params); exit;
-   
-       // =========================
-       // EXECUTION
-       // =========================
-       $resultArr = $this->conn->global_CRUD_DB($sql, $params);
-   
-       return $resultArr;
+
+      $params = [
+         $monthly_course_fees,
+         $stu_id
+      ];
+
+      // =========================
+      // DEBUG (OPTIONAL)
+      // =========================
+      // echo $this->debugQuery($sql, $params); exit;
+
+      // =========================
+      // EXECUTION
+      // =========================
+      $resultArr = $this->conn->global_CRUD_DB($sql, $params);
+
+      return $resultArr;
    }
 
    public function manage_Global_Course($courseDataArr)
@@ -2591,7 +2586,7 @@ class GlobalInterfaceController
    public function update_Exam_Validation_Log($flagArr)
    {
 
-      $student_id = $_SESSION['user_id'];
+      $student_id = $flagArr['student_id'];
       $exam_id = $flagArr['exam_id'];
 
       //Check if this question is already flagged
@@ -3133,25 +3128,25 @@ class GlobalInterfaceController
 
    public function fetch_Global_Single_Franchise($franchise_id)
    {
-       $where = [];
-       $params = [];
-   
-       $where[] = "(fran.id = ?)";
-       $params[] = $franchise_id;
-   
-       $whereSql = "WHERE " . implode(" AND ", $where);
-   
-       $sql = "SELECT * FROM " . DB_AIMGCSM . "." . TABLEPREFIX . "franchise fran $whereSql";;
-   
-       // Important because of COUNT()
-       $sql .= " GROUP BY fran.id LIMIT 1";
-   
-       // Debug (optional)
-       // $this->debugQuery($sql, $params);
-   
-       $resultArr = $this->conn->global_Fetch_Single_DB($sql, $params);
-   
-       return $resultArr;
+      $where = [];
+      $params = [];
+
+      $where[] = "(fran.id = ?)";
+      $params[] = $franchise_id;
+
+      $whereSql = "WHERE " . implode(" AND ", $where);
+
+      $sql = "SELECT * FROM " . DB_AIMGCSM . "." . TABLEPREFIX . "franchise fran $whereSql";;
+
+      // Important because of COUNT()
+      $sql .= " GROUP BY fran.id LIMIT 1";
+
+      // Debug (optional)
+      // $this->debugQuery($sql, $params);
+
+      $resultArr = $this->conn->global_Fetch_Single_DB($sql, $params);
+
+      return $resultArr;
    }
 
    public function fetch_Global_Single_Franchise_By_Uid($fran_id)
@@ -3255,17 +3250,17 @@ class GlobalInterfaceController
 
    public function fetch_Detail_Single_Student($student_id)
    {
-       $where = [];
-       $params = [];
-   
-       // Allow search by stu_id OR id
-       $where[] = "(stu.stu_id = ? OR stu.id = ?)";
-       $params[] = $student_id;
-       $params[] = $student_id;
-   
-       $whereSql = "WHERE " . implode(" AND ", $where);
-   
-       $sql = "
+      $where = [];
+      $params = [];
+
+      // Allow search by stu_id OR id
+      $where[] = "(stu.stu_id = ? OR stu.id = ?)";
+      $params[] = $student_id;
+      $params[] = $student_id;
+
+      $whereSql = "WHERE " . implode(" AND ", $where);
+
+      $sql = "
            SELECT 
                stu.*,
                frn.center_name,
@@ -3289,16 +3284,16 @@ class GlobalInterfaceController
    
            $whereSql
        ";
-   
-       // Important because of COUNT()
-       $sql .= " GROUP BY stu.id LIMIT 1";
-   
-       // Debug (optional)
-       // $this->debugQuery($sql, $params);
-   
-       $resultArr = $this->conn->global_Fetch_Single_DB($sql, $params);
-   
-       return $resultArr;
+
+      // Important because of COUNT()
+      $sql .= " GROUP BY stu.id LIMIT 1";
+
+      // Debug (optional)
+      // $this->debugQuery($sql, $params);
+
+      $resultArr = $this->conn->global_Fetch_Single_DB($sql, $params);
+
+      return $resultArr;
    }
 
    public function fetch_Detail_Single_Student_Receipt($student_id)
@@ -3365,81 +3360,81 @@ class GlobalInterfaceController
       return $resultArr;
    }
 
-   public function update_Global_Record_Status($type, $row_id, $record_status)
+   public function update_Global_Record_Status($type, $rowIds, $record_status)
    {
+      // -----------------------------
+      // TYPE CONFIG MAP
+      // -----------------------------
+      $typeConfig = [
+         'franchise'        => ['table' => 'franchise',         'column' => 'id'],
+         'course'           => ['table' => 'course',            'column' => 'id'],
+         'gallery'          => ['table' => 'gallery',           'column' => 'id'],
+         'home_sliders'     => ['table' => 'home_sliders',      'column' => 'id'],
+         'student'          => ['table' => 'students',          'column' => 'id'],
+         'temp_student'     => ['table' => 'temp_students',     'column' => 'tmp_id'],
+         'student_receipts' => ['table' => 'student_receipts',  'column' => 'id'],
+         'exam'             => ['table' => 'exams',             'column' => 'id'],
+         'parent_category'  => ['table' => 'parent_category',   'column' => 'id'],
+         'cities'           => ['table' => 'cities',            'column' => 'id'],
+         'email_template'   => ['table' => 'email_template',    'column' => 'id'],
+         'news'             => ['table' => 'news',              'column' => 'id'],
+         'enquiry'          => ['table' => 'enquiry',           'column' => 'id'],
+      ];
 
-      switch ($type) {
-
-         case 'franchise':
-            $modify_Clause = "`id` = '$row_id'";
-            break;
-
-         case 'course':
-            $modify_Clause = "`id` = '$row_id'";
-            break;
-
-         case 'gallery':
-            $modify_Clause = "`id` = '$row_id'";
-            break;
-
-         case 'home_sliders':
-            $modify_Clause = "`id` = '$row_id'";
-            break;
-
-         case 'student':
-            $type = "students";
-            $modify_Clause = "`id` = '$row_id'";
-            break;
-
-         case 'temp_student':
-            $type = "temp_students";
-            $modify_Clause = "`tmp_id` = '$row_id'";
-            break;
-
-         case 'student_receipts':
-            $modify_Clause = "`id` = '$row_id'";
-            $type = "student_receipts";
-            break;
-
-         case 'exam':
-            $type = "exams";
-            $modify_Clause = "`id` = '$row_id'";
-            break;
-
-         case 'parent_category':
-            $modify_Clause = "`id` = '$row_id'";
-            break;
-
-         case 'cities':
-            $modify_Clause = "`id` = '$row_id'";
-            break;
-
-         case 'email_template':
-            $modify_Clause = "`id` = '$row_id'";
-            break;
-
-         case 'news':
-            $modify_Clause = "`id` = '$row_id'";
-            break;
-
-         case 'enquiry':
-            $modify_Clause = "`id` = '$row_id'";
-            break;
+      // -----------------------------
+      // VALIDATE TYPE
+      // -----------------------------
+      if (!isset($typeConfig[$type])) {
+         return ['responseArr' => ['check' => 'failure', 'message' => 'Invalid type']];
       }
 
-      $sql = "UPDATE " . DB_AIMGCSM . "." . TABLEPREFIX . $type . " SET `record_status`='$record_status',`updated_at` = now() WHERE " . $modify_Clause;
-      //echo $sql;exit();
+      $table  = $typeConfig[$type]['table'];
+      $column = $typeConfig[$type]['column'];
+
+      // -----------------------------
+      // SANITIZE IDS
+      // -----------------------------
+      $rowIds = array_filter(array_map('intval', (array)$rowIds));
+
+      if (empty($rowIds)) {
+         return ['responseArr' => ['check' => 'failure', 'message' => 'Invalid IDs']];
+      }
+
+      $idsString = implode(',', $rowIds);
+
+      // -----------------------------
+      // BULK UPDATE QUERY
+      // -----------------------------
+      $sql = "UPDATE " . DB_AIMGCSM . "." . TABLEPREFIX . "$table 
+            SET `record_status` = '$record_status', `updated_at` = NOW()
+            WHERE `$column` IN ($idsString)";
+
       $resultArr['responseArr'] = $this->conn->global_CRUD_DB($sql);
 
-      if ($type == "students" && $resultArr['responseArr']['check'] == 'success') {
-         //Fetch student details
-         $studentDetails = $this->fetch_Global_Single_Student($row_id);
-         //Calling update record status of current student receipt
-         $this->block_Student_Dependent_Receipt_Data($studentDetails->stu_id, $record_status);
+      // -----------------------------
+      // SPECIAL LOGIC (STUDENT ONLY)
+      // -----------------------------
+      if ($type === 'student' && $resultArr['responseArr']['check'] === 'success') {
 
-         //Calling update record status of current student temp data if this is a converted student
-         if (!empty($studentDetails->tmp_stu_record_id)) {
-            $this->block_Student_Dependent_Temp_Data($studentDetails->tmp_stu_record_id, $record_status);
+         foreach ($rowIds as $row_id) {
+
+            $studentDetails = $this->fetch_Global_Single_Student($row_id);
+
+            if (!$studentDetails) continue;
+
+            // update receipts
+            $this->block_Student_Dependent_Receipt_Data(
+               $studentDetails->stu_id,
+               $record_status
+            );
+
+            // update temp student if exists
+            if (!empty($studentDetails->tmp_stu_record_id)) {
+               $this->block_Student_Dependent_Temp_Data(
+                  $studentDetails->tmp_stu_record_id,
+                  $record_status
+               );
+            }
          }
       }
 
@@ -3448,29 +3443,39 @@ class GlobalInterfaceController
 
    public function update_Bulk_Student_Status($paramArr)
    {
-
-      $update_String = '';
-      $row_id = $paramArr['row_id'];
+      $updateParts = [];
 
       if (!empty($paramArr['record_status'])) {
          $record_status = $paramArr['record_status'];
-         $update_String .= "`record_status` = '$record_status',";
+         $updateParts[] = "`record_status` = '$record_status'";
       }
 
       if (!empty($paramArr['student_status'])) {
          $student_status = $paramArr['student_status'];
-         $update_String .= "`student_status` = '$student_status',";
+         $updateParts[] = "`student_status` = '$student_status'";
       }
 
       if (!empty($paramArr['result_status'])) {
          $result_status = $paramArr['result_status'];
-         $update_String .= "`stu_result` = '$result_status',";
+         $updateParts[] = "`stu_result` = '$result_status'";
       }
 
-      $update_String .= "`updated_at` = now()";
+      $updateParts[] = "`updated_at` = NOW()";
 
-      $sql = "UPDATE " . DB_AIMGCSM . "." . TABLEPREFIX . "students SET " . $update_String . " WHERE `id` = '$row_id'";
-      //echo $sql;exit();
+      if (empty($updateParts) || empty($paramArr['row_ids'])) {
+         return ['responseArr' => ['check' => 'failure', 'message' => 'No data to update']];
+      }
+
+      $updateString = implode(', ', $updateParts);
+
+      // Convert IDs to safe string
+      $ids = array_map('intval', $paramArr['row_ids']);
+      $idsString = implode(',', $ids);
+
+      $sql = "UPDATE " . DB_AIMGCSM . "." . TABLEPREFIX . "students 
+               SET $updateString 
+               WHERE `id` IN ($idsString)";
+
       $resultArr['responseArr'] = $this->conn->global_CRUD_DB($sql);
 
       return $resultArr;
@@ -3551,12 +3556,24 @@ class GlobalInterfaceController
       return $resultArr;
    }
 
-   public function block_Student_Dependent_Receipt_Data($stu_id, $record_status)
+   public function block_Student_Dependent_Receipt_Data($studentIds, $record_status)
    {
-      //Deleting student result  
-      $sql_block_receipt = "UPDATE " . DB_AIMGCSM . "." . TABLEPREFIX . "student_receipts rcpt SET `record_status`='$record_status',`updated_at` = now() WHERE rcpt.stu_id = '$stu_id'";
-      //echo $sql_block_receipt;exit;
-      $this->conn->global_CRUD_DB($sql_block_receipt);
+       $studentIds = array_filter(array_map('intval', (array)$studentIds));
+   
+       if (empty($studentIds)) return;
+   
+       $idsString = implode(',', $studentIds);
+   
+       $sql = "UPDATE " . DB_AIMGCSM . "." . TABLEPREFIX . "student_receipts rcpt
+               SET rcpt.record_status = '$record_status',
+                   rcpt.updated_at = NOW()
+               WHERE rcpt.stu_id IN (
+                   SELECT stu.stu_id 
+                   FROM " . DB_AIMGCSM . "." . TABLEPREFIX . "students stu
+                   WHERE stu.id IN ($idsString)
+               )";
+   
+       $this->conn->global_CRUD_DB($sql);
    }
 
    public function block_Student_Dependent_Temp_Data($tmp_id, $record_status)
