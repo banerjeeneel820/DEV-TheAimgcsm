@@ -33,6 +33,11 @@ class GlobalInterfaceController
       exit; // stop execution after debug
    }
 
+   private function escape($value)
+   {
+      return mysqli_real_escape_string(DB::$WRITELINK, trim($value));
+   }
+
    public function check_User_Login($paramArr = array())
    {
       $user_type = $paramArr['user_type'];
@@ -2045,6 +2050,16 @@ class GlobalInterfaceController
       return $resultArr;
    }
 
+   public function fetch_Global_Multiple_Data($type, $rowIds)
+   {
+      $ids = implode(',', array_map('intval', $rowIds));
+
+      $sql = "SELECT * FROM " . DB_AIMGCSM . "." . TABLEPREFIX . "$type 
+            WHERE id IN ($ids)";
+
+      return $this->conn->global_Fetch_All_DB($sql);
+   }
+
    public function check_Slug_Availibility($type, $field, $slug)
    {
       $sql = "SELECT * FROM " . DB_AIMGCSM . "." . TABLEPREFIX . $type . " WHERE `$field`='$slug'";
@@ -3391,11 +3406,6 @@ class GlobalInterfaceController
       $table  = $typeConfig[$type]['table'];
       $column = $typeConfig[$type]['column'];
 
-      // -----------------------------
-      // SANITIZE IDS
-      // -----------------------------
-      $rowIds = array_filter(array_map('intval', (array)$rowIds));
-
       if (empty($rowIds)) {
          return ['responseArr' => ['check' => 'failure', 'message' => 'Invalid IDs']];
       }
@@ -3416,26 +3426,11 @@ class GlobalInterfaceController
       // -----------------------------
       if ($type === 'student' && $resultArr['responseArr']['check'] === 'success') {
 
-         foreach ($rowIds as $row_id) {
+         // Bulk update receipts
+         $this->block_Student_Dependent_Receipt_Data($rowIds, $record_status);
 
-            $studentDetails = $this->fetch_Global_Single_Student($row_id);
-
-            if (!$studentDetails) continue;
-
-            // update receipts
-            $this->block_Student_Dependent_Receipt_Data(
-               $studentDetails->stu_id,
-               $record_status
-            );
-
-            // update temp student if exists
-            if (!empty($studentDetails->tmp_stu_record_id)) {
-               $this->block_Student_Dependent_Temp_Data(
-                  $studentDetails->tmp_stu_record_id,
-                  $record_status
-               );
-            }
-         }
+         // Bulk update temp students
+         $this->block_Student_Dependent_Temp_Data($rowIds, $record_status);
       }
 
       return $resultArr;
@@ -3467,10 +3462,7 @@ class GlobalInterfaceController
       }
 
       $updateString = implode(', ', $updateParts);
-
-      // Convert IDs to safe string
-      $ids = array_map('intval', $paramArr['row_ids']);
-      $idsString = implode(',', $ids);
+      $idsString = implode(',', $paramArr['row_ids']);
 
       $sql = "UPDATE " . DB_AIMGCSM . "." . TABLEPREFIX . "students 
                SET $updateString 
@@ -3481,30 +3473,104 @@ class GlobalInterfaceController
       return $resultArr;
    }
 
-   public function update_Global_Featured_Status($type, $row_id, $featured_status)
+   public function update_Global_Featured_Status($type, $rowIds, $featured_status)
    {
+      // -----------------------------
+      // TYPE CONFIG MAP
+      // -----------------------------
+      $typeConfig = [
+         'franchise'    => ['table' => 'franchise',     'column' => 'id'],
+         'course'       => ['table' => 'course',        'column' => 'id'],
+         'gallery'      => ['table' => 'gallery',       'column' => 'id'],
+         'news'         => ['table' => 'news',          'column' => 'id'],
+         // add more if needed later
+      ];
 
-      switch ($type) {
-
-         case 'franchise':
-            $modify_Clause = "`id` = '$row_id'";
-            break;
-
-         case 'course':
-            $modify_Clause = "`id` = '$row_id'";
-            break;
-
-         case 'gallery':
-            $modify_Clause = "`id` = '$row_id'";
-            break;
-
-         case 'news':
-            $modify_Clause = "`id` = '$row_id'";
-            break;
+      // -----------------------------
+      // VALIDATE TYPE
+      // -----------------------------
+      if (!isset($typeConfig[$type])) {
+         return [
+            'responseArr' => [
+               'check' => 'failure',
+               'message' => 'Invalid type'
+            ]
+         ];
       }
 
-      $sql = "UPDATE " . DB_AIMGCSM . "." . TABLEPREFIX . $type . " SET `featured_status`='$featured_status',`updated_at` = now() WHERE " . $modify_Clause;
-      //echo $sql;exit();
+      $table  = $typeConfig[$type]['table'];
+      $column = $typeConfig[$type]['column'];
+
+      if (empty($rowIds)) {
+         return [
+            'responseArr' => [
+               'check' => 'failure',
+               'message' => 'Invalid IDs'
+            ]
+         ];
+      }
+
+      $idsString = implode(',', $rowIds);
+
+      // -----------------------------
+      // BULK UPDATE QUERY
+      // -----------------------------
+      $sql = "UPDATE " . DB_AIMGCSM . "." . TABLEPREFIX . "$table 
+            SET `featured_status` = '$featured_status',
+                `updated_at` = NOW()
+            WHERE `$column` IN ($idsString)";
+
+      $resultArr['responseArr'] = $this->conn->global_CRUD_DB($sql);
+
+      return $resultArr;
+   }
+
+   public function update_Global_Verified_Status($type, $rowIds, $verified_status)
+   {
+      // -----------------------------
+      // TYPE CONFIG MAP
+      // -----------------------------
+      $typeConfig = [
+         'franchise'    => ['table' => 'franchise',     'column' => 'id'],
+         'course'       => ['table' => 'course',        'column' => 'id'],
+         'gallery'      => ['table' => 'gallery',       'column' => 'id'],
+         'news'         => ['table' => 'news',          'column' => 'id'],
+      ];
+
+      // -----------------------------
+      // VALIDATE TYPE
+      // -----------------------------
+      if (!isset($typeConfig[$type])) {
+         return [
+            'responseArr' => [
+               'check' => 'failure',
+               'message' => 'Invalid type'
+            ]
+         ];
+      }
+
+      $table  = $typeConfig[$type]['table'];
+      $column = $typeConfig[$type]['column'];
+
+      if (empty($rowIds)) {
+         return [
+            'responseArr' => [
+               'check' => 'failure',
+               'message' => 'Invalid IDs'
+            ]
+         ];
+      }
+
+      $idsString = implode(',', $rowIds);
+
+      // -----------------------------
+      // BULK UPDATE QUERY
+      // -----------------------------
+      $sql = "UPDATE " . DB_AIMGCSM . "." . TABLEPREFIX . "$table 
+            SET `verified_status` = '$verified_status',
+                `updated_at` = NOW()
+            WHERE `$column` IN ($idsString)";
+
       $resultArr['responseArr'] = $this->conn->global_CRUD_DB($sql);
 
       return $resultArr;
@@ -3558,13 +3624,12 @@ class GlobalInterfaceController
 
    public function block_Student_Dependent_Receipt_Data($studentIds, $record_status)
    {
-       $studentIds = array_filter(array_map('intval', (array)$studentIds));
-   
-       if (empty($studentIds)) return;
-   
-       $idsString = implode(',', $studentIds);
-   
-       $sql = "UPDATE " . DB_AIMGCSM . "." . TABLEPREFIX . "student_receipts rcpt
+
+      if (empty($studentIds)) return;
+
+      $idsString = implode(',', $studentIds);
+
+      $sql = "UPDATE " . DB_AIMGCSM . "." . TABLEPREFIX . "student_receipts rcpt
                SET rcpt.record_status = '$record_status',
                    rcpt.updated_at = NOW()
                WHERE rcpt.stu_id IN (
@@ -3572,16 +3637,27 @@ class GlobalInterfaceController
                    FROM " . DB_AIMGCSM . "." . TABLEPREFIX . "students stu
                    WHERE stu.id IN ($idsString)
                )";
-   
-       $this->conn->global_CRUD_DB($sql);
+
+      $this->conn->global_CRUD_DB($sql);
    }
 
-   public function block_Student_Dependent_Temp_Data($tmp_id, $record_status)
+   public function block_Student_Dependent_Temp_Data($studentIds, $record_status)
    {
-      //Deleting student result  
-      $sql_block_temp_student = "UPDATE " . DB_AIMGCSM . "." . TABLEPREFIX . "temp_students tmp_stu SET `record_status`='$record_status',`updated_at` = now() WHERE tmp_stu.tmp_id = '$tmp_id'";
-      //echo $sql_block_temp_student;exit;
-      $this->conn->global_CRUD_DB($sql_block_temp_student);
+      if (empty($studentIds)) return;
+
+      $idsString = implode(',', $studentIds);
+
+      $sql = "UPDATE " . DB_AIMGCSM . "." . TABLEPREFIX . "temp_students tmp
+            SET tmp.record_status = '$record_status',
+                tmp.updated_at = NOW()
+            WHERE tmp.tmp_id IN (
+                SELECT stu.tmp_stu_record_id 
+                FROM " . DB_AIMGCSM . "." . TABLEPREFIX . "students stu
+                WHERE stu.id IN ($idsString)
+                AND stu.tmp_stu_record_id IS NOT NULL
+            )";
+
+      $this->conn->global_CRUD_DB($sql);
    }
 
    public function delete_Student_By_Id($stu_id)
@@ -3592,99 +3668,128 @@ class GlobalInterfaceController
       $this->conn->global_CRUD_DB($sql_delete_receipt);
    }
 
-   public function delete_Student_Dependent_Data($stu_id)
+   public function delete_Student_Dependent_Data($stu_ids)
    {
-      //Deleting student result  
-      $sql_delete_receipt = "DELETE FROM " . DB_AIMGCSM . "." . TABLEPREFIX . "student_receipts WHERE stu_id = '$stu_id'";
-      //echo $sql_delete_receipt;exit;
-      $this->conn->global_CRUD_DB($sql_delete_receipt);
+
+      if (empty($stu_ids)) {
+         return;
+      }
+
+      $idsString = implode(',', $stu_ids);
+
+      // -----------------------------
+      // BULK DELETE (ONE QUERY)
+      // -----------------------------
+      $sql = "DELETE FROM " . DB_AIMGCSM . "." . TABLEPREFIX . "student_receipts 
+            WHERE `stu_id` IN ($idsString)";
+
+      $this->conn->global_CRUD_DB($sql);
    }
 
-   public function delete_Post_Category_Data($post_type, $post_id)
+   public function delete_Post_Category_Data($post_type, $post_ids)
    {
-      $sql_delete_meta = "DELETE FROM " . DB_AIMGCSM . "." . TABLEPREFIX . "post_category WHERE post_type = '$post_type' AND `post_id`='$post_id'";
-      //echo $sql_delete_meta;exit;
-      $this->conn->global_CRUD_DB($sql_delete_meta);
+
+      if (empty($post_ids)) {
+         return;
+      }
+
+      $idsString = implode(',', $post_ids);
+
+      // -----------------------------
+      // BULK DELETE (ONE QUERY)
+      // -----------------------------
+      $sql = "DELETE FROM " . DB_AIMGCSM . "." . TABLEPREFIX . "post_category 
+            WHERE `post_type` = '$post_type'
+            AND `post_id` IN ($idsString)";
+
+      $this->conn->global_CRUD_DB($sql);
    }
 
    public function delete_Global_Data($deleteParam)
    {
-      $type = $deleteParam['type'];
-      $row_id = $deleteParam['row_id'];
+      $type   = $deleteParam['type'];
+      $rowIds = $deleteParam['rowIds'] ?? [];
 
-      switch ($type) {
+      // -----------------------------
+      // TYPE CONFIG MAP
+      // -----------------------------
+      $typeConfig = [
+         'franchise'        => ['table' => 'franchise',        'column' => 'id'],
+         'course'           => ['table' => 'course',           'column' => 'id'],
+         'gallery'          => ['table' => 'gallery',          'column' => 'id'],
+         'home_sliders'     => ['table' => 'home_sliders',     'column' => 'id'],
+         'student'          => ['table' => 'students',         'column' => 'id'],
+         'temp_student'     => ['table' => 'temp_students',    'column' => 'tmp_id'],
+         'student_receipts' => ['table' => 'student_receipts', 'column' => 'id'],
+         'parent_category'  => ['table' => 'parent_category',  'column' => 'id'],
+         'cities'           => ['table' => 'cities',           'column' => 'id'],
+         'email_template'   => ['table' => 'email_template',   'column' => 'id'],
+         'feedback'         => ['table' => 'feedback',         'column' => 'id'],
+         'news'             => ['table' => 'news',             'column' => 'id'],
+         'enquiry'          => ['table' => 'enquiry',          'column' => 'id'],
+      ];
 
-         case 'franchise':
-            $delete_Clause = "`id` = '$row_id'";
-            break;
-
-         case 'course':
-            $delete_Clause = "`id` = '$row_id'";
-            break;
-
-         case 'gallery':
-            $delete_Clause = "`id` = '$row_id'";
-            break;
-
-         case 'home_sliders':
-            $delete_Clause = "`id` = '$row_id'";
-            break;
-
-         case 'student':
-            $type = "students";
-            $delete_Clause = "`id` = '$row_id'";
-            break;
-
-         case 'temp_student':
-            $type = "temp_students";
-            $delete_Clause = "`tmp_id` = '$row_id'";
-            break;
-
-         case 'student_receipts':
-            $delete_Clause = "`id` = '$row_id'";
-            $type = "student_receipts";
-            break;
-
-         case 'parent_category':
-            $delete_Clause = "`id` = '$row_id'";
-            break;
-
-         case 'cities':
-            $delete_Clause = "`id` = '$row_id'";
-            break;
-
-         case 'email_template':
-            $delete_Clause = "`id` = '$row_id'";
-            break;
-
-         case 'feedback':
-            $delete_Clause = "`id` = '$row_id'";
-            break;
-
-         case 'news':
-            $delete_Clause = "`id` = '$row_id'";
-            break;
-
-         case 'enquiry':
-            $delete_Clause = "`id` = '$row_id'";
-            break;
+      // -----------------------------
+      // VALIDATE TYPE
+      // -----------------------------
+      if (!isset($typeConfig[$type])) {
+         return [
+            'responseArr' => [
+               'check' => 'failure',
+               'message' => 'Invalid type'
+            ]
+         ];
       }
 
-      if ($type == "students") {
-         $studentDetail = $this->fetch_Global_Single_Student($row_id);
-         $stu_id = $studentDetail->stu_id;
+      $table  = $typeConfig[$type]['table'];
+      $column = $typeConfig[$type]['column'];
+
+      if (empty($rowIds)) {
+         return [
+            'responseArr' => [
+               'check' => 'failure',
+               'message' => 'Invalid IDs'
+            ]
+         ];
       }
 
-      $sql_general_delete = "DELETE FROM " . DB_AIMGCSM . "." . TABLEPREFIX . $type . " WHERE " . $delete_Clause;
-      //echo $sql_general_delete;exit;
-      $resultArr['responseArr'] = $this->conn->global_CRUD_DB($sql_general_delete);
+      $idsString = implode(',', $rowIds);
 
-      if ($type == "students" && $resultArr['responseArr']['check'] == 'success') {
-         $this->delete_Student_Dependent_Data($stu_id);
+      // -----------------------------
+      // SPECIAL PRE-FETCH (STUDENT)
+      // -----------------------------
+      $studentIds = [];
+      if ($type === 'student') {
+         $studentData = $this->fetch_Global_Multiple_Data($type, $rowIds);
+         if (!empty($studentData)) {
+            foreach ($studentData as $stu) {
+               $studentIds[] = $stu->stu_id;
+            }
+         }
       }
 
-      if ($type == "gallery" && $resultArr['responseArr']['check'] == 'success') {
-         $this->delete_Post_Category_Data($type, $row_id);
+      // -----------------------------
+      // BULK DELETE QUERY
+      // -----------------------------
+      $sql = "DELETE FROM " . DB_AIMGCSM . "." . TABLEPREFIX . "$table 
+            WHERE `$column` IN ($idsString)";
+
+      $resultArr['responseArr'] = $this->conn->global_CRUD_DB($sql);
+
+      // -----------------------------
+      // POST DELETE LOGIC
+      // -----------------------------
+      if ($resultArr['responseArr']['check'] === 'success') {
+
+         if ($type === 'student' && !empty($studentIds)) {
+            // Deleting all student's receipt data
+            $this->delete_Student_Dependent_Data($studentIds);
+         }
+
+         if ($type === 'gallery' && !empty($studentIds)) {
+            // Deleting all gallery category records
+            $this->delete_Post_Category_Data($type, $rowIds);
+         }
       }
 
       return $resultArr;
@@ -3961,26 +4066,67 @@ class GlobalInterfaceController
       return $resultArr;
    }
 
-   public function manage_Queue_Jobs($cronDetailArr)
+   public function manage_Queue_Jobs(array $data)
    {
+      // -----------------------------
+      // VALIDATE ACTION
+      // -----------------------------
+      $action = $data['action'] ?? null;
 
-      $action = $cronDetailArr['action'];
-      $job_type = $cronDetailArr['job_type'];
-
-      if ($action == "update") {
-
-         $status = $cronDetailArr['status'];
-         $response = $cronDetailArr['response'];
-
-         $sql = "UPDATE " . DB_AIMGCSM . "." . TABLEPREFIX . "queue_jobs SET `response` = '$response', `status` = '$status' WHERE `status` IN ('pending','running','failed')";
-      } else {
-         $sql = "INSERT INTO " . DB_AIMGCSM . "." . TABLEPREFIX . "queue_jobs SET `job_type` = '$job_type', `created_at` = now()";
+      if (!in_array($action, ['create', 'update'], true)) {
+         return ['check' => 'failure', 'message' => 'Invalid action'];
       }
 
-      //echo $sql;exit();
+      // -----------------------------
+      // COMMON TABLE
+      // -----------------------------
+      $table = DB_AIMGCSM . "." . TABLEPREFIX . "queue_jobs";
 
-      $resultArr = $this->conn->global_CRUD_DB($sql);
+      // -----------------------------
+      // CREATE JOB
+      // -----------------------------
+      if ($action === "create") {
 
-      return $resultArr;
+         $jobType = $this->escape($data['job_type'] ?? '');
+
+         if (empty($jobType)) {
+            return ['check' => 'failure', 'message' => 'Job type required'];
+         }
+
+         $sql = "INSERT INTO $table 
+                (`job_type`, `created_at`) 
+                VALUES ('$jobType', NOW())";
+      }
+
+      // -----------------------------
+      // UPDATE JOB
+      // -----------------------------
+      if ($action === "update") {
+         
+         $task_id  = (int) ($data['task_id'] ?? 0);
+         $status   = $this->escape($data['status'] ?? '');
+         $response = $this->escape($data['response'] ?? '');
+
+         if (empty($status)) {
+            return ['check' => 'failure', 'message' => 'Status required'];
+         }
+
+         $allowedStatuses = ['pending', 'running', 'failed', 'success'];
+
+         if (!in_array($status, $allowedStatuses, true)) {
+            return ['check' => 'failure', 'message' => 'Invalid status'];
+         }
+
+         $sql = "UPDATE $table 
+                SET `response` = '$response', 
+                    `status` = '$status', 
+                    `updated_at` = NOW()
+                WHERE `id` = $task_id";
+      }
+
+      // -----------------------------
+      // EXECUTE QUERY
+      // -----------------------------
+      return $this->conn->global_CRUD_DB($sql);
    }
 }

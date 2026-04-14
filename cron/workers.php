@@ -33,7 +33,7 @@ class SiteBackupWorker
         // Check if there's a running task
         $checkRunningTask = $this->globalController->check_Task_Status("running");
         if (!empty($checkRunningTask)) {
-            echo "ℹ️ There is already a running task on the process.\n";
+            echo "There is already a running task on the process.\n";
             exit;
         }
     }
@@ -59,7 +59,7 @@ class SiteBackupWorker
         $createRspns = $this->globalController->manage_Queue_Jobs($formDataArr);
 
         if ($createRspns['check'] == "success") {
-            echo "✔️ Backup process has been successfully queued.\n";
+            echo "Backup process has been successfully queued.\n";
             $cronLogArr = array('check' => 'success', "message" => "Backup job is successfully queued!");
         } else {
             $cronLogArr = array('check' => 'failure', "message" => "Something went wrong, please try later!");
@@ -76,13 +76,13 @@ class SiteBackupWorker
             $checkPendingTask = $this->globalController->check_Task_Status();
 
             if (empty($checkPendingTask)) {
-                echo "ℹ️ No pending backup tasks.\n";
+                //echo "No pending backup tasks.\n";
                 // Queue a backup job for future
                 //$this->create_Site_Backup_Queue_Job();
                 return;
             }
 
-            echo "✔️ Backup process has been initiated...\n";
+            //echo "Backup process has been initiated...\n";
 
             $siteBackupFiles = $this->globalLibrary->fetchSiteBackupFiles();
 
@@ -115,21 +115,21 @@ class SiteBackupWorker
 
                     $cronLogArr = [
                         'status' => 'success',
-                        'task__id' => $checkPendingTask->id,
+                        'task_id' => $checkPendingTask->id,
                         'message' => "Backup successfully created between: {$this->startTime} to {$endTime}"
                     ];
                 } else {
                     unlink($dbFilePath);
                     $cronLogArr = [
                         'status' => 'failure',
-                        'task__id' => $checkPendingTask->id,
+                        'task_id' => $checkPendingTask->id,
                         'message' => "Backup failed: uploads backup failed between: {$this->startTime} to {$endTime}"
                     ];
                 }
             } else {
                 $cronLogArr = [
                     'status' => 'failure',
-                    'task__id' => $checkPendingTask->id,
+                    'task_id' => $checkPendingTask->id,
                     'message' => "Backup failed: DB backup failed between: {$this->startTime} to {$endTime}"
                 ];
             }
@@ -140,15 +140,15 @@ class SiteBackupWorker
             // Update task status in DB
             $updateCronArr = [
                 'action' => "update",
-                'task__id' => $checkPendingTask->id,
+                'task_id' => $checkPendingTask->id,
                 'status' => $cronLogArr['status'] == "success" ? "completed" : "failed",
                 'response' => $cronLogArr['message']
             ];
             $this->globalController->manage_Queue_Jobs($updateCronArr);
 
-            echo "\n✔️ " . $cronLogArr['message'] . "\n";
+            echo "\n " . $cronLogArr['message'] . "\n";
         } catch (Exception $e) {
-            echo "❌ Error: " . $e->getMessage() . "\n";
+            echo "Error: " . $e->getMessage() . "\n";
         }
     }
 }

@@ -4,6 +4,7 @@ return [
     // Auth & Profile Routes
     'check_user_login' => ['AuthProfileController', 'check_user_login'],
     'manageProfileData' => ['UserProfileController', 'manage_user_profile'],
+    'manageFranchiseProfile' => ['UserProfileController', 'manage_franchise_profile'],
 
     // Franchise & Course Routes
     'manageGlobalFranchise' => ['CourseFranchiseController', 'manage_franchise'],
@@ -15,10 +16,13 @@ return [
     'manageTempStudents' => ['StudentController', 'manage_temp_student'],
     'changeStudentStatus' => ['StudentController', 'change_student_status'],
     'updateStudentBulkStatus' => ['StudentController', 'update_student_bulk_status'],
+    'updateTempStudentVerifiedStatus' => ['StudentController', 'update_temp_student_verified_status'],
 
     // Student Receipt Routes
     'manageStudentReceipt' => ['StudentReceiptController', 'manage_receipt'],
     'fetchReceiptTotal' => ['StudentReceiptController', 'fetch_total_receipt'],
+    'exportStudentReceiptPdf' => ['StudentReceiptController', 'export_student_receipt'],
+    'exportTempStudentReceipt' => ['StudentReceiptController', 'export_temp_student_receipt'],
 
     // Exam Routes
     'manageGlobalExam' => ['ExamController', 'manage_exam'],
@@ -41,6 +45,12 @@ return [
     'manageGlobalNews' => ['CmsController', 'manage_global_news'],
 
     // Utility Routes
-    'updateGlobalStatusRecord' => ['UtilityController', 'update_global_status_record'],
-    'globalFeaturedStatusUpdate' => ['UtilityController', 'update_global_featured_record'],
+    'updateGlobalStatusRecord' => ['UtilityController', 'update_global_status_status'],
+    'globalFeaturedStatusUpdate' => ['UtilityController', 'update_global_featured_status'],
+    'globalVerifiedStatusUpdate' => ['UtilityController', 'update_global_verified_status'],
+    'deleteGlobalData' => ['UtilityController', 'delete_global_data'],
+    'cleanDynamicContentFolder' => ['UtilityController', 'clean_runtime_content'],
+    'clearCacheFolder' => ['UtilityController', 'clear_site_cache'],
+    'removeFileFromServer' => ['UtilityController', 'remove_file_from_Server'],
+    'createSiteBackupQueueJob' => ['UtilityController', 'create_site_backup_queue_job'],
 ];

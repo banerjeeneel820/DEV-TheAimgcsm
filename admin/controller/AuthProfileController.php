@@ -23,7 +23,7 @@ class UserProfileController extends BaseController
         //Validating captch & collecting response 
         $recaptcha_response = $data('g-recaptcha-response');
 
-        $validate_captcha = true; //$GlobalLibraryHandlerObj->checkCaptchaResponse($recaptcha_response);
+        $validate_captcha = true; //$this->GlobalLibraryHandlerObj->checkCaptchaResponse($recaptcha_response);
 
         if ($validate_captcha) {
             $returnArr = $this->GlobalInterfaceControllerObj->check_User_Login($paramArr);
@@ -104,7 +104,76 @@ class UserProfileController extends BaseController
         // DB Operation
         // -----------------------------
         return $this->GlobalInterfaceControllerObj->manage_Profile_Data($formDataArr);
-
     }
-    
+
+    public function manage_franchise_profile($data)
+    {
+        $post = fn ($key) => $this->GlobalLibraryHandlerObj->postDataSanitize($key);
+
+        $formDataArr = [];
+        $dir = 'franchise';
+
+        $formDataArr['fran_row_id'] = $_SESSION['user_id'];
+
+        // -----------------------------
+        // PERMISSION CHECK
+        // -----------------------------
+        if (!$this->GlobalLibraryHandlerObj->checkUserRolePermission('manage_profile', "hard")) {
+            return ['check' => 'failure', 'message' => "You don't have the permission!"];
+        }
+
+        // -----------------------------
+        // PASSWORD HANDLING
+        // -----------------------------
+        $fran_pass = $post('fran_pass');
+
+        if (!empty($fran_pass)) {
+            $formDataArr['fran_pass'] = md5($fran_pass);
+            $formDataArr['fran_og_pass'] = $fran_pass;
+        } else {
+            $formDataArr['fran_pass'] = $_POST['fran_hidden_password'];
+            $formDataArr['fran_og_pass'] = $_POST['fran_hidden_og_password'];
+        }
+
+        // -----------------------------
+        // BASIC FIELDS
+        // -----------------------------
+        $fields = [
+            'center_name',
+            'owner_name',
+            'fran_phone',
+            'fran_email',
+            'fran_address',
+            'fran_description'
+        ];
+
+        foreach ($fields as $field) {
+            $formDataArr[$field] = $post($field);
+        }
+
+        // -----------------------------
+        // FILE HANDLING (GENERIC)
+        // -----------------------------
+        $formDataArr['fran_image'] = $this->GlobalLibraryHandlerObj->handleFileUpload([
+            'input'        => 'fran_image',
+            'hidden'       => $_POST['hidden_fran_image'] ?? '',
+            'default'      => 'profile_small_old.png',
+            'dir'          => $dir,
+            'row_id'       => $formDataArr['fran_row_id'],
+        ]);
+
+        $formDataArr['fran_pdf_name'] = $this->GlobalLibraryHandlerObj->handleFileUpload([
+            'input'        => 'fran_pdf_name',
+            'hidden'       => $_POST['hidden_fran_pdf'] ?? '',
+            'default'      => 'COMPUTER-COURSE.pdf',
+            'dir'          => $dir,
+            'row_id'       => $formDataArr['fran_row_id'],
+        ]);
+
+        // -----------------------------
+        // DB CALL
+        // -----------------------------
+        return $this->GlobalInterfaceControllerObj
+            ->edit_Franchise_Profile($formDataArr);
+    }
 }

@@ -474,7 +474,7 @@
                                                     <?php if($updatePermission && ($_SESSION['user_type'] == "admin" || $_SESSION['user_type'] == "developer")){ ?> 
 
                                                         <li>
-                                                            <a href="javascript:void(0)" id="item_<?=$student->tmp_id?>" class="verified_action" data-vstatus="<?=($student->verified_status=='y'?'n':'y')?>" data-tid="<?=$student->tmp_id?>" data-toggle="tooltip" data-placement="bottom" title="Make this student's status <?=($student->verified_status=='y'?'not verified':'verified')?>"><i class="<?=($student->verified_status=='y'?'fa fa-check-circle':'fa fa-info-circle')?>"></i> <?=($student->verified_status=='y'?'Verified':'Not-Verified')?> 
+                                                            <a href="javascript:void(0)" id="item_<?=$student->tmp_id?>" class="changeVerifiedStatus" data-type="student" data-ptype="Student" data-vstatus="<?=($student->verified_status=='y'?'n':'y')?>" data-tid="<?=$student->tmp_id?>" data-toggle="tooltip" data-placement="bottom" title="Make this student's status <?=($student->verified_status=='y'?'not verified':'verified')?>"><i class="<?=($student->verified_status=='y'?'fa fa-check-circle':'fa fa-info-circle')?>"></i> <?=($student->verified_status=='y'?'Verified':'Not-Verified')?> 
                                                             </a>
                                                         </li>
                                                         

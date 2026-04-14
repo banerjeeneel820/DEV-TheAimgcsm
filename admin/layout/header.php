@@ -482,7 +482,6 @@ if (empty($_SESSION['user_id'])) {
                 var ajaxControllerHandler = "<?= SITE_URL ?>controller/callAjaxController.php";
                 var exportTableDataController = "<?= SITE_URL ?>controller/exportTableDataController.php";
                 var importTableDataController = "<?= SITE_URL ?>controller/importTableDataController.php";
-                var backupControllerHandler = "<?= SITE_URL ?>controller/backupController.php";
                 $(document).ready(function() {
                     var pattern = GeoPattern.generate('Neel');
                     $('#geopattern').css('background-image', pattern.toDataUrl());

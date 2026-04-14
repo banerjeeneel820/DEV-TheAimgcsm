@@ -593,9 +593,8 @@ class StudentController extends BaseController
             return ['check' => 'failure', 'message' => "You haven't selected any data!"];
         }
 
-        $rowIdArr = strpos($idData, ',') !== false
-            ? array_filter(array_map('trim', explode(',', $idData)))
-            : [$idData];
+        $rowIdArr = array_map('trim', explode(',', $idData));
+        $rowIdArr = array_filter(array_map('intval', (array)$rowIdArr));
 
         if (empty($rowIdArr)) {
             return ['check' => 'failure', 'message' => "Invalid data provided!"];
@@ -616,5 +615,10 @@ class StudentController extends BaseController
         return $response['responseArr']['check'] === 'success'
             ? ['check' => 'success', 'message' => 'Bulk update successful']
             : ['check' => 'failure', 'message' => 'Bulk update failed'];
+    }
+
+    public function update_temp_student_verified_status($data)
+    {
+        
     }
 }

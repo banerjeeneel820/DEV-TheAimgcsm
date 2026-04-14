@@ -797,7 +797,7 @@ if (!empty($_GET['rcpt_id'])) {
                               <?php if ($updatePermission && ($_SESSION['user_type'] == "admin" || $_SESSION['user_type'] == "developer")) { ?>
 
                                 <li>
-                                  <a href="javascript:void(0)" id="item_<?= $content->receipt_id ?>" class="verified_action" data-vstatus="<?= ($content->verified_status == 'y' ? 'n' : 'y') ?>" data-rid="<?= $content->receipt_id ?>" data-toggle="tooltip" data-placement="bottom" title="Make this receipt's status <?= ($content->verified_status == 'y' ? 'not verified' : 'verified') ?>"><i class="<?= ($content->verified_status == 'y' ? 'fa fa-check-circle' : 'fa fa-info-circle') ?>"></i> <?= ($content->verified_status == 'y' ? 'Verified' : 'Not-Verified') ?>
+                                  <a href="javascript:void(0)" id="item_<?= $content->receipt_id ?>" class="changeVerifiedStatus" data-type="student" data-ptype="Student" data-vstatus="<?= ($content->verified_status == 'y' ? 'n' : 'y') ?>" data-rid="<?= $content->receipt_id ?>" data-toggle="tooltip" data-placement="bottom" title="Make this receipt's status <?= ($content->verified_status == 'y' ? 'not verified' : 'verified') ?>"><i class="<?= ($content->verified_status == 'y' ? 'fa fa-check-circle' : 'fa fa-info-circle') ?>"></i> <?= ($content->verified_status == 'y' ? 'Verified' : 'Not-Verified') ?>
                                   </a>
                                 </li>
 
