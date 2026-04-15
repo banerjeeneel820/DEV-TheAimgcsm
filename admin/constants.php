@@ -116,6 +116,7 @@ spl_autoload_register(function ($class) {
 		ROOTPATH . '/controller/',
 		ROOTPATH . '/model/',
 		ROOTPATH . '/library/',
+		ROOTPATH . '/services/',
 	];
 
 	foreach ($paths as $path) {

@@ -83,7 +83,7 @@ class GlobalInterfaceController
             $user_email = $paramArr['user_email'];
             $user_pswd = $paramArr['user_pswd'];
 
-            // ✅ FIXED LOGIC
+            // FIXED LOGIC
             $query_conditional_clause = "(fran_email = ? OR fran_id = ?) AND fran_pass = ? AND record_status = 'active'";
             $params = [$user_email, $user_email, $user_pswd];
 
@@ -210,61 +210,68 @@ class GlobalInterfaceController
       }
    }
 
-   public function check_User_Email_Availability($paramArr)
+   public function check_User_Email_Availability(array $data)
    {
+      $email   = $this->escape($data['user_email'] ?? '');
+      $type    = $data['user_type'] ?? '';
+      $userId  = (int) ($data['user_id'] ?? 0);
 
-      $user_email = $paramArr['user_email'];
-      $user_type = $paramArr['user_type'];
+      // -----------------------------
+      // TYPE CONFIG MAP
+      // -----------------------------
+      $typeConfig = [
+         'student'   => ['table' => 'students',  'alias' => 'stu',  'column' => 'stu_email'],
+         'franchise' => ['table' => 'franchise', 'alias' => 'fran', 'column' => 'fran_email'],
+      ];
 
-      switch ($user_type) {
-
-         case 'student':
-
-            $where_Clause = "WHERE stu.stu_email  = '$user_email'";
-
-            if ($paramArr['user_id'] != null) {
-               $user_id = $paramArr['user_id'];
-               $where_Clause .= " AND stu.id!='$user_id'";
-            }
-
-            $sql_check_user = "SELECT * FROM " . DB_AIMGCSM . "." . TABLEPREFIX . "students stu " . $where_Clause;
-            break;
-
-         case 'franchise':
-
-            $where_Clause = "WHERE fran.fran_email  = '$user_email'";
-
-            if ($paramArr['user_id'] != null) {
-               $user_id = $paramArr['user_id'];
-               $where_Clause .= " AND fran.id!='$user_id'";
-            }
-
-            $sql_check_user = "SELECT * FROM " . DB_AIMGCSM . "." . TABLEPREFIX . "franchise fran " . $where_Clause;
-            break;
-
-         case 'newsletter':
-
-            $where_Clause = "WHERE nwsltr.email  = '$user_email'";
-
-            if ($paramArr['user_id'] != null) {
-               $user_id = $paramArr['user_id'];
-               $where_Clause .= " AND nwsltr.id!='$user_id'";
-            }
-
-            $sql_check_user = "SELECT * FROM " . DB_AIMGCSM . "." . TABLEPREFIX . "newsletter nwsltr " . $where_Clause;
-            break;
+      // -----------------------------
+      // VALIDATION
+      // -----------------------------
+      if (!isset($typeConfig[$type])) {
+         return ['check' => 'failure', 'message' => 'Invalid user type'];
       }
 
-      //echo $sql_check_user;exit;
-
-      //executing query
-      $user_row_count = $this->conn->global_Rows_Count_DB($sql_check_user);
-
-      if ($user_row_count > 0) {
-         return array('check' => 'failure', 'user_row_count' => $user_row_count, "message" => "This email is already taken; Please try another email.");
-      } else {
-         return array('check' => 'success', 'user_row_count' => 0);
+      if (empty($email)) {
+         return ['check' => 'failure', 'message' => 'Email required'];
       }
+
+      $table  = $typeConfig[$type]['table'];
+      $alias  = $typeConfig[$type]['alias'];
+      $column = $typeConfig[$type]['column'];
+
+      // -----------------------------
+      // BUILD QUERY
+      // -----------------------------
+      $where = "$alias.$column = '$email'";
+
+      if ($userId > 0) {
+         $where .= " AND $alias.id != $userId";
+      }
+
+      $sql = "SELECT COUNT(*) as total 
+            FROM " . DB_AIMGCSM . "." . TABLEPREFIX . "$table $alias 
+            WHERE $where";
+
+      // -----------------------------
+      // EXECUTE
+      // -----------------------------
+      $count  = $this->conn->global_Aggregate_Value_DB($sql);
+
+      // -----------------------------
+      // RESPONSE
+      // -----------------------------
+      if ($count > 0) {
+         return [
+            'check' => 'failure',
+            'user_row_count' => $count,
+            'message' => "This email is already taken; Please try another email."
+         ];
+      }
+
+      return [
+         'check' => 'success',
+         'user_row_count' => 0
+      ];
    }
 
    public function fetch_Current_User_Role($paramArr = array())
@@ -547,7 +554,7 @@ class GlobalInterfaceController
       // $this->debugQuery($dataSql, $dataParams);
 
       $data = $this->conn->global_Fetch_All_DB($dataSql, $dataParams);
-      $total = $this->conn->global_Count_Value_DB($countSql, $params);
+      $total = $this->conn->global_Aggregate_Value_DB($countSql, $params);
 
       return [
          'data' => $data,
@@ -1157,7 +1164,7 @@ class GlobalInterfaceController
       // $this->debugQuery($dataSql, $dataParams);
 
       $data = $this->conn->global_Fetch_All_DB($dataSql, $dataParams);
-      $total = $this->conn->global_Count_Value_DB($countSql, $params);
+      $total = $this->conn->global_Aggregate_Value_DB($countSql, $params);
 
       return [
          'data' => $data,
@@ -1324,7 +1331,7 @@ class GlobalInterfaceController
          array_pop($count_params); // limit
       }
 
-      $resultArr['row_count'] = $this->conn->global_Count_Value_DB($sql_count, $count_params);
+      $resultArr['row_count'] = $this->conn->global_Aggregate_Value_DB($sql_count, $count_params);
       $resultArr['pageNo'] = $pageNo;
       $resultArr['limit'] = $limit;
 
@@ -1448,7 +1455,7 @@ class GlobalInterfaceController
          array_pop($count_params); // limit
       }
 
-      $resultArr['row_count'] = $this->conn->global_Count_Value_DB($sql_count, $count_params);
+      $resultArr['row_count'] = $this->conn->global_Aggregate_Value_DB($sql_count, $count_params);
       $resultArr['pageNo'] = $pageNo;
       $resultArr['limit'] = $limit;
 
@@ -1671,7 +1678,7 @@ class GlobalInterfaceController
       // $this->debugQuery($dataSql, $dataParams);
 
       $data = $this->conn->global_Fetch_All_DB($dataSql, $dataParams);
-      $total = $this->conn->global_Count_Value_DB($countSql, $params);
+      $total = $this->conn->global_Aggregate_Value_DB($countSql, $params);
 
       return [
          'data' => $data,
@@ -1691,52 +1698,98 @@ class GlobalInterfaceController
 
    public function fetch_Dashboard_Student_Data($dataArr)
    {
+      // =========================
+      // DATE RANGES
+      // =========================
+      $today       = date('Y-m-d');
+      $weekStart   = date('Y-m-d', strtotime("monday this week"));
+      $monthStart  = date('Y-m-d', strtotime("first day of this month"));
+      $yearStart   = date('Y-m-d', strtotime("first day of January this year"));
 
-      $current_week_first_day = date('Y/m/d', strtotime("monday this week"));
-      $current_month_first_day = date('Y/m/d', strtotime("first day of this month"));
-      $current_year_first_day = date('Y/m/d', strtotime("first day of January this year"));
-      $today = date('Y/m/d');
+      $fetchType   = $dataArr['fetchType'] ?? 'monthly';
+      $franchiseId = (int)($dataArr['franchise_id'] ?? 0);
 
-      $fetchType = $dataArr['fetchType'];
-
+      // =========================
+      // BUILD DATE FILTER
+      // =========================
       switch ($fetchType) {
          case 'today':
-            $where_Clause = "WHERE DATE(stu.created_at) = '$today'";
+            $dateCondition = "stu.created_at >= ? AND stu.created_at < DATE_ADD(?, INTERVAL 1 DAY)";
+            $params = [$today, $today];
             break;
 
          case 'weekly':
-            $where_Clause = "WHERE DATE(stu.created_at) >= '$current_week_first_day'";
-            break;
-
-         case 'monthly':
-            $where_Clause = "WHERE DATE(stu.created_at) >= '$current_month_first_day'";
+            $dateCondition = "stu.created_at >= ?";
+            $params = [$weekStart];
             break;
 
          case 'annual':
-            $where_Clause = "WHERE DATE(stu.created_at) >= '$current_year_first_day'";
+            $dateCondition = "stu.created_at >= ?";
+            $params = [$yearStart];
             break;
 
+         case 'monthly':
          default:
-            $where_Clause = "WHERE DATE(stu.created_at) >= '$current_month_first_day'";
+            $dateCondition = "stu.created_at >= ?";
+            $params = [$monthStart];
             break;
       }
 
-      if ($dataArr['franchise_id'] > 0) {
-         $franchise_id = $dataArr['franchise_id'];
-         $where_Clause .= " AND stu.franchise_id = '$franchise_id'";
-         $where_total_clause = "WHERE stu.franchise_id = '$franchise_id'";
+      // =========================
+      // BASE QUERY (REUSABLE)
+      // =========================
+      $baseQuery = "
+           FROM " . DB_AIMGCSM . "." . TABLEPREFIX . "students stu
+           LEFT JOIN " . DB_AIMGCSM . "." . TABLEPREFIX . "results rslt 
+               ON stu.stu_id = rslt.stu_id
+           LEFT JOIN " . DB_AIMGCSM . "." . TABLEPREFIX . "franchise frn 
+               ON stu.franchise_id = frn.id
+           LEFT JOIN " . DB_AIMGCSM . "." . TABLEPREFIX . "course crs 
+               ON stu.course_id = crs.id
+       ";
+
+      // =========================
+      // WHERE CLAUSE
+      // =========================
+      $where = "WHERE $dateCondition";
+
+      if ($franchiseId > 0) {
+         $where .= " AND stu.franchise_id = ?";
+         $params[] = $franchiseId;
+
+         $totalWhere = "WHERE stu.franchise_id = ?";
+         $totalParams = [$franchiseId];
       } else {
-         $where_total_clause = "WHERE stu.id IS NOT NULL";
+         $totalWhere = "WHERE 1";
+         $totalParams = [];
       }
 
-      $sql = "SELECT stu.*,frn.center_name,crs.course_title,rslt.stu_result FROM " . DB_AIMGCSM . "." . TABLEPREFIX . "students stu LEFT JOIN " . DB_AIMGCSM . "." . TABLEPREFIX . "results rslt ON stu.stu_id = rslt.stu_id LEFT JOIN " . DB_AIMGCSM . "." . TABLEPREFIX . "franchise frn ON stu.franchise_id = frn.id LEFT JOIN " . DB_AIMGCSM . "." . TABLEPREFIX . "course crs ON stu.course_id = crs.id " . $where_Clause . " GROUP BY stu.id ORDER BY stu.id DESC";
+      // =========================
+      // FINAL QUERIES
+      // =========================
+      $dataSql = "
+           SELECT 
+               stu.*, 
+               frn.center_name, 
+               crs.course_title, 
+               rslt.stu_result
+           $baseQuery
+           $where
+           GROUP BY stu.id
+           ORDER BY stu.id DESC
+       ";
 
-      $sql_row_count = "SELECT stu.*,frn.center_name,crs.course_title,rslt.stu_result FROM " . DB_AIMGCSM . "." . TABLEPREFIX . "students stu LEFT JOIN " . DB_AIMGCSM . "." . TABLEPREFIX . "results rslt ON stu.stu_id = rslt.stu_id LEFT JOIN " . DB_AIMGCSM . "." . TABLEPREFIX . "franchise frn ON stu.franchise_id = frn.id LEFT JOIN " . DB_AIMGCSM . "." . TABLEPREFIX . "course crs ON stu.course_id = crs.id " . $where_total_clause . " GROUP BY stu.id ORDER BY stu.id DESC";
+      $countSql = "
+           SELECT COUNT(DISTINCT stu.id) as total
+           $baseQuery
+           $totalWhere
+       ";
 
-      //echo $sql;exit();
-
-      $resultArr['data'] = $this->conn->global_Fetch_All_DB($sql);
-      $resultArr['row_count'] = $this->conn->global_Rows_Count_DB($sql_row_count);
+      // =========================
+      // EXECUTION
+      // =========================
+      $resultArr['data'] = $this->conn->global_Fetch_All_DB($dataSql, $params);
+      $resultArr['row_count'] = $this->conn->global_Aggregate_Value_DB($countSql, $totalParams);
 
       return $resultArr;
    }
@@ -3972,47 +4025,37 @@ class GlobalInterfaceController
       return $resultArr;
    }
 
-   public function update_Global_Site_Setting($updateDataArr)
+   public function update_Global_Site_Setting($data)
    {
+      $table = DB_AIMGCSM . "." . TABLEPREFIX . "site_setting";
 
-      $title = $updateDataArr['title'];
-      $contact_email = $updateDataArr['contact_email'];
-      $phone = $updateDataArr['phone'];
-      $career_email = $updateDataArr['career_email'];
-      $business_email = $updateDataArr['business_email'];
-      $facebook_link = $updateDataArr['facebook_link'];
-      $youtube_link = $updateDataArr['youtube_link'];
-      $twitter_link = $updateDataArr['twitter_link'];
-      $skype_link = $updateDataArr['skype_link'];
-      $instagram_link =  $updateDataArr['instagram_link'];
-      $linkdin_link = $updateDataArr['linkdin_link'];
-      $copyright = $updateDataArr['copyright'];
-      $address = $updateDataArr['address'];
-      $description = $updateDataArr['description'];
+      // -----------------------------
+      // BUILD SET CLAUSE DYNAMICALLY
+      // -----------------------------
+      $setParts = [];
 
-      $signature = $updateDataArr['signature'];
-      $logo = $updateDataArr['logo'];
-      $header_logo = $updateDataArr['header_logo'];
-      $sticky_logo = $updateDataArr['sticky_logo'];
-      $footer_logo = $updateDataArr['footer_logo'];
-      $favicon = $updateDataArr['favicon'];
-
-      $feedback_status = $updateDataArr['feedback_status'];
-      $maintenance_status = $updateDataArr['maintenance_status'];
-      $site_caching = $updateDataArr['site_caching'];
-
-      $sql_update_setting = "UPDATE " . DB_AIMGCSM . "." . TABLEPREFIX . "site_setting SET `title` = '$title', `contact_email` = '$contact_email',`phone`='$phone',`career_email` = '$career_email', `business_email`= '$business_email',  `facebook_link` = '$facebook_link', `youtube_link` = '$youtube_link', `twitter_link` = '$twitter_link',`skype_link`='$skype_link', `instagram_link` = '$instagram_link', `linkdin_link` = '$linkdin_link', `copyright` = '$copyright', `address` = '$address', `description` = '$description',`signature` = '$signature',`logo` = '$logo', `header_logo` = '$header_logo', `sticky_logo` = '$sticky_logo', `footer_logo` = '$footer_logo', `favicon` = '$favicon', `feedback_status` = '$feedback_status',`maintenance_status` = '$maintenance_status',`site_caching` = '$site_caching',`updated_at`=now() WHERE `update_id`='UPDATE_THE_AIMGCSM_SITE_SETTINGS'";
-
-      //echo $sql_update_setting;exit();
-
-      $resultArr = $this->conn->global_CRUD_DB($sql_update_setting);
-
-      if ($resultArr['check'] == "success") {
-         $_SESSION['user_profile_pic'] = USER_UPLOAD_URL . 'others/' . $logo;
-         return $resultArr;
-      } else {
-         return $resultArr;
+      foreach ($data as $column => $value) {
+         if ($value === null) {
+            $setParts[] = "`$column` = NULL";
+         } else {
+            $value = $this->escape($value);
+            $setParts[] = "`$column` = '$value'";
+         }
       }
+
+      // always update timestamp
+      $setParts[] = "`updated_at` = NOW()";
+
+      $setClause = implode(', ', $setParts);
+
+      // -----------------------------
+      // FINAL QUERY
+      // -----------------------------
+      $sql = "UPDATE $table 
+            SET $setClause
+            WHERE `update_id` = 'UPDATE_THE_AIMGCSM_SITE_SETTINGS'";
+
+      return $this->conn->global_CRUD_DB($sql);
    }
 
    public function manage_Student_Profile($stuDataArr)
@@ -4102,7 +4145,7 @@ class GlobalInterfaceController
       // UPDATE JOB
       // -----------------------------
       if ($action === "update") {
-         
+
          $task_id  = (int) ($data['task_id'] ?? 0);
          $status   = $this->escape($data['status'] ?? '');
          $response = $this->escape($data['response'] ?? '');

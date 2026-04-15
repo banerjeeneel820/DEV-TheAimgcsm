@@ -206,7 +206,7 @@ class StudentReceiptController extends BaseController
         }
 
         // ===== PDF GENERATION =====
-        $receiptPdfRslt = $this->GlobalLibraryHandlerObj->createStudentReceiptPdf($receipt_id);
+        $receiptPdfRslt = $this->createStudentReceiptPdf($receipt_id);
 
         // ===== EMAIL =====
         if ($send_mail == "yes") {
@@ -403,7 +403,7 @@ class StudentReceiptController extends BaseController
         // -----------------------------
         if (!file_exists($file_upload_dir)) {
 
-            PdfFactory::generate($html, $file_upload_dir);
+            PdfFactory::generate($html, $file_upload_dir,'created_receipt');
         }
 
         // -----------------------------
@@ -586,7 +586,7 @@ class StudentReceiptController extends BaseController
         // -----------------------------
         // GENERATE PDF (USING FACTORY)
         // -----------------------------
-        PdfFactory::generate($html, $file_upload_dir);
+        PdfFactory::generate($html, $file_upload_dir,'created_receipt');
 
         return [
             'check' => 'success',

@@ -67,32 +67,27 @@ class GlobalLibraryHandler
 
   public function checkUserRolePermission($user_role_slug, $fetch_type = "hard")
   {
-    $returnArr = array();
     $paramArr['user_id'] = $_SESSION['user_id'];
     $paramArr['user_type'] = $_SESSION['user_type'];
 
-    if ($fetch_type == "hard") {
-      //Fetch current user role
+    // Fetch roles
+    if ($fetch_type === "hard") {
       $userRoleArr = $this->GlobalInterfaceControllerObj->fetch_Current_User_Role($paramArr);
     } else {
-      //Fetch current user role
-      $userRoleArr = $_SESSION['user_role'];
+      $userRoleArr = $_SESSION['user_role'] ?? [];
     }
 
-    //echo $fetch_type;
-    /*print"<pre>";
-    print_r($userRoleArr);exit;*/
-
-    //Check user permission 
-    if (is_array($userRoleArr)) {
-      if (in_array($user_role_slug, $userRoleArr)) {
-        return true;
-      } else {
-        return false;
-      }
-    } else {
+    if (!is_array($userRoleArr)) {
       return false;
     }
+
+    // If single role → same behavior (no change)
+    if (!is_array($user_role_slug)) {
+      return in_array($user_role_slug, $userRoleArr);
+    }
+
+    // If multiple roles → ALL must exist
+    return count(array_intersect($user_role_slug, $userRoleArr)) === count($user_role_slug);
   }
 
   public function purgeSiteCache($section)
@@ -726,25 +721,20 @@ class GlobalLibraryHandler
   public function handleFileUpload($config)
   {
     $input   = $config['input'];
-    $hidden  = $config['hidden'];
-    $default = $config['default'];
+    $hidden  = $config['hidden'] ?? '';
+    $default = $config['default'] ?? null;
     $dir     = $config['dir'];
-    $row_id  = $config['row_id'];
+    $isUpdate = $config['isUpdate'] ?? false;
 
-    // File uploaded
     if (!empty($_FILES[$input]['size'])) {
 
       $upload = $this->upload_file($input, $dir);
 
       if ($upload['check'] === 'success') {
 
-        // Delete old file (if exists & not default)
-        if ($row_id > 0 && !empty($hidden) && $hidden !== $default) {
-          $oldPath = USER_UPLOAD_DIR . $dir . '/' . $hidden;
-
-          if (file_exists($oldPath)) {
-            unlink($oldPath);
-          }
+        // delete old file only if updating
+        if ($isUpdate && !empty($hidden) && file_exists(USER_UPLOAD_DIR . $dir . '/' . $hidden)) {
+          unlink(USER_UPLOAD_DIR . $dir . '/' . $hidden);
         }
 
         return $upload['fileName'];
@@ -753,8 +743,12 @@ class GlobalLibraryHandler
       return $default;
     }
 
-    // No upload → keep old or default
-    return ($row_id > 0 && !empty($hidden)) ? $hidden : $default;
+    // fallback
+    if ($isUpdate && !empty($hidden)) {
+      return $hidden;
+    }
+
+    return $default;
   }
 
   public function upload_file($file_name, $dir)

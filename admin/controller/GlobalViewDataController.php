@@ -504,22 +504,22 @@ class GlobalViewDataController
     // =========================
     // DATE FORMATTER
     // =========================
-    $formatDate = function ($date) use ($GLH) {
-        $date = $GLH->getDataSanitize($date);
+    $formatDate = function ($key) use ($GLH) {
+        $date = $GLH->getDataSanitize($key);
         $date = str_replace('/', '-', $date);
         return date('Y-m-d', strtotime($date));
     };
 
     if (!empty($_GET['created'])) {
-        $dataArr['created'] = $formatDate($_GET['created']);
+        $dataArr['created'] = $formatDate('created');
     }
 
     if (!empty($_GET['search_start'])) {
-        $dataArr['search_start'] = $formatDate($_GET['search_start']);
+        $dataArr['search_start'] = $formatDate('search_start');
     }
 
     if (!empty($_GET['search_end'])) {
-        $dataArr['search_end'] = $formatDate($_GET['search_end']);
+        $dataArr['search_end'] = $formatDate('search_end');
     }
 
     // =========================

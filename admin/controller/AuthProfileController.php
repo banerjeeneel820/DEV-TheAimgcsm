@@ -176,4 +176,34 @@ class UserProfileController extends BaseController
         return $this->GlobalInterfaceControllerObj
             ->edit_Franchise_Profile($formDataArr);
     }
+
+    public function check_user_email_availability($data)
+    {
+        $post = fn ($key) => $this->GlobalLibraryHandlerObj->postDataSanitize($key);
+
+        // -----------------------------
+        // INPUT DATA
+        // -----------------------------
+        $payload = [
+            'user_email' => $post('user_email'),
+            'user_type'  => $post('user_type'),
+            'user_id'    => (int) $post('user_id')
+        ];
+
+        // -----------------------------
+        // VALIDATION (Basic)
+        // -----------------------------
+        if (empty($payload['user_email']) || empty($payload['user_type'])) {
+            return [
+                'check' => 'failure',
+                'message' => 'Required fields missing'
+            ];
+        }
+
+        // -----------------------------
+        // CALL MODEL
+        // -----------------------------
+        return $this->GlobalInterfaceControllerObj
+            ->check_User_Email_Availability($payload);
+    }
 }

@@ -21,10 +21,8 @@ class PdfFactory
     // -----------------------------
     // CREATE INSTANCE
     // -----------------------------
-    public static function make()
+    public static function make($config)
     {
-        $config = self::getConfig();
-
         $options = new Options();
         $options->set('isRemoteEnabled', $config['isRemoteEnabled']);
         $options->set('isHtml5ParserEnabled', $config['isHtml5ParserEnabled']);
@@ -36,14 +34,14 @@ class PdfFactory
     // -----------------------------
     // GENERATE & SAVE FILE
     // -----------------------------
-    public static function generate($html, $filePath)
+    public static function generate($html, $filePath,$configType='export_data')
     {
-        $config = self::getConfig();
+        $config = self::getConfig()[$configType];
 
-        $pdf = self::make();
+        $pdf = self::make($config);
 
         $pdf->loadHtml($html);
-        $pdf->setPaper($config['paper']);
+        $pdf->setPaper($config['paper'],$config['orientation']);
         $pdf->render();
 
         file_put_contents($filePath, $pdf->output());
@@ -54,14 +52,14 @@ class PdfFactory
     // -----------------------------
     // STREAM PDF TO BROWSER
     // -----------------------------
-    public static function stream($html, $filename = 'document.pdf')
+    public static function stream($html, $filename,$configType='export_data')
     {
-        $config = self::getConfig();
+        $config = self::getConfig()[$configType];
 
-        $pdf = self::make();
+        $pdf = self::make($config);
 
         $pdf->loadHtml($html);
-        $pdf->setPaper($config['paper']);
+        $pdf->setPaper($config['paper'],$config['orientation']);
         $pdf->render();
 
         // Stream to browser (inline view)

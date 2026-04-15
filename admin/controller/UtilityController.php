@@ -358,22 +358,20 @@ class UtilityController extends BaseController
                 unlink($filePath);
             }
 
-            echo json_encode([
+            return [
                 'check' => 'success',
                 'message' => 'Cache cleared successfully!'
-            ]);
-            break;
+            ];
         }
 
         // -----------------------------
         // PERMISSION CHECK
         // -----------------------------
         if (!$this->GlobalLibraryHandlerObj->checkUserRolePermission('update_site_setting', "hard")) {
-            echo json_encode([
+            return [
                 'check' => 'failure',
                 'message' => "You don't have the permission to perform this action!"
-            ]);
-            break;
+            ];
         }
 
         // -----------------------------
@@ -391,15 +389,7 @@ class UtilityController extends BaseController
         ];
     }
 
-    public function remove_file_from_Server($data)
-    {
-        $file_upload_dir = mysqli_real_escape_string(DB::$WRITELINK, trim($_POST['file_upload_dir']));
-
-        unlink($file_upload_dir);
-        return ['check' => 'success'];
-    }
-
-    public function remove_file_from_Servers($data)
+    public function remove_file_from_server($data)
     {
         $post = fn ($key) => $this->GlobalLibraryHandlerObj->postDataSanitize($key);
 
@@ -521,4 +511,110 @@ class UtilityController extends BaseController
             'message' => "Backup job is successfully queued!"
         ];
     }
+
+    public function update_site_setting($data)
+    {
+        $formDataArr = [];
+
+        // helper
+        $post = fn ($key) => $this->GlobalLibraryHandlerObj->postDataSanitize($key);
+
+        // -----------------------------
+        // PERMISSION CHECK
+        // -----------------------------
+        if (!$this->GlobalLibraryHandlerObj->checkUserRolePermission("update_site_setting", "hard")) {
+            return ['check' => 'failure', 'message' => "You don't have the permission to perform this action!"];
+        }
+
+        $dir = 'others';
+
+        // -----------------------------
+        // BASIC FIELDS
+        // -----------------------------
+        $fields = [
+            'title', 'contact_email', 'phone', 'career_email', 'business_email',
+            'facebook_link', 'youtube_link', 'twitter_link', 'skype_link',
+            'instagram_link', 'telegram_link', 'linkdin_link', 'copyright',
+            'address', 'feedback_status', 'maintenance_status',
+            'site_caching', 'description'
+        ];
+
+        foreach ($fields as $field) {
+            $formDataArr[$field] = $post($field);
+        }
+
+        // -----------------------------
+        // FILE UPLOADS (USING HELPER)
+        // -----------------------------
+
+        // signature
+        $formDataArr['signature'] = $this->GlobalLibraryHandlerObj->handleFileUpload([
+            'input'   => 'signature',
+            'hidden'  => $post('hidden_signature'),
+            'default' => 'signature.jpg',
+            'dir'     => $dir,
+            'isUpdate' => true
+        ]);
+
+        // logo
+        $formDataArr['logo'] = $this->GlobalLibraryHandlerObj->handleFileUpload([
+            'input'   => 'logo',
+            'hidden'  => $post('hidden_logo'),
+            'default' => 'company.png',
+            'dir'     => $dir,
+            'isUpdate' => true
+        ]);
+
+        // header logo
+        $formDataArr['header_logo'] = $this->GlobalLibraryHandlerObj->handleFileUpload([
+            'input'   => 'header_logo',
+            'hidden'  => $post('hidden_header_logo'),
+            'default' => null,
+            'dir'     => $dir,
+            'isUpdate' => true
+        ]);
+
+        // sticky logo
+        $formDataArr['sticky_logo'] = $this->GlobalLibraryHandlerObj->handleFileUpload([
+            'input'   => 'sticky_logo',
+            'hidden'  => $post('hidden_sticky_logo'),
+            'default' => null,
+            'dir'     => $dir,
+            'isUpdate' => true
+        ]);
+
+        // footer logo
+        $formDataArr['footer_logo'] = $this->GlobalLibraryHandlerObj->handleFileUpload([
+            'input'   => 'footer_logo',
+            'hidden'  => $post('hidden_footer_logo'),
+            'default' => null,
+            'dir'     => $dir,
+            'isUpdate' => true
+        ]);
+
+        // favicon
+        $formDataArr['favicon'] = $this->GlobalLibraryHandlerObj->handleFileUpload([
+            'input'   => 'favicon',
+            'hidden'  => $post('hidden_favicon'),
+            'default' => null,
+            'dir'     => $dir,
+            'isUpdate' => true
+        ]);
+
+        // -----------------------------
+        // DB OPERATION
+        // -----------------------------
+        $returnArr = $this->GlobalInterfaceControllerObj
+            ->update_Global_Site_Setting($formDataArr);
+
+        // -----------------------------
+        // SESSION UPDATE (HERE)
+        // -----------------------------
+        if ($returnArr['check'] === 'success' && !empty($formDataArr['logo'])) {
+            $_SESSION['user_profile_pic'] = USER_UPLOAD_URL . 'others/' . $formDataArr['logo'];
+        }
+
+        return $returnArr;
+    }
+
 }

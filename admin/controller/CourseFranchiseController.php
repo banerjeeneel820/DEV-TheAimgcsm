@@ -100,7 +100,7 @@ class CourseFranchiseController extends BaseController
             'hidden'  => $_POST['hidden_fran_image'] ?? '',
             'default' => null,
             'dir'     => $dir,
-            'row_id'  => $isUpdate ? $formDataArr['fran_row_id'] : 0,
+            'isUpdate'  => $isUpdate,
         ]);
 
         $formDataArr['fran_pdf_name'] = $this->GlobalLibraryHandlerObj->handleFileUpload([
@@ -108,7 +108,7 @@ class CourseFranchiseController extends BaseController
             'hidden'  => $_POST['hidden_fran_pdf'] ?? '',
             'default' => null,
             'dir'     => $dir,
-            'row_id'  => $isUpdate ? $formDataArr['fran_row_id'] : 0,
+            'isUpdate'  => $isUpdate,
         ]);
 
         // -----------------------------
@@ -201,7 +201,7 @@ class CourseFranchiseController extends BaseController
             'hidden'  => $_POST['hidden_course_thumbnail'] ?? '',
             'default' => null,
             'dir'     => $dir,
-            'row_id'  => $isUpdate ? $formDataArr['course_id'] : 0,
+            'isUpdate'  => $isUpdate,
         ]);
 
         $formDataArr['course_pdf'] = $this->GlobalLibraryHandlerObj->handleFileUpload([
@@ -209,7 +209,7 @@ class CourseFranchiseController extends BaseController
             'hidden'  => $_POST['hidden_course_pdf'] ?? '',
             'default' => null,
             'dir'     => $dir,
-            'row_id'  => $isUpdate ? $formDataArr['course_id'] : 0,
+            'isUpdate'  => $isUpdate,
         ]);
 
         // -----------------------------

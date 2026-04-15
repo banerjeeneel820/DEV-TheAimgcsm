@@ -1,0 +1,42 @@
+<?php
+defined('ROOTPATH') or exit('No direct script access allowed');
+
+class ExportController extends BaseController
+{
+    private $exportService;
+
+    public function __construct()
+    {   
+        parent::__construct();
+        $this->exportService = new ExportService();
+    }
+
+    public function handle_export_data($data)
+    {
+        // helper
+        $post = fn ($key) => $this->GlobalLibraryHandlerObj->postDataSanitize($key);
+        
+        $type = $post('export_table') ?? '';
+        
+        switch ($type) {
+            case 'student':
+                // Check user permission
+                $user_role_slug_arr = ['view_student','update_student'];
+
+                if (!$this->GlobalLibraryHandlerObj->checkUserRolePermission($user_role_slug_arr, "hard")) {
+                    return ['check' => 'failure', 'message' => "You don't have the permission to perform this action!"];
+                }
+                // Return export data if user has permission
+                return $this->exportService->exportStudent($post);
+
+            case 'receipt':
+                return $this->exportService->exportReceipt($post);
+
+            case 'franchise':
+                return $this->exportService->exportFranchise($post);
+
+            default:
+                return ['check' => 'failure', 'message' => 'Invalid export type'];
+        }
+    }
+}

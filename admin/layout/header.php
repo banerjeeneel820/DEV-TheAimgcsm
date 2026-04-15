@@ -479,7 +479,7 @@ if (empty($_SESSION['user_id'])) {
                 var RESOURCE_URL = "<?= RESOURCE_URL ?>";
                 var RESOURCE_URL = "<?= RESOURCE_URL ?>";
                 var user_type = "<?= $_SESSION['user_type'] ?>";
-                var ajaxControllerHandler = "<?= SITE_URL ?>controller/callAjaxController.php";
+                var ajaxControllerHandler = "<?= SITE_URL ?>index.php";
                 var exportTableDataController = "<?= SITE_URL ?>controller/exportTableDataController.php";
                 var importTableDataController = "<?= SITE_URL ?>controller/importTableDataController.php";
                 $(document).ready(function() {

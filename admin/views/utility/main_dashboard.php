@@ -7,15 +7,14 @@ $siteBackupQueue = $pageContent['pageData']['site_backup_queue'];
 
 //Configiring course data
 $courseListArr = $pageContent['pageData']['course_data'];
-$latestCourseArr = array_slice($courseListArr, 0, 5);
 
 //Configiring student data
 $studentListArr = $pageContent['pageData']['student_data']['data'];
-$studentCount = $pageContent['pageData']['student_data']['row_count'];
+$studentCount = count($pageContent['pageData']['student_data']);
 
 //Configiring receipt data
 $receiptListArr = $pageContent['pageData']['receipt_data']['data'];
-$receiptCount = $pageContent['pageData']['receipt_data']['row_count'];
+$receiptCount = count($pageContent['pageData']['receipt_data']);
 
 //Configiring gallery data
 $galleryListArr = $pageContent['pageData']['gallery_data'];
@@ -23,6 +22,9 @@ $galleryListArr = $pageContent['pageData']['gallery_data'];
 //Configiring news data
 $newsListArr = $pageContent['pageData']['news_data'];
 $latestNewsArr = array_slice($newsListArr, 0, 5);
+
+//Configiring enquiry data
+$enquiryListArr = $pageContent['pageData']['enquiry_data']['data'];
 
 if ($_GET['dataType'] == "student") {
   if (isset($_GET['fetchType'])) {
@@ -67,53 +69,21 @@ if($siteBackupQueue){
 //Fetching page action permission
 $viewStuPermission = $this->globalLibraryHandlerObj->checkUserRolePermission("view_student");
 $viewReceiptPermission = $this->globalLibraryHandlerObj->checkUserRolePermission("view_receipt");
-$viewCoursePermission = $this->globalLibraryHandlerObj->checkUserRolePermission("view_course");
-
-$viewNewsPermission = $this->globalLibraryHandlerObj->checkUserRolePermission("view_news");
-$viewGalleryPermission = $this->globalLibraryHandlerObj->checkUserRolePermission("view_gallery");
+$viewEnquiryPermission = $this->globalLibraryHandlerObj->checkUserRolePermission("view_enquiry");
 
 $stuUpdatePermission = $this->globalLibraryHandlerObj->checkUserRolePermission("update_student");
 $updateReceiptPermission = $this->globalLibraryHandlerObj->checkUserRolePermission("update_receipt");
 
-if ($viewCoursePermission) {
-  $view_course_url = SITE_URL . "?route=view_course";
-} else {
-  $view_course_url = FRONT_SITE_URL . "course";
-}
-
-if ($viewGalleryPermission) {
-  $view_gallery_url = SITE_URL . "?route=gallery";
-} else {
-  $view_gallery_url = FRONT_SITE_URL . "gallery";
-}
-
-if ($viewNewsPermission) {
-  $view_news_url = SITE_URL . "?route=view_news";
-} else {
-  $view_news_url = FRONT_SITE_URL . "news";
-}
-
-if ($_SESSION['user_type'] == 'franchise') {
-  if ($_SESSION['owned_status'] == "yes" && $updateReceiptPermission == true) {
-    $showReceiptPermission = true;
-  } else {
-    $showReceiptPermission = false;
-  }
-} elseif ($_SESSION['user_type'] == 'admin' || $_SESSION['user_type'] == 'developer') {
-  if ($updateReceiptPermission) {
-    $showReceiptPermission = true;
-  } else {
-    $showReceiptPermission = false;
-  }
-}
-
 $siteBakupPermission = $this->globalLibraryHandlerObj->checkUserRolePermission("manage_site_backup");
-$backupLimit = $_SESSION['user_type'] == "developer" ? true : ($_COOKIE["backupCount"] < 2 ? true : false);
+$backupLimit = $_SESSION['user_type'] == "developer" ? true : ($_COOKIE["backupCount"] < 2 ? true:false);
 
-/*print"<pre>";
- print_r($countProfileField);
- print"</pre>";*/
+// $mem_var = new Memcached();
+// $mem_var->addServer("127.0.0.1", 11211);
+// $response = $mem_var->get("student_dashboard_weekly");
 
+// print"<pre>";
+// print_r($response);
+// print"</pre>";
 ?>
 <div class="wrapper wrapper-content">
   <div class="row mb-3">
@@ -126,7 +96,7 @@ $backupLimit = $_SESSION['user_type'] == "developer" ? true : ($_COOKIE["backupC
           if (count($latestNewsArr) > 0) {
             foreach ($latestNewsArr as $index => $news) {
           ?>
-              <li><a href="<?= $view_news_url ?>"><img src="<?= RESOURCE_URL ?>images/new_blink.gif" style="height:30px;width:30px;display:inline-block;">&nbsp;<?= $news->title ?></a></li>
+              <li><a href="<?= SITE_URL . "?route=view_news" ?>"><img src="<?= RESOURCE_URL ?>images/new_blink.gif" style="height:30px;width:30px;display:inline-block;">&nbsp;<?= $news->title ?></a></li>
             <?php }
           } else { ?>
             <li>...No news is available at this moment...</li>
@@ -136,7 +106,7 @@ $backupLimit = $_SESSION['user_type'] == "developer" ? true : ($_COOKIE["backupC
     </div>
   </div>
 
-  <?php if ($_SESSION['owned_status'] == "yes") { ?>
+  <?php if (($_SESSION['user_type'] == "admin" || $_SESSION['user_type'] == "developer")) { ?>
     <div class="row">
       <div class="col-lg-12">
         <div class="alert alert-primary" role="alert">
@@ -165,58 +135,20 @@ $backupLimit = $_SESSION['user_type'] == "developer" ? true : ($_COOKIE["backupC
       </div>
     </div>
 
-    <?php if ($viewReceiptPermission) { ?>
-      <div class="col-lg-3">
-        <div class="ibox ">
-          <div class="ibox-title">
-            <div class="ibox-tools">
-              <a href="<?= SITE_URL ?>?route=view_receipts&dataType=receipt" target="_blank">
-                <span class="label label-success float-right">View Receipts</span>
-              </a>
-            </div>
-            <h5><i class="fa fa-inr"></i> Receipts</h5>
-          </div>
-          <div class="ibox-content">
-            <h1 class="no-margins"><?= (count($receiptListArr) > 0 ? count($receiptListArr) : 0) ?></h1>
-            <div class="stat-percent font-bold text-danger"><?= count($receiptListArr) ?> <i class="fa fa-money"></i></div>
-            <small>In first month</small>
-          </div>
-        </div>
-      </div>
-    <?php } else { ?>
-      <div class="col-lg-3">
-        <div class="ibox ">
-          <div class="ibox-title">
-            <div class="ibox-tools">
-              <a href="<?= $view_gallery_url ?>" target="_blank">
-                <span class="label label-success float-right">View Gallery</span>
-              </a>
-            </div>
-            <h5><i class="fa fa-picture-o"></i> Gallery</h5>
-          </div>
-          <div class="ibox-content">
-            <h1 class="no-margins"><?= count($galleryListArr) ?></h1>
-            <div class="stat-percent font-bold text-danger"><?= count($galleryListArr) ?> <i class="fa fa-picture-o"></i></div>
-            <small>Total Pictures</small>
-          </div>
-        </div>
-      </div>
-    <?php } ?>
-
     <div class="col-lg-3">
       <div class="ibox ">
         <div class="ibox-title">
           <div class="ibox-tools">
-            <a href="<?= $view_course_url ?>" target="_blank">
-              <span class="label label-success float-right">View Course</span>
+            <a href="<?= SITE_URL ?>?route=view_receipts&dataType=receipt" target="_blank">
+              <span class="label label-success float-right">View Receipts</span>
             </a>
           </div>
-          <h5><i class="fa fa-laptop"></i> Course</h5>
+          <h5><i class="fa fa-inr"></i> Receipts</h5>
         </div>
         <div class="ibox-content">
-          <h1 class="no-margins"><?= count($courseListArr) ?></h1>
-          <div class="stat-percent font-bold text-info"><?= count($courseListArr) ?>&nbsp;<i class="fa fa-laptop"></i></div>
-          <small>Total Course</small>
+          <h1 class="no-margins"><?= $receiptCount ?></h1>
+          <div class="stat-percent font-bold text-danger"><?= count($receiptListArr) ?> <i class="fa fa-money"></i></div>
+          <small>This month</small>
         </div>
       </div>
     </div>
@@ -225,22 +157,40 @@ $backupLimit = $_SESSION['user_type'] == "developer" ? true : ($_COOKIE["backupC
       <div class="ibox ">
         <div class="ibox-title">
           <div class="ibox-tools">
-            <a href="<?= $view_news_url ?>" target="_blank">
-              <span class="label label-success float-right">View News</span>
+            <a href="<?= SITE_URL ?>?route=view_enquiry" target="_blank">
+              <span class="label label-success float-right">View Enquiry</span>
             </a>
           </div>
-          <h5><i class="fa fa-newspaper-o"></i> News</h5>
+          <h5><i class="fa fa-envelope-o"></i> Enquiry</h5>
         </div>
         <div class="ibox-content">
-          <h1 class="no-margins"><?= count($newsListArr) ?></h1>
-          <div class="stat-percent font-bold text-info"><?= count($newsListArr) ?>&nbsp;<i class="fa fa-newspaper-o"></i></div>
-          <small>Total News</small>
+          <h1 class="no-margins"><?= count($enquiryListArr) ?></h1>
+          <div class="stat-percent font-bold text-info"><?= count($enquiryListArr) ?>&nbsp;<i class="fa fa-envelope-o"></i></div>
+          <small>This Week Enquiry</small>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-lg-3">
+      <div class="ibox ">
+        <div class="ibox-title">
+          <div class="ibox-tools">
+            <a href="<?= SITE_URL ?>?route=view_courses" target="_blank">
+              <span class="label label-success float-right">View Courses</span>
+            </a>
+          </div>
+          <h5><i class="fa fa-laptop"></i> Courses</h5>
+        </div>
+        <div class="ibox-content">
+          <h1 class="no-margins"><?= count($courseListArr) ?></h1>
+          <div class="stat-percent font-bold text-info"><?= count($courseListArr) ?>&nbsp;<i class="fa fa-laptop"></i></div>
+          <small>All Courses</small>
         </div>
       </div>
     </div>
   </div>
 
-  <?php if ($siteBakupPermission) { ?>
+  <?php if($siteBakupPermission){ ?>
     <div class="row">
       <div class="col-lg-12">
         <div class="ibox ">
@@ -251,7 +201,7 @@ $backupLimit = $_SESSION['user_type'] == "developer" ? true : ($_COOKIE["backupC
                 <button type="button" id="createServerBackup" class="btn btn-xs btn-primary">
                   <i class="fa fa-recycle"> </i> Create Latest Backup
                 </button>
-              <?php } ?>
+              <?php } ?>  
             </div>
           </div>
           <div class="ibox-content content_div_loader">
@@ -302,7 +252,7 @@ $backupLimit = $_SESSION['user_type'] == "developer" ? true : ($_COOKIE["backupC
                             </td>
 
                             <td>
-                              <a href="<?= $file_url ?>" class="btn btn-danger btn-sm" data-toggle="tooltip" data-placement="top" title="" data-original-title="Download this File">
+                              <a href="<?= $file_url ?>" class="btn btn-danger btn-sm" data-toggle="tooltip" data-placement="top" title="" data-original-title="Download this File" download>
                                 <i class="fa fa-download"></i>&nbsp;Download
                               </a>
                             </td>
@@ -342,7 +292,7 @@ $backupLimit = $_SESSION['user_type'] == "developer" ? true : ($_COOKIE["backupC
           <div class="ibox-title">
             <h5>Some Recent Student Data </h5>
             <div class="ibox-tools">
-              <button type="button" class="btn btn-xs btn-primary export_student_receipt_data" data-tbl="student" data-export="excel"><i class="fa fa-file-excel-o"> </i> Export Data in CSV Format</button>
+              <button type="button" class="btn btn-xs btn-primary export_student_data" data-tbl="student" data-export="excel"><i class="fa fa-file-excel-o"> </i> Export Data in CSV Format</button>
 
               <a href="javascript:void(0)" id="student_export_record_href" style="display:none" download>
                 <button type="button" id="student_hidden_export_button">Export</button>
@@ -386,7 +336,7 @@ $backupLimit = $_SESSION['user_type'] == "developer" ? true : ($_COOKIE["backupC
                 </thead>
                 <tbody>
                   <?php
-                  if (count($studentListArr)) {
+                  if (count($studentListArr) > 0) {
                     foreach ($studentListArr as $index => $content) {
 
                       $student_image_path = USER_UPLOAD_DIR . 'student/' . $content->image_file_name;
@@ -397,7 +347,7 @@ $backupLimit = $_SESSION['user_type'] == "developer" ? true : ($_COOKIE["backupC
                         $student_image_url = USER_UPLOAD_URL . 'student/' . $content->image_file_name;
                       }
                   ?>
-                      <tr>
+                      <tr id="stu_tr_<?= $content->stu_id ?>" style="background-color:<?= ($content->verified_status == '0' ? '#f1d0d0;' : '') ?>">
 
                         <td class="client-avatar">
                           <a href="<?= $student_image_url ?>" data-fancybox="gallery" data-caption="<?= $content->stu_name ?>">
@@ -406,7 +356,7 @@ $backupLimit = $_SESSION['user_type'] == "developer" ? true : ($_COOKIE["backupC
                         </td>
 
                         <td class="project-title" style="width:18%;">
-                          <a href="javascript:void(0);" class="viewStudentDetail" data-sid="<?= $content->id ?>" data-toggle="tooltip" data-placement="bottom" title="Student Name: <?= $content->stu_name ?>"><?= $content->stu_name ?></a>
+                          <a href="javascript:void(0);" class="viewStudentDetail" data-sid="<?= $content->id ?>" data-toggle="tooltip" data-placement="top" title="Student Name: <?= $content->stu_name ?>"><?= $content->stu_name ?></a>
                           <br />
                           <small>Created <?= date('jS F, Y', strtotime($content->created_at)) ?></small>
                         </td>
@@ -435,15 +385,24 @@ $backupLimit = $_SESSION['user_type'] == "developer" ? true : ($_COOKIE["backupC
                             <ul class="dropdown-menu">
                               <?php if ($stuUpdatePermission) { ?>
                                 <li>
-                                  <a href="<?= SITE_URL ?>?route=edit_student&id=<?= $content->id ?>" target="_blank" data-toggle="tooltip" data-placement="bottom" title="Edit this student"><i class="fa fa-edit"></i> Edit Student</a>
+                                  <a href="<?= SITE_URL ?>?route=edit_student&id=<?= $content->id ?>" target="_blank" data-toggle="tooltip" data-placement="top" title="Edit this student"><i class="fa fa-edit"></i> Edit Student</a>
                                 </li>
 
                                 <li>
-                                  <a href="<?= SITE_URL ?>?route=clone_student&id=<?= $content->id ?>" data-toggle="tooltip" data-placement="bottom" title="Clone this student"><i class="fa fa-clone"></i> Clone Student</a>
+                                  <a href="<?= SITE_URL ?>?route=clone_student&id=<?= $content->id ?>" data-toggle="tooltip" data-placement="top" title="Clone this student"><i class="fa fa-clone"></i> Clone Student</a>
                                 </li>
                               <?php } ?>
+
+                              <?php if ($stuUpdatePermission && ($_SESSION['user_type'] == "admin" || $_SESSION['user_type'] == "developer")) { ?>
+
+                                <li>
+                                  <a href="javascript:void(0)" id="item_<?= $content->stu_id ?>" class="verified_action" data-vstatus="<?= ($content->verified_status == '1' ? '0' : '1') ?>" data-sid="<?= $content->stu_id ?>" data-toggle="tooltip" data-placement="top" title="Make this receipt's status <?= ($content->verified_status == '1' ? 'not verified' : 'verified') ?>"><i class="<?= ($content->verified_status == '1' ? 'fa fa-check-circle' : 'fa fa-info-circle') ?>"></i> <?= ($content->verified_status == '1' ? 'Verified' : 'Not-Verified') ?>
+                                  </a>
+                                </li>
+
+                              <?php } ?>
                               <li>
-                                <a href="javascript:void(0);" class="viewStudentDetail" data-sid="<?= $content->id ?>" data-toggle="tooltip" data-placement="bottom" title="View student info"><i class="fa fa-eye"></i> View Student</a>
+                                <a href="javascript:void(0);" class="viewStudentDetail" data-sid="<?= $content->id ?>" data-toggle="tooltip" data-placement="top" title="View student info"><i class="fa fa-eye"></i> View Student</a>
                               </li>
                             </ul>
                           </span>
@@ -479,7 +438,7 @@ $backupLimit = $_SESSION['user_type'] == "developer" ? true : ($_COOKIE["backupC
           <div class="ibox-title">
             <h5>Student Recent Receipt Data</h5>
             <div class="ibox-tools">
-              <button type="button" class="btn btn-xs btn-primary export_student_receipt_data" data-tbl="receipt" data-export="excel"><i class="fa fa-file-excel-o"> </i> Export Data in CSV Format</button>
+              <button type="button" class="btn btn-xs btn-primary export_student_data" data-tbl="receipt" data-export="excel"><i class="fa fa-file-excel-o"> </i> Export Data in CSV Format</button>
 
               <a href="javascript:void(0)" id="receipt_export_record_href" style="display:none" download>
                 <button type="button" id="receipt_hidden_export_button">Export</button>
@@ -544,7 +503,7 @@ $backupLimit = $_SESSION['user_type'] == "developer" ? true : ($_COOKIE["backupC
                           $total_receipt_amount = round((int)$content->receipt_amount + (int)$content->late_fine + (int)$content->extra_fees);
                           $total_collection = round((int)$total_collection + (int)$content->receipt_amount);
                       ?>
-                          <tr>
+                          <tr id="rcpt_tr_<?= $content->receipt_id ?>" style="background-color:<?= ($content->verified_status == '0' ? '#f1d0d0;' : '') ?>">
                             <!--<td><?= $index + 1 ?></td>-->
 
                             <td class="client-avatar">
@@ -554,22 +513,22 @@ $backupLimit = $_SESSION['user_type'] == "developer" ? true : ($_COOKIE["backupC
                             </td>
 
                             <td class="project-title">
-                              <a href="javascript:void(0);" class="viewStudentDetail" data-sid="<?= $content->id ?>" data-toggle="tooltip" data-placement="bottom" title="Student Name: <?= $content->stu_name ?>"><?= (strlen($content->stu_name) > 20 ? substr($content->stu_name, 0, 20) . "..." : $content->stu_name) ?></a>
+                              <a href="javascript:void(0);" class="viewStudentDetail" data-sid="<?= $content->id ?>" data-toggle="tooltip" data-placement="top" title="Student Name: <?= $content->stu_name ?>"><?= (strlen($content->stu_name) > 20 ? substr($content->stu_name, 0, 20) . "..." : $content->stu_name) ?></a>
                               <br />
                               <small>Created <?= date('jS F, Y', strtotime($content->created_at)) ?></small>
                             </td>
 
                             <td class="project-title" style="width:10%;">
-                              <span class="cursor-pointer" data-toggle="tooltip" data-placement="bottom" title="Student ID: <?= $content->stu_id ?>"><?= $content->stu_id ?></span>
+                              <span class="cursor-pointer" data-toggle="tooltip" data-placement="top" title="Student ID: <?= $content->stu_id ?>"><?= $content->stu_id ?></span>
                             </td>
 
                             <td class="project-title" style="width:10%;">
-                              <span class="cursor-pointer" data-toggle="tooltip" data-placement="bottom" title="Receipt ID: <?= $content->receipt_id ?>"><?= $content->receipt_id ?></span><br />
+                              <span class="cursor-pointer" data-toggle="tooltip" data-placement="top" title="Receipt ID: <?= $content->receipt_id ?>"><?= $content->receipt_id ?></span><br />
                               <small>Receipt Type: <?= ucfirst($content->category) ?></small>
                             </td>
 
                             <td class="project-title">
-                              <span class="cursor-pointer" data-toggle="tooltip" data-placement="bottom" title="Receipt Amount: <?= $total_receipt_amount ?>"><i class="fa fa-inr" aria-hidden="true"></i>&nbsp;<?= $total_receipt_amount ?></span>
+                              <span class="cursor-pointer" data-toggle="tooltip" data-placement="top" title="Receipt Amount: <?= $total_receipt_amount ?>"><i class="fa fa-inr" aria-hidden="true"></i>&nbsp;<?= $total_receipt_amount ?></span>
                             </td>
 
                             <td class="project-title" style="width:22%;">
@@ -583,19 +542,28 @@ $backupLimit = $_SESSION['user_type'] == "developer" ? true : ($_COOKIE["backupC
                                 <ul class="dropdown-menu">
 
                                   <li>
-                                    <a href="javascript:void(0);" class="viewStudentDetail" data-sid="<?= $content->id ?>" data-toggle="tooltip" data-placement="bottom" title="View student info"><i class="fa fa-eye"></i> View Student</a>
+                                    <a href="javascript:void(0);" class="viewStudentDetail" data-sid="<?= $content->id ?>" data-toggle="tooltip" data-placement="top" title="View student info"><i class="fa fa-eye"></i> View Student</a>
                                   </li>
 
                                   <?php if ($updateReceiptPermission) { ?>
                                     <li>
-                                      <a href="<?= SITE_URL . '?route=view_receipts&actionType=edit&rcpt_id=' . $content->id ?>" data-toggle="tooltip" data-placement="bottom" title="Edit this Receipt for this student"><i class="fa fa-pencil"></i> Edit Receipt</a>
+                                      <a href="<?= SITE_URL . '?route=view_receipts&actionType=edit&rcpt_id=' . $content->id ?>" data-toggle="tooltip" data-placement="top" title="Edit this Receipt for this student"><i class="fa fa-pencil"></i> Edit Receipt</a>
                                     </li>
                                   <?php } ?>
 
-                                  <li>
-                                    <a href="javascript:void(0);" class="exportReceiptData" data-toggle="tooltip" data-placement="bottom" title="Print PDF file for this receipt" data-rid="<?= $content->id ?>" data-rcptid="<?= $content->receipt_id ?>" data-extype="print" data-toggle="tooltip" data-placement="bottom" title="Print PDF file for this receipt"><i class="fa fa-print"></i>&nbsp;Print Receipt</a>
+                                  <?php if ($updateReceiptPermission && ($_SESSION['user_type'] == "admin" || $_SESSION['user_type'] == "developer")) { ?>
 
-                                    <a href="javascript:void(0);" class="exportReceiptData" data-toggle="tooltip" data-placement="bottom" title="Download PDF file for this receipt" data-rid="<?= $content->id ?>" data-rcptid="<?= $content->receipt_id ?>" data-extype="download" data-toggle="tooltip" data-placement="bottom" title="Download PDF file for this receipt"><i class="fa fa-download"></i>&nbsp;Download</a>
+                                    <li>
+                                      <a href="javascript:void(0)" id="item_<?= $content->receipt_id ?>" class="receipt_verified_action" data-vstatus="<?= ($content->verified_status == '1' ? '0' : '1') ?>" data-rid="<?= $content->receipt_id ?>" data-toggle="tooltip" data-placement="top" title="Make this receipt's status <?= ($content->verified_status == '1' ? 'not verified' : 'verified') ?>"><i class="<?= ($content->verified_status == '1' ? 'fa fa-check-circle' : 'fa fa-info-circle') ?>"></i> <?= ($content->verified_status == '1' ? 'Verified' : 'Not-Verified') ?>
+                                      </a>
+                                    </li>
+
+                                  <?php } ?>
+
+                                  <li>
+                                    <a href="javascript:void(0);" class="exportReceiptData" data-toggle="tooltip" data-placement="top" title="Print PDF file for this receipt" data-rid="<?= $content->id ?>" data-rcptid="<?= $content->receipt_id ?>" data-extype="print" data-toggle="tooltip" data-placement="top" title="Print PDF file for this receipt"><i class="fa fa-print"></i>&nbsp;Print Receipt</a>
+
+                                    <a href="javascript:void(0);" class="exportReceiptData" data-toggle="tooltip" data-placement="top" title="Download PDF file for this receipt" data-rid="<?= $content->id ?>" data-rcptid="<?= $content->receipt_id ?>" data-extype="download" data-toggle="tooltip" data-placement="top" title="Download PDF file for this receipt"><i class="fa fa-download"></i>&nbsp;Download</a>
                                     <a href="javascript:void(0)" id="export_receipt_href" style="display:none" download>
                                       <button type="button" id="hidden_export_receipt_button">Export</button>
                                     </a>
@@ -616,12 +584,12 @@ $backupLimit = $_SESSION['user_type'] == "developer" ? true : ($_COOKIE["backupC
                         <td colspan="9">
                           <ul class="pagination float-right"></ul>
                         </td>
+                        <?php if (count($receiptListArr) > 0) { ?>
+                          <div class="alert alert-success text-center" role="alert">
+                            Total Collection of fees deposited by the students on <?= count($receiptListArr) ?>&nbsp;occasions : <i class="fa fa-inr"></i> <?= $total_collection ?>
+                          </div>
+                        <?php } ?>
                       </tr>
-                      <?php if (count($receiptListArr) > 0) { ?>
-                        <div class="alert alert-success text-center" role="alert">
-                          Total Collection of fees deposited by the students on <?= count($receiptListArr) ?>&nbsp;occasions : <i class="fa fa-inr"></i> <?= $total_collection ?>
-                        </div>
-                      <?php } ?>
                     </tfoot>
                   </table>
                 </div>
@@ -633,6 +601,7 @@ $backupLimit = $_SESSION['user_type'] == "developer" ? true : ($_COOKIE["backupC
       </div>
     </div>
   <?php } ?>
+
 </div>
 
 <!-- Modal window div-->
@@ -710,80 +679,78 @@ $backupLimit = $_SESSION['user_type'] == "developer" ? true : ($_COOKIE["backupC
                 <tr>
                   <th width="30%">Course Name</th>
                   <td width="2%">:</td>
-                  <td id="course_title">125</td>
+                  <td id="course_title">Not Available</td>
                 </tr>
                 <tr>
                   <th width="30%">Address</th>
                   <td width="2%">:</td>
-                  <td id="stu_address">2020</td>
+                  <td id="stu_address">Not Available</td>
                 </tr>
                 <tr>
                   <th width="30%">Qualification</th>
                   <td width="2%">:</td>
-                  <td id="stu_qualification">125</td>
+                  <td id="stu_qualification">Not Available</td>
                 </tr>
                 <tr>
                   <th width="30%">Gender</th>
                   <td width="2%">:</td>
-                  <td id="stu_gender">Male</td>
+                  <td id="stu_gender">Not Available</td>
                 </tr>
 
                 <tr>
                   <th width="30%">Marital Status</th>
                   <td width="2%">:</td>
-                  <td id="stu_marital_status">Male</td>
+                  <td id="stu_marital_status">Not Available</td>
                 </tr>
               </table>
             </div>
           </div>
         </div>
 
-        <?php if ($showReceiptPermission) { ?>
-          <div class="row">
-            <div class="col-lg-12 col-md-12 col-sm-12">
-              <h5><i class="fa fa-clone pr-1"></i>Receipt Information</h5>
-              <div class="table-responsive pt-0">
-                <table class="table table-bordered">
-                  <tr>
-                    <th width="30%">Course Fees</th>
-                    <td width="2%">:</td>
-                    <td id="course_fees">Not Available</td>
-                  </tr>
-                  <tr>
-                    <th width="30%">Course Discount</th>
-                    <td width="2%">:</td>
-                    <td id="course_discount">Not Available</td>
-                  </tr>
-                  <tr>
-                    <th width="30%">Net Course Fees</th>
-                    <td width="2%">:</td>
-                    <td id="net_course_fees">Not Available</td>
-                  </tr>
-                  <tr>
-                    <th width="30%">Advance Fees (Included in Fees paid so far)</th>
-                    <td width="2%">:</td>
-                    <td id="stu_advanced_fees">2020</td>
-                  </tr>
-                  <tr>
-                    <th width="30%">Fees Paid Before DR</th>
-                    <td width="2%">:</td>
-                    <td id="stu_fees_paid_before_dr">Not Available</td>
-                  </tr>
-                  <tr>
-                    <th width="30%">Fees Paid So Far</th>
-                    <td width="2%">:</td>
-                    <td id="fees_paid">2020</td>
-                  </tr>
-                  <tr>
-                    <th width="30%">Fees Due</th>
-                    <td width="2%">:</td>
-                    <td id="fees_due">Not Available</td>
-                  </tr>
-                </table>
-              </div>
+        <div class="row">
+          <div class="col-lg-12 col-md-12 col-sm-12">
+            <h5><i class="fa fa-clone pr-1"></i>Receipt Information</h5>
+            <div class="table-responsive pt-0">
+              <table class="table table-bordered">
+                <tr>
+                  <th width="30%">Course Fees</th>
+                  <td width="2%">:</td>
+                  <td id="course_fees">Not Available</td>
+                </tr>
+                <tr>
+                  <th width="30%">Course Discount</th>
+                  <td width="2%">:</td>
+                  <td id="course_discount">Not Available</td>
+                </tr>
+                <tr>
+                  <th width="30%">Net Course Fees</th>
+                  <td width="2%">:</td>
+                  <td id="net_course_fees">Not Available</td>
+                </tr>
+                <tr>
+                  <th width="30%">Advance Fees (Included in Fees paid so far)</th>
+                  <td width="2%">:</td>
+                  <td id="stu_advanced_fees">Available</td>
+                </tr>
+                <tr>
+                  <th width="30%">Fees Paid Before DR</th>
+                  <td width="2%">:</td>
+                  <td id="stu_fees_paid_before_dr">Not Available</td>
+                </tr>
+                <tr>
+                  <th width="30%">Fees Paid So Far</th>
+                  <td width="2%">:</td>
+                  <td id="fees_paid">Available</td>
+                </tr>
+                <tr>
+                  <th width="30%">Fees Due</th>
+                  <td width="2%">:</td>
+                  <td id="fees_due">Not Available</td>
+                </tr>
+              </table>
             </div>
           </div>
-        <?php } ?>
+        </div>
       </div>
       <div class="modal-footer">
         <button type="button" class="btn btn-danger" data-dismiss="modal">Close</button>
@@ -830,48 +797,48 @@ $backupLimit = $_SESSION['user_type'] == "developer" ? true : ($_COOKIE["backupC
 
     //Create latest backup on server
     $(document).on('click', '#createServerBackup', function() {
-      var formData = {
-        action: "createSiteBackupQueueJob",
-      };
+        var formData = {
+          action: "createSiteBackupQueueJob",
+        };
 
-      swal({
-        title: "Are you sure?",
-        text: `Current backup files will be removed and new backup files will be created and this will take some time to run on background`,
-        type: "warning",
-        showCancelButton: true,
-        confirmButtonColor: "#DD6B55",
-        confirmButtonText: "Yes, Go ahead...",
-        closeOnConfirm: true
-      }, function() {
-        $.ajax({
-          url: ajaxControllerHandler,
-          method: 'POST',
-          data: formData,
-          beforeSend: function() {
-            //$('.tooltip').hide();
-            $("#createServerBackup").prop("disabled", true);
-            $('.content_div_loader').addClass('sk-loading');
-          },
-          success: function(responseData) {
-            var result = JSON.parse(responseData);
-            //console.log(result);
+        swal({
+          title: "Are you sure?",
+          text: `Current backup files will be removed and new backup files will be created and this will take some time to run on background`,
+          type: "warning",
+          showCancelButton: true,
+          confirmButtonColor: "#DD6B55",
+          confirmButtonText: "Yes, Go ahead...",
+          closeOnConfirm: true
+        }, function() {
+            $.ajax({
+              url: ajaxControllerHandler,
+              method: 'POST',
+              data: formData,
+              beforeSend: function() {
+                //$('.tooltip').hide();
+                $("#createServerBackup").prop("disabled", true);
+                $('.content_div_loader').addClass('sk-loading');
+              },
+              success: function(responseData) {
+                var result = JSON.parse(responseData);
+                //console.log(result);
+                
+                $('.content_div_loader').removeClass('sk-loading');
 
-            $('.content_div_loader').removeClass('sk-loading');
-
-            if (result.check == "success") {
-              toastr.options.onHidden = function() { location.reload(); }
-              toastr.success(result.message, "Success!", {
-                timeOut: 2000
-              });
-            } else {
-              toastr.error(result.message, "Error!", {
-                timeOut: 2000
-              });
-            }
-            return true;
-          }
-        });
-      });
+                if(result.check == "success"){
+                  toastr.options.onHidden = function() { location.reload(); }
+                  toastr.success(result.message, "Success!", {
+                      timeOut: 2000
+                  });
+                }else{
+                  toastr.error(result.message, "Error!", {
+                      timeOut: 2000
+                  });
+                }
+                return true;
+              }
+            });
+        });    
     });
 
     //handling student detail fetch form
@@ -995,9 +962,10 @@ $backupLimit = $_SESSION['user_type'] == "developer" ? true : ($_COOKIE["backupC
     });
 
     //Handling hard export for student receipt table
-    $(document).on('click', '.export_student_receipt_data', function(event) {
+    $(document).on('click', '.export_student_data', function(event) {
       event.preventDefault();
 
+      var action = "manageExportData";
       var export_table = $(this).data('tbl');
 
       if (export_table == "student") {
@@ -1016,6 +984,7 @@ $backupLimit = $_SESSION['user_type'] == "developer" ? true : ($_COOKIE["backupC
       var export_method = $(this).data('export');
 
       var formData = {
+        action : action,
         export_table: export_table,
         export_method: export_method,
         fetchType: fetchType,
@@ -1038,7 +1007,7 @@ $backupLimit = $_SESSION['user_type'] == "developer" ? true : ($_COOKIE["backupC
       }, function() {
 
         $.ajax({
-          url: exportTableDataController,
+          url: ajaxControllerHandler,
           method: 'POST',
           data: formData,
           beforeSend: function() {
@@ -1048,13 +1017,20 @@ $backupLimit = $_SESSION['user_type'] == "developer" ? true : ($_COOKIE["backupC
             $('.content_div_loader').removeClass('sk-loading');
             //console.log(responseData);
             var result = JSON.parse(responseData);
-            $('#' + export_record_href).attr("href", result.file_url);
-            $("#" + hidden_export_button).click();
-            //Removing file from server
-            setTimeout(function() {
-              removeFileFromServer(result.file_upload_dir);
-            }, 5000);
-            return true;
+
+            if (result.check == "success") {
+              $('#' + export_record_href).attr("href", result.file_url);
+              $("#" + hidden_export_button).click();
+              //Removing file from server
+              setTimeout(function() {
+                removeFileFromServer(result.file_upload_dir);
+              }, 5000);
+              return true;
+            } else {
+              toastr.error(result.msg, "Error!", {
+                timeOut: 1000
+              });
+            }
           }
         });
 
@@ -1109,6 +1085,174 @@ $backupLimit = $_SESSION['user_type'] == "developer" ? true : ($_COOKIE["backupC
             removeFileFromServer(result.file_upload_dir);
           }, 5000);*/
           return true;
+        }
+      });
+    });
+
+    /*Status change handler*/
+    $(document).on('click', '.verified_action', function() {
+      var action = "updateStudentVerifiedStatus";
+      var student_id = $(this).data('sid');
+      var verified_Status = $(this).data('vstatus');
+
+      var thisItem = $(this);
+
+      if (verified_Status == '1') {
+        var toastrText = 'This student has been marked as verified successfully!';
+      } else {
+        var toastrText = 'This student has been marked as not verified successfully!';
+      }
+      //show toastr success
+      toastr.options = {
+        closeButton: true,
+        progressBar: true,
+        showMethod: 'slideDown',
+        timeOut: 2000,
+      };
+
+      var formData = {
+        action: action,
+        student_id: student_id,
+        verified_Status: verified_Status
+      };
+
+      $.ajax({
+        url: ajaxControllerHandler,
+        method: 'POST',
+        data: formData,
+        beforeSend: function() {
+          //$('.content_div_loader').addClass('sk-loading');
+        },
+        success: function(responseData) {
+          //console.log(responseData); 
+          var data = JSON.parse(responseData);
+          //Disabling loader
+          $('.content_div_loader').removeClass('sk-loading');
+
+          //Check response
+          if (data.check == 'success') {
+            if (verified_Status == '1') {
+              $(thisItem).data('vstatus', '0');
+              $(thisItem).attr('data-original-title', "Make this receipt's status not verified!");
+              $(thisItem).html('<i class="fa fa-check-circle"></i> Verified');
+
+              //Chnage table tr background color
+              $("#stu_tr_" + student_id).css({
+                'background-color': ''
+              });
+              //Show success toast
+              toastr.success(toastrText, 'Success!');
+
+            } else {
+              $(thisItem).data('vstatus', '1');
+              $(thisItem).attr('data-original-title', "Make this receipt's status verified!");
+              $(thisItem).html('<i class="fa fa-info-circle"></i> Not Verified');
+              //Chnage table tr background color
+              $("#stu_tr_" + student_id).css({
+                'background-color': '#f1d0d0'
+              });
+              //Show warning toast
+              toastr.warning(toastrText, 'Success!');
+            }
+            return true;
+          } else {
+            if (data.message.length > 0) {
+              var toastrErrorText = data.message;
+            } else {
+              var toastrErrorText = 'Something went wrong! Please try again.'
+            }
+            //show toastr error
+            toastr.options.onHidden = function() {
+              window.location.reload();
+            }
+            toastr.error(toastrErrorText, 'Error!');
+            return false;
+          }
+
+        }
+      });
+    });
+
+    /*Status change handler*/
+    $(document).on('click', '.receipt_verified_action', function() {
+      var action = "updateReceiptVerifiedStatus";
+      var receipt_id = $(this).data('rid');
+      var verified_Status = $(this).data('vstatus');
+
+      var thisItem = $(this);
+
+      if (verified_Status == '1') {
+        var toastrText = 'This receipt has been marked as verified successfully!';
+      } else {
+        var toastrText = 'This receipt has been marked as not verified successfully!';
+      }
+      //show toastr success
+      toastr.options = {
+        closeButton: true,
+        progressBar: true,
+        showMethod: 'slideDown',
+        timeOut: 2000,
+      };
+
+      var formData = {
+        action: action,
+        receipt_id: receipt_id,
+        verified_Status: verified_Status
+      };
+
+      $.ajax({
+        url: ajaxControllerHandler,
+        method: 'POST',
+        data: formData,
+        beforeSend: function() {
+          //$('.content_div_loader').addClass('sk-loading');
+        },
+        success: function(responseData) {
+          //console.log(responseData); 
+          var data = JSON.parse(responseData);
+          //Disabling loader
+          $('.content_div_loader').removeClass('sk-loading');
+
+          //Check response
+          if (data.check == 'success') {
+            if (verified_Status == '1') {
+              $(thisItem).data('vstatus', '0');
+              $(thisItem).attr('data-original-title', "Make this receipt's status not verified!");
+              $(thisItem).html('<i class="fa fa-check-circle"></i> Verified');
+
+              //Chnage table tr background color
+              $("#rcpt_tr_" + receipt_id).css({
+                'background-color': ''
+              });
+              //Show success toast
+              toastr.success(toastrText, 'Success!');
+
+            } else {
+              $(thisItem).data('vstatus', '1');
+              $(thisItem).attr('data-original-title', "Make this receipt's status verified!");
+              $(thisItem).html('<i class="fa fa-info-circle"></i> Not Verified');
+              //Chnage table tr background color
+              $("#rcpt_tr_" + receipt_id).css({
+                'background-color': '#f1d0d0'
+              });
+              //Show warning toast
+              toastr.warning(toastrText, 'Success!');
+            }
+            return true;
+          } else {
+            if (data.message.length > 0) {
+              var toastrErrorText = data.message;
+            } else {
+              var toastrErrorText = 'Something went wrong! Please try again.'
+            }
+            //show toastr error
+            toastr.options.onHidden = function() {
+              window.location.reload();
+            }
+            toastr.error(toastrErrorText, 'Error!');
+            return false;
+          }
+
         }
       });
     });

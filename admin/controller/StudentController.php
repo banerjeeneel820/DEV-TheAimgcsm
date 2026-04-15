@@ -617,8 +617,78 @@ class StudentController extends BaseController
             : ['check' => 'failure', 'message' => 'Bulk update failed'];
     }
 
-    public function update_temp_student_verified_status($data)
+    public function fetch_student_detail_modal($data)
     {
-        
+        $post = fn ($key) => $this->GlobalLibraryHandlerObj->postDataSanitize($key);
+
+        // -----------------------------
+        // PERMISSION CHECK
+        // -----------------------------
+        if (!$this->GlobalLibraryHandlerObj->checkUserRolePermission("view_student", "hard")) {
+            return ['check' => 'failure', 'message' => "You don't have the permission to perform this action!"];
+        }
+
+        // -----------------------------
+        // FETCH STUDENT
+        // -----------------------------
+        $student_id = (int) $post('student_id');
+
+        $student = $this->GlobalInterfaceControllerObj
+            ->fetch_Global_Single_Student($student_id);
+
+        if (empty($student)) {
+            return ['check' => 'failure', 'message' => "Student not found!"];
+        }
+
+        // -----------------------------
+        // FRANCHISE ACCESS CONTROL
+        // -----------------------------
+        if (
+            $_SESSION['user_type'] === 'franchise' &&
+            $student->franchise_id != $_SESSION['user_id']
+        ) {
+            return ['check' => 'failure', 'message' => "You don't have permission to view this student!"];
+        }
+
+        // -----------------------------
+        // IMAGE HANDLING
+        // -----------------------------
+        $imagePath = USER_UPLOAD_DIR . 'student/' . $student->image_file_name;
+
+        $student->student_dp = (!empty($student->image_file_name) && file_exists($imagePath))
+            ? USER_UPLOAD_URL . 'student/' . $student->image_file_name
+            : 'https://source.unsplash.com/600x300/?student';
+
+        // -----------------------------
+        // DATA FORMATTING
+        // -----------------------------
+        $student->stu_dob = !empty($student->stu_dob)
+            ? date('jS F, Y', strtotime($student->stu_dob))
+            : null;
+
+        $student->advance_fees_date = !empty($student->advance_fees_date)
+            ? date('jS F, Y', strtotime($student->advance_fees_date))
+            : null;
+
+        $student->stu_result = ucfirst((string)$student->stu_result);
+        $student->stu_gender = ucfirst((string)$student->stu_gender);
+        $student->stu_marital_status = ucfirst((string)$student->stu_marital_status);
+
+        $student->student_status = ($student->student_status === 'course_complete')
+            ? 'Course Complete'
+            : ucfirst((string)$student->student_status);
+
+        // -----------------------------
+        // DEFAULT VALUES
+        // -----------------------------
+        $student->course_default_fees = 0;
+
+        // -----------------------------
+        // RESPONSE
+        // -----------------------------
+        return [
+            'check' => 'success',
+            'studentDetail'  => $student
+        ];
     }
 }

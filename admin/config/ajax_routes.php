@@ -3,8 +3,9 @@ return [
 
     // Auth & Profile Routes
     'check_user_login' => ['AuthProfileController', 'check_user_login'],
-    'manageProfileData' => ['UserProfileController', 'manage_user_profile'],
-    'manageFranchiseProfile' => ['UserProfileController', 'manage_franchise_profile'],
+    'manageProfileData' => ['AuthProfileController', 'manage_user_profile'],
+    'manageFranchiseProfile' => ['AuthProfileController', 'manage_franchise_profile'],
+    'checkUserEmailAvailability' => ['AuthProfileController', 'check_user_email_availability'],
 
     // Franchise & Course Routes
     'manageGlobalFranchise' => ['CourseFranchiseController', 'manage_franchise'],
@@ -16,7 +17,7 @@ return [
     'manageTempStudents' => ['StudentController', 'manage_temp_student'],
     'changeStudentStatus' => ['StudentController', 'change_student_status'],
     'updateStudentBulkStatus' => ['StudentController', 'update_student_bulk_status'],
-    'updateTempStudentVerifiedStatus' => ['StudentController', 'update_temp_student_verified_status'],
+    'fetchStudentDetailInModal' => ['StudentController', 'fetch_student_detail_modal'],
 
     // Student Receipt Routes
     'manageStudentReceipt' => ['StudentReceiptController', 'manage_receipt'],
@@ -51,6 +52,10 @@ return [
     'deleteGlobalData' => ['UtilityController', 'delete_global_data'],
     'cleanDynamicContentFolder' => ['UtilityController', 'clean_runtime_content'],
     'clearCacheFolder' => ['UtilityController', 'clear_site_cache'],
-    'removeFileFromServer' => ['UtilityController', 'remove_file_from_Server'],
+    'removeFileFromServer' => ['UtilityController', 'remove_file_from_server'],
     'createSiteBackupQueueJob' => ['UtilityController', 'create_site_backup_queue_job'],
+    'updateSiteSettings' => ['UtilityController', 'update_site_setting'],
+
+    // Import & Export Routes
+    'manageExportData' => ['ExportController', 'handle_export_data'],
 ];

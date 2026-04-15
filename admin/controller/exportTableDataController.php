@@ -330,11 +330,11 @@ switch ($export_table) {
         $exportParamArr['course_id'] = mysqli_real_escape_string(DB::$WRITELINK, trim($_POST['course_id']));
         $exportParamArr['course_name'] = mysqli_real_escape_string(DB::$WRITELINK, trim($_POST['course_name']));
       }
-      
+
       if (!empty($_POST['franchise_id'])) {
         $exportParamArr['franchise_id'] = mysqli_real_escape_string(DB::$WRITELINK, trim($_POST['franchise_id']));
         $exportParamArr['franchise_name'] = mysqli_real_escape_string(DB::$WRITELINK, trim($_POST['franchise_name']));
-      }  
+      }
 
       $exportParamArr['created'] = mysqli_real_escape_string(DB::$WRITELINK, trim($_POST['created']));
 
@@ -374,13 +374,13 @@ switch ($export_table) {
     if (count($receiptListArr) > 0) {
       //Build export criteria
       $criteriaText = $GlobalLibraryHandlerObj->buildExportCriteria($exportParamArr);
-      
+
       if ($export_method == "pdf") {
 
         if (count($receiptListArr) > 300) {
           echo json_encode([
-              'status' => false,
-              'message' => 'Too much data for PDF. Please export as Excel.'
+            'status' => false,
+            'message' => 'Too much data for PDF. Please export as Excel.'
           ]);
           exit;
         }
@@ -402,7 +402,7 @@ switch ($export_table) {
                                 <hr class="row brc-default-l1 my-2" />
                                 <div class="col-12 mt-2">
                                     <div class="text-center text-150">
-                                        <span class="text-default-d3" style="font-weight:400;font-size:17px;color:black;"><b>Filter:&nbsp;</b>'.$criteriaText.'</span>
+                                        <span class="text-default-d3" style="font-weight:400;font-size:17px;color:black;"><b>Filter:&nbsp;</b>' . $criteriaText . '</span>
                                     </div>
                                 </div>
                              </div>    
@@ -426,35 +426,35 @@ switch ($export_table) {
 
         foreach ($receiptListArr as $index => $receipt) {
 
-           // Formatting
-           $receipt_amount = "Rs. " . (!empty($receipt['receipt_amount']) ? $receipt['receipt_amount'] : 0);
-           $late_fine      = "Rs. " . (!empty($receipt['late_fine']) ? $receipt['late_fine'] : 0);
-           $extra_fees     = "Rs. " . (!empty($receipt['extra_fees']) ? $receipt['extra_fees'] : 0);
+          // Formatting
+          $receipt_amount = "Rs. " . (!empty($receipt['receipt_amount']) ? $receipt['receipt_amount'] : 0);
+          $late_fine      = "Rs. " . (!empty($receipt['late_fine']) ? $receipt['late_fine'] : 0);
+          $extra_fees     = "Rs. " . (!empty($receipt['extra_fees']) ? $receipt['extra_fees'] : 0);
 
-           if (!empty($receipt['extra_fees']) && !empty($receipt['extra_fees_description'])) {
-               $extra_fees .= " for " . $receipt['extra_fees_description'];
-           }
+          if (!empty($receipt['extra_fees']) && !empty($receipt['extra_fees_description'])) {
+            $extra_fees .= " for " . $receipt['extra_fees_description'];
+          }
 
-           $verified_status = $receipt['verified_status'] == '1' ? "Verified" : "Not verified";
+          $verified_status = $receipt['verified_status'] == '1' ? "Verified" : "Not verified";
 
           $export_html .= '
                                 <tbody>
                                    <tr>
                                     <td>' . ($index + 1) . '</td>
                                     <td>
-                                      <b>'. $receipt["receipt_id"] . '<b><br><br>
-                                      <b>Created at:</b> ' . date('jS F, Y', strtotime($receipt["created_at"])).
-                                    '</td>
+                                      <b>' . $receipt["receipt_id"] . '<b><br><br>
+                                      <b>Created at:</b> ' . date('jS F, Y', strtotime($receipt["created_at"])) .
+            '</td>
                                     <td>
                                       <b>Receipt Amount:</b> ' . $receipt_amount . '<br><br>
                                       <b>Late Fine:</b> ' . $late_fine . '</b> <br><br>
                                       <b>Extra Fees:</b> ' . $extra_fees . '</b>
                                     </td>
                                     <td>
-                                      <b>Name:'. $receipt["stu_name"] . '<b><br>
+                                      <b>Name:' . $receipt["stu_name"] . '<b><br>
                                       <b>Contact No:</b> ' . $receipt["stu_phone"] . '<br><br>
-                                      <b>Email:</b> ' . $receipt["stu_email"] . 
-                                    '</td>
+                                      <b>Email:</b> ' . $receipt["stu_email"] .
+            '</td>
                                     <td>
                                       <b>Course:</b> ' . $receipt["course_title"] . '<br><br>  
                                       <b>Franchise:</b> ' . $receipt["center_name"] . '
@@ -462,7 +462,7 @@ switch ($export_table) {
                                     <td>
                                       <b>Student ID:</b> ' . $receipt["stu_id"] . '<br><br>
                                       <b>Result:</b> ' . ucfirst($receipt["stu_result"]) .
-                                    '</td>
+            '</td>
                                    </tr>
                                  </tbody>';
         }
@@ -484,7 +484,7 @@ switch ($export_table) {
         echo json_encode(array('check' => 'success', 'file_upload_dir' => $file_upload_dir, 'file_url' => $file_url));
         exit;
       } else {
-        
+
         $spreadsheet->setActiveSheetIndex(0);
         $activeSheet = $spreadsheet->getActiveSheet();
 
@@ -519,9 +519,9 @@ switch ($export_table) {
         // ==========================
         $spreadsheet->getActiveSheet()->getColumnDimension('A')->setWidth(40, 'pt');
 
-        $cellHeaderArr = array('B','C','D','E','F','G','H','I','J','K','L','M','N','O');
+        $cellHeaderArr = array('B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O');
         foreach ($cellHeaderArr as $cell) {
-            $spreadsheet->getActiveSheet()->getColumnDimension($cell)->setWidth(130, 'pt');
+          $spreadsheet->getActiveSheet()->getColumnDimension($cell)->setWidth(130, 'pt');
         }
 
         // ==========================
@@ -552,44 +552,44 @@ switch ($export_table) {
         // DATA LOOP (START FROM ROW 5)
         // ==========================
         if (count($receiptListArr) > 0) {
-            $i = 5;
+          $i = 5;
 
-            foreach ($receiptListArr as $index => $receipt) {
+          foreach ($receiptListArr as $index => $receipt) {
 
-                // Formatting
-                $receipt_amount = (!empty($receipt['receipt_amount']) ? $receipt['receipt_amount'] : 0);
-                $late_fine      = (!empty($receipt['late_fine']) ? $receipt['late_fine'] : 0);
-                $extra_fees     = (!empty($receipt['extra_fees']) ? $receipt['extra_fees'] : 0);
-                $extra_fees_description     = (!empty($receipt['extra_fees_description']) ? $receipt['extra_fees_description'] : "------");
+            // Formatting
+            $receipt_amount = (!empty($receipt['receipt_amount']) ? $receipt['receipt_amount'] : 0);
+            $late_fine      = (!empty($receipt['late_fine']) ? $receipt['late_fine'] : 0);
+            $extra_fees     = (!empty($receipt['extra_fees']) ? $receipt['extra_fees'] : 0);
+            $extra_fees_description     = (!empty($receipt['extra_fees_description']) ? $receipt['extra_fees_description'] : "------");
 
-                $verified_status = $receipt['verified_status'] == '1' ? "Verified" : "Not verified";
+            $verified_status = $receipt['verified_status'] == '1' ? "Verified" : "Not verified";
 
-                // Alignment
-                $spreadsheet->getActiveSheet()->getStyle('A'.$i.':O'.$i)->getAlignment()->setHorizontal('center');
-                $spreadsheet->getActiveSheet()->getStyle('A'.$i.':O'.$i)->getAlignment()->setVertical('center');
+            // Alignment
+            $spreadsheet->getActiveSheet()->getStyle('A' . $i . ':O' . $i)->getAlignment()->setHorizontal('center');
+            $spreadsheet->getActiveSheet()->getStyle('A' . $i . ':O' . $i)->getAlignment()->setVertical('center');
 
-                // Wrap text
-                $spreadsheet->getActiveSheet()->getStyle('A'.$i.':O'.$i)->getAlignment()->setWrapText(true);
+            // Wrap text
+            $spreadsheet->getActiveSheet()->getStyle('A' . $i . ':O' . $i)->getAlignment()->setWrapText(true);
 
-                // Data
-                $activeSheet->setCellValue('A'.$i, $index + 1);
-                $activeSheet->setCellValue('B'.$i, $receipt['receipt_id']);
-                $activeSheet->setCellValue('C'.$i, date('jS F, Y', strtotime($receipt["created_at"])));
-                $activeSheet->setCellValue('D'.$i, $receipt_amount);
-                $activeSheet->setCellValue('E'.$i, $late_fine);
-                $activeSheet->setCellValue('F'.$i, $extra_fees);
-                $activeSheet->setCellValue('G'.$i, $extra_fees_description);
-                $activeSheet->setCellValue('H'.$i, $receipt['stu_name']);
-                $activeSheet->setCellValue('I'.$i, $receipt['stu_email']);
-                $activeSheet->setCellValue('J'.$i, $receipt['stu_phone']);
-                $activeSheet->setCellValue('K'.$i, $receipt['stu_id']);
-                $activeSheet->setCellValue('L'.$i, ucfirst($receipt['stu_result']));
-                $activeSheet->setCellValue('M'.$i, $receipt['course_title']);
-                $activeSheet->setCellValue('N'.$i, $receipt['center_name']);
-                $activeSheet->setCellValue('O'.$i, $verified_status);
+            // Data
+            $activeSheet->setCellValue('A' . $i, $index + 1);
+            $activeSheet->setCellValue('B' . $i, $receipt['receipt_id']);
+            $activeSheet->setCellValue('C' . $i, date('jS F, Y', strtotime($receipt["created_at"])));
+            $activeSheet->setCellValue('D' . $i, $receipt_amount);
+            $activeSheet->setCellValue('E' . $i, $late_fine);
+            $activeSheet->setCellValue('F' . $i, $extra_fees);
+            $activeSheet->setCellValue('G' . $i, $extra_fees_description);
+            $activeSheet->setCellValue('H' . $i, $receipt['stu_name']);
+            $activeSheet->setCellValue('I' . $i, $receipt['stu_email']);
+            $activeSheet->setCellValue('J' . $i, $receipt['stu_phone']);
+            $activeSheet->setCellValue('K' . $i, $receipt['stu_id']);
+            $activeSheet->setCellValue('L' . $i, ucfirst($receipt['stu_result']));
+            $activeSheet->setCellValue('M' . $i, $receipt['course_title']);
+            $activeSheet->setCellValue('N' . $i, $receipt['center_name']);
+            $activeSheet->setCellValue('O' . $i, $verified_status);
 
-                $i++;
-            }
+            $i++;
+          }
         }
 
         $file_upload_dir =  USER_UPLOAD_DIR . 'runtime_upload/Receipt_Data_' . time() . '.xlsx';

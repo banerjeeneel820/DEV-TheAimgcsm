@@ -66,27 +66,25 @@ class GlobalInterfaceModel {
         return $result->num_rows;
     }
 
-    public function global_Count_Value_DB($sql, $params = [])
+    public function global_Aggregate_Value_DB($sql, $params = [])
     {
         if (!empty($params)) {
             $stmt = $this->db->prepare($sql);
-
+    
             $types = $this->getTypes($params);
             $stmt->bind_param($types, ...$params);
-
+    
             $stmt->execute();
             $result = $stmt->get_result();
-
         } else {
-            // fallback for old queries
             $result = $this->db->query($sql);
         }
-
-        if ($result && $result->num_rows > 0) {
+    
+        if ($result) {
             $row = $result->fetch_assoc();
-            return (int) reset($row);
+            return (int) ($row ? reset($row) : 0);
         }
-
+    
         return 0;
     }
 

@@ -1393,23 +1393,23 @@ if (!empty($_GET['rcpt_id'])) {
             $('#export_receipt_href').attr("href", result.file_url);
             $("#hidden_export_receipt_button").click();
           } else {
-              
-              // Calling custom function to print doc
-              printDocument(result.file_url);
 
-              // Chrome / Edge (printJS works fine)
-              // printJS({
-              //   printable: result.file_url,
-              //   type: 'pdf',
-              //   showModal: true
-              // });
+            // Calling custom function to print doc
+            printDocument(result.file_url);
+
+            // Chrome / Edge (printJS works fine)
+            // printJS({
+            //   printable: result.file_url,
+            //   type: 'pdf',
+            //   showModal: true
+            // });
 
           }
 
-          setTimeout(function () {
+          setTimeout(function() {
             //Disabling loader
             $('.content_div_loader').removeClass('sk-loading');
-          },2000);
+          }, 2000);
 
           //Removing file from server
           setTimeout(function() {
@@ -1518,7 +1518,8 @@ if (!empty($_GET['rcpt_id'])) {
       var export_method = $(this).data('export');
 
       var formData = {
-        export_table: export_table,
+        action: "manageExportData",
+        export_table: "receipt",
         record_status: record_status,
         course_id: course_id,
         franchise_id: franchise_id,
@@ -1553,7 +1554,7 @@ if (!empty($_GET['rcpt_id'])) {
       }, function() {
 
         $.ajax({
-          url: exportTableDataController,
+          url: ajaxControllerHandler,
           method: 'POST',
           data: formData,
           beforeSend: function() {
@@ -1731,7 +1732,11 @@ if (!empty($_GET['rcpt_id'])) {
             }
 
             // compare filters (excluding pageNo)
-            var sameFilter = isSameFilter({ ...currentParams }, { ...newParams });
+            var sameFilter = isSameFilter({
+              ...currentParams
+            }, {
+              ...newParams
+            });
 
             // pagination logic
             if (sameFilter) {
@@ -1835,7 +1840,11 @@ if (!empty($_GET['rcpt_id'])) {
           }
 
           // compare filters (excluding pageNo)
-          var sameFilter = isSameFilter({...currentParams}, {...newParams});
+          var sameFilter = isSameFilter({
+            ...currentParams
+          }, {
+            ...newParams
+          });
 
           // pagination logic
           if (sameFilter) {
