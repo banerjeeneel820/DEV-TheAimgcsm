@@ -306,10 +306,10 @@ class GlobalInterfaceController
          $sql_fetch_user_detail = "SELECT * FROM " . DB_AIMGCSM . "." . TABLEPREFIX . "franchise WHERE `id`='$user_id'";
       } else {
          $sql_fetch_current_students = "SELECT * FROM " . DB_AIMGCSM . "." . TABLEPREFIX . "students WHERE `id`='$user_id'";
-         $countStudentRow = $this->conn->global_Rows_Count_DB($sql_fetch_user_detail);
+         $countStudentRow = $this->conn->global_Rows_Count_DB($sql_fetch_current_students);
 
          if ($countStudentRow > 0) {
-            $sql_fetch_user_detail = $sql_fetch_current_student;
+            $sql_fetch_user_detail = $sql_fetch_current_students;
          } else {
             $sql_fetch_user_detail = "SELECT * FROM " . DB_AIMGCSM . "." . TABLEPREFIX . "students_archive WHERE `id`='$user_id'";
          }
@@ -349,42 +349,68 @@ class GlobalInterfaceController
       return $resultArr;
    }
 
-   public function fetch_Global_Franchise($record_status = 'active')
+   public function fetch_Global_Franchise($params = [])
    {
-      $params = [];
+      $queryParams = [];
       $where = [];
 
-      // Filter
+      // -----------------------------
+      // DEFAULT FILTER
+      // -----------------------------
+      $recordStatus = $params['record_status'] ?? 'active';
+
       $where[] = "fran.record_status = ?";
-      $params[] = $record_status;
+      $queryParams[] = $recordStatus;
 
-      $whereSql = "WHERE " . implode(" AND ", $where);
+      // -----------------------------
+      // OPTIONAL FILTERS (FUTURE READY)
+      // -----------------------------
+      if (!empty($params['search_string'])) {
+         $where[] = "(fran.center_name LIKE ? OR fran.center_code LIKE ?)";
+         $queryParams[] = '%' . $params['search_string'] . '%';
+         $queryParams[] = '%' . $params['search_string'] . '%';
+      }
 
-      // Pre-aggregated student count (better performance)
+      // -----------------------------
+      // WHERE CLAUSE
+      // -----------------------------
+      $whereSql = !empty($where)
+         ? "WHERE " . implode(" AND ", $where)
+         : "";
+
+      // -----------------------------
+      // SUBQUERY (AGGREGATION)
+      // -----------------------------
       $studentCountSubquery = "
-        SELECT 
-            franchise_id,
-            COUNT(*) AS enrolled_student_count
-        FROM " . DB_AIMGCSM . "." . TABLEPREFIX . "students
-        GROUP BY franchise_id
-    ";
+           SELECT 
+               franchise_id,
+               COUNT(*) AS enrolled_student_count
+           FROM " . DB_AIMGCSM . "." . TABLEPREFIX . "students
+           GROUP BY franchise_id
+       ";
 
+      // -----------------------------
+      // MAIN QUERY
+      // -----------------------------
       $sql = "
-        SELECT 
-            fran.*,
-            IFNULL(stu_count.enrolled_student_count, 0) AS enrolled_student_count
+           SELECT 
+               fran.*,
+               COALESCE(stu_count.enrolled_student_count, 0) AS enrolled_student_count
+   
+           FROM " . DB_AIMGCSM . "." . TABLEPREFIX . "franchise fran
+   
+           LEFT JOIN ($studentCountSubquery) AS stu_count
+               ON fran.id = stu_count.franchise_id
+   
+           $whereSql
+   
+           ORDER BY enrolled_student_count DESC
+       ";
+      
+      // Debug
+      // $this->debugQuery($sql, $queryParams); 
 
-        FROM " . DB_AIMGCSM . "." . TABLEPREFIX . "franchise fran
-
-        LEFT JOIN ($studentCountSubquery) stu_count
-            ON fran.id = stu_count.franchise_id
-
-        $whereSql
-
-        ORDER BY enrolled_student_count DESC
-    ";
-
-      return $this->conn->global_Fetch_All_DB($sql, $params);
+      return $this->conn->global_Fetch_All_DB($sql, $queryParams);
    }
 
    public function fetch_Global_Course($record_status = 'active')
@@ -692,7 +718,7 @@ class GlobalInterfaceController
       // =========================
       // DEBUG (OPTIONAL)
       // =========================
-      // echo $this->debugQuery($sql, $params); exit;
+      //$this->debugQuery($sql, $params); exit;
 
       $resultArr = $this->conn->global_Fetch_All_DB($sql, $params);
 
@@ -1316,7 +1342,7 @@ class GlobalInterfaceController
       // =========================
       // DEBUG (OPTIONAL)
       // =========================
-      // echo $this->debugQuery($sql_fetch_student, $params); exit;
+      // $this->debugQuery($sql_fetch_student, $params); exit;
 
       // =========================
       // EXECUTION
@@ -2475,7 +2501,7 @@ class GlobalInterfaceController
       // =========================
       // DEBUG (OPTIONAL)
       // =========================
-      // echo $this->debugQuery($sql, $params); exit;
+      // $this->debugQuery($sql, $params); exit;
 
       // =========================
       // EXECUTION

@@ -573,7 +573,15 @@ if (!empty($_GET['rcpt_id'])) {
                 </a>
               </div>
             </div>
-            <div class="ibox-content">
+            <div class="ibox-content content_div_loader">
+              <div class="sk-spinner sk-spinner-wave">
+                <div class="sk-rect1"></div>
+                <div class="sk-rect2"></div>
+                <div class="sk-rect3"></div>
+                <div class="sk-rect4"></div>
+                <div class="sk-rect5"></div>
+              </div>
+
               <form id="fetch_verified_records" onsubmit="return false;">
                 <div class="row">
                   <div class="col-sm-10 m-b-xs">
@@ -1503,11 +1511,12 @@ if (!empty($_GET['rcpt_id'])) {
       var record_status = $('#record_status').val();
 
       var course_id = $('#course_id').val();
-      var franchise_id = $('#franchise_id').val();
-      var student_id = $('#student_id').val();
-
       var course_name = $('#course_id option:selected').text();
+
+      var franchise_id = $('#franchise_id').val();
       var franchise_name = $('#franchise_id option:selected').text();
+
+      var student_id = $('#student_id').val();
 
       var receipt_season_start = $('#receipt_search_start').val();
       var receipt_season_end = $('#receipt_search_end').val();

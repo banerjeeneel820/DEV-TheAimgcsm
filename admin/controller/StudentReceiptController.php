@@ -31,8 +31,7 @@ class StudentReceiptController extends BaseController
         $validationResult = $this->GlobalValidationControllerObj->validateStudentReceiptData($rawData);
 
         if ($validationResult['check'] == 'failure') {
-            echo json_encode($validationResult);
-            exit;
+            return $validationResult;
         }
 
         // ===== CREATE / UPDATE =====
@@ -53,8 +52,7 @@ class StudentReceiptController extends BaseController
 
         // ===== PERMISSION =====
         if (!$this->GlobalLibraryHandlerObj->checkUserRolePermission($user_role_slug, "hard")) {
-            echo json_encode(['check' => 'failure', 'message' => "You don't have the permission to perform this action!"]);
-            exit;
+            return ['check' => 'failure', 'message' => "You don't have the permission to perform this action!"];
         }
 
         // ===== FETCH EXISTING RECEIPT =====
@@ -64,11 +62,10 @@ class StudentReceiptController extends BaseController
 
         // ===== VALIDATE RECEIPT EXISTS =====
         if ($isUpdate && empty($receiptDetailArr)) {
-            echo json_encode([
+            return [
                 'check' => 'failure',
                 'message' => 'Invalid receipt! Receipt does not exist.'
-            ]);
-            exit;
+            ];
         }
 
         // ===== INPUT =====
@@ -99,10 +96,10 @@ class StudentReceiptController extends BaseController
 
         // ===== VALIDATE RECEIPT EXISTS =====
         if (empty($stuReceiptDetails)) {
-            echo json_encode([
+            return [
                 'check' => 'failure',
                 'message' => 'Invalid student! Student does not exist.'
-            ]);
+            ];
             exit;
         }
 
@@ -125,17 +122,17 @@ class StudentReceiptController extends BaseController
 
         // ===== VALIDATION =====
         if ($course_due_fees == 0 && $formDataArr["category_id"] != 109501) {
-            echo json_encode(['check' => 'failure', 'message' => 'This student has cleared their fees!']);
+            return ['check' => 'failure', 'message' => 'This student has cleared their fees!'];
             exit;
         }
 
         if ($receipt_amount <= 0) {
-            echo json_encode(['check' => 'failure', 'message' => 'Invalid receipt amount!']);
+            return ['check' => 'failure', 'message' => 'Invalid receipt amount!'];
             exit;
         }
 
         if ($receipt_amount > $course_due_fees) {
-            echo json_encode(['check' => 'failure', 'message' => 'Receipt amount is greater than due course fees!']);
+            return ['check' => 'failure', 'message' => 'Receipt amount is greater than due course fees!'];
             exit;
         }
 
@@ -144,8 +141,7 @@ class StudentReceiptController extends BaseController
             $studentDetailArr = $this->GlobalInterfaceControllerObj->fetch_Detail_Single_Student($formDataArr['student_id']);
 
             if ($studentDetailArr->franchise_id != $_SESSION['user_id']) {
-                echo json_encode(['check' => 'failure', 'message' => "You don't have the permission to perform this action!"]);
-                exit;
+                return ['check' => 'failure', 'message' => "You don't have the permission to perform this action!"];
             }
         }
 
@@ -185,8 +181,7 @@ class StudentReceiptController extends BaseController
         $returnArr = $this->GlobalInterfaceControllerObj->manage_Student_Receipt($formDataArr);
 
         if ($returnArr['check'] != 'success') {
-            echo json_encode(['check' => 'failure', 'message' => "Something went wrong!"]);
-            exit;
+            return ['check' => 'failure', 'message' => "Something went wrong!"];
         }
 
         // ===== FETCH RECEIPT =====
@@ -232,6 +227,8 @@ class StudentReceiptController extends BaseController
         if (!$isUpdate) {
             $returnArr['last_insert_id'] = $receipt_id;
         }
+
+        return $returnArr;
     }
 
     public function fetch_total_receipt($data)

@@ -41,85 +41,356 @@ class ExcelService
             ],
         ];
     }
-    public function exportStudent($students)
+
+    public function exportStudent($students, $criteriaText)
     {
         $spreadsheet = new Spreadsheet();
-        $writer = new Xlsx($spreadsheet);
         $sheet = $spreadsheet->getActiveSheet();
+        $writer = new Xlsx($spreadsheet);
 
-        $spreadsheet->setActiveSheetIndex(0);
+        // ==========================
+        // DEFAULT FONT
+        // ==========================
+        $spreadsheet->getDefaultStyle()->getFont()
+            ->setName('Arial')
+            ->setSize(10);
 
-        $spreadsheet->getActiveSheet()->getStyle('A1:P1')->applyFromArray($this->styleArray);
-        $spreadsheet->getDefaultStyle()->getFont()->setName('Arial');
-        $spreadsheet->getDefaultStyle()->getFont()->setSize(10);
+        // ==========================
+        // TOP META ROWS (TITLE + FILTERS)
+        // ==========================
+        $sheet->insertNewRowBefore(1, 3);
 
-        //Set sheet header cloumn width
-        $spreadsheet->getActiveSheet()->getColumnDimension('A')->setWidth(40, 'pt');
-        $cellHeaderArr = array('B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P');
+        $sheet->setCellValue('A1', 'Student Report');
+        $sheet->setCellValue('A2', 'Generated on: ' . date('d M Y h:i A'));
+        $sheet->setCellValue('A3', 'Filters: ' . $criteriaText);
 
-        foreach ($cellHeaderArr as $cell) {
-            $spreadsheet->getActiveSheet()->getColumnDimension($cell)->setWidth(130, 'pt');
+        $sheet->mergeCells('A1:P1');
+        $sheet->mergeCells('A2:P2');
+        $sheet->mergeCells('A3:P3');
+
+        $sheet->getStyle('A1')->getFont()->setBold(true)->setSize(14);
+        $sheet->getStyle('A2:A3')->getFont()->setSize(10);
+        $sheet->getStyle('A3')->getAlignment()->setWrapText(true);
+
+        // ==========================
+        // COLUMN SETUP
+        // ==========================
+        $columns = range('A', 'P');
+
+        $sheet->getColumnDimension('A')->setWidth(40, 'pt');
+
+        foreach (array_slice($columns, 1) as $col) {
+            $sheet->getColumnDimension($col)->setWidth(130, 'pt');
         }
-        //cell text alignment
-        $spreadsheet->getActiveSheet()->getStyle('A1:P1')->getAlignment()->setHorizontal('center');
-        $spreadsheet->getActiveSheet()->getStyle('A1:P1')->getAlignment()->setVertical('center');
 
-        $sheet->setCellValue('A1', 'SL No.');
-        $sheet->setCellValue('B1', 'Student Name');
-        $sheet->setCellValue('C1', "Father's Name");
-        $sheet->setCellValue('D1', 'Student Email');
-        $sheet->setCellValue('E1', 'Contact No');
-        $sheet->setCellValue('F1', 'Student ID');
-        $sheet->setCellValue('G1', 'Course');
-        $sheet->setCellValue('H1', 'Franchise');
-        $sheet->setCellValue('I1', 'Date of Birth');
-        $sheet->setCellValue('J1', 'Gender');
-        $sheet->setCellValue('K1', 'Qualification');
-        $sheet->setCellValue('L1', 'Student Address');
-        $sheet->setCellValue('M1', 'Marital Status');
-        $sheet->setCellValue('N1', 'Student Status');
-        $sheet->setCellValue('O1', 'Receipt Count');
-        $sheet->setCellValue('P1', 'Result');
+        // ==========================
+        // HEADER ROW (ROW 4)
+        // ==========================
+        $headers = [
+            'SL No.', 'Student Name', "Father's Name", 'Student Email',
+            'Contact No', 'Student ID', 'Course', 'Franchise',
+            'Date of Birth', 'Gender', 'Qualification', 'Student Address',
+            'Marital Status', 'Student Status', 'Receipt Count', 'Result'
+        ];
 
-        $i = 2;
-        foreach ($students as $index => $student) {
+        $headerRow = 4;
 
-            if ($student['student_status'] == "course_complete") {
-                $student_status = "Course Complete";
-            } else {
-                $student_status = ucfirst($student['student_status']);
+        foreach ($headers as $index => $title) {
+            $sheet->setCellValue($columns[$index] . $headerRow, $title);
+        }
+
+        $headerRange = 'A4:P4';
+
+        $sheet->getStyle($headerRange)->applyFromArray($this->styleArray);
+        $sheet->getStyle($headerRange)->getAlignment()
+            ->setHorizontal('center')
+            ->setVertical('center');
+
+        // ==========================
+        // DATA
+        // ==========================
+        if (!empty($students)) {
+
+            $row = 5;
+            $dataStartRow = $row;
+
+            foreach ($students as $index => $student) {
+
+                $sheet->fromArray([
+                    $index + 1,
+                    $student['stu_name'],
+                    $student['stu_father_name'],
+                    $student['stu_email'],
+                    $student['stu_phone'],
+                    $student['stu_id'],
+                    $student['course_title'],
+                    $student['center_name'],
+                    $student['stu_dob'],
+                    $student['stu_gender'],
+                    $student['stu_qualification'],
+                    $student['stu_address'],
+                    $student['stu_marital_status'],
+                    $student['student_status'],
+                    $student['receipt_count'],
+                    $student['stu_result']
+                ], null, 'A' . $row);
+
+                $row++;
             }
-            //cell text alignment
-            $spreadsheet->getActiveSheet()->getStyle('A' . $i . ':P' . $i)->getAlignment()->setHorizontal('center');
-            $spreadsheet->getActiveSheet()->getStyle('A' . $i . ':P' . $i)->getAlignment()->setVertical('center');
 
-            //Wrap text
-            $spreadsheet->getActiveSheet()->getStyle('A' . $i . ':P' . $i)->getAlignment()->setWrapText(true);
+            // Apply alignment once (performance boost)
+            $dataRange = 'A' . $dataStartRow . ':P' . ($row - 1);
 
-            $sheet->setCellValue('A' . $i, $index++);
-            $sheet->setCellValue('B' . $i, $student['stu_name']);
-            $sheet->setCellValue('C' . $i, $student['stu_father_name']);
-            $sheet->setCellValue('D' . $i, $student['stu_email']);
-            $sheet->setCellValue('E' . $i, $student['stu_phone']);
-            $sheet->setCellValue('F' . $i, $student['stu_id']);
-            $sheet->setCellValue('G' . $i, $student['course_title']);
-            $sheet->setCellValue('H' . $i, $student['center_name']);
-            $sheet->setCellValue('I' . $i, date("jS F, Y", strtotime($student['stu_dob'])));
-            $sheet->setCellValue('J' . $i, ucfirst($student['stu_gender']));
-            $sheet->setCellValue('K' . $i, $student['stu_qualification']);
-            $sheet->setCellValue('L' . $i, $student['stu_address']);
-            $sheet->setCellValue('M' . $i, ucfirst($student['stu_marital_status']));
-            $sheet->setCellValue('N' . $i, $student_status);
-            $sheet->setCellValue('O' . $i, $student['receipt_count']);
-            $sheet->setCellValue('P' . $i, ucfirst($student['stu_result']));
-            $i++;
+            $sheet->getStyle($dataRange)->getAlignment()
+                ->setHorizontal('center')
+                ->setVertical('center')
+                ->setWrapText(true);
         }
 
-        $filePath =  USER_UPLOAD_DIR . 'runtime_upload/Student_Data_' . time() . '.xlsx';
-        $fileUrl = USER_UPLOAD_URL . 'runtime_upload/Student_Data_' . time() . '.xlsx';
+        // ==========================
+        // SAVE FILE (FIXED BUG)
+        // ==========================
+        $filename = 'Student_Data_' . time() . '.xlsx';
+
+        $filePath = USER_UPLOAD_DIR . 'runtime_upload/' . $filename;
+        $fileUrl  = USER_UPLOAD_URL . 'runtime_upload/' . $filename;
 
         $writer->save($filePath);
 
+        return [
+            'check' => 'success',
+            'file_upload_dir' => $filePath,
+            'file_url' => $fileUrl
+        ];
+    }
+
+    public function exportReceipt($receipts, $criteriaText)
+    {
+        $spreadsheet = new Spreadsheet();
+        $sheet = $spreadsheet->getActiveSheet();
+        $writer = new Xlsx($spreadsheet);
+
+        // ==========================
+        // DEFAULT FONT
+        // ==========================
+        $spreadsheet->getDefaultStyle()->getFont()
+            ->setName('Arial')
+            ->setSize(10);
+
+        // ==========================
+        // TOP META ROWS
+        // ==========================
+        $sheet->insertNewRowBefore(1, 3);
+
+        $sheet->setCellValue('A1', 'Receipt Report');
+        $sheet->setCellValue('A2', 'Generated on: ' . date('d M Y h:i A'));
+        $sheet->setCellValue('A3', 'Filters: ' . $criteriaText);
+
+        $sheet->mergeCells('A1:O1');
+        $sheet->mergeCells('A2:O2');
+        $sheet->mergeCells('A3:O3');
+
+        $sheet->getStyle('A1')->getFont()->setBold(true)->setSize(14);
+        $sheet->getStyle('A2:A3')->getFont()->setSize(10);
+        $sheet->getStyle('A3')->getAlignment()->setWrapText(true);
+
+        // ==========================
+        // COLUMN SETUP
+        // ==========================
+        $columns = range('A', 'O');
+
+        // Widths
+        $sheet->getColumnDimension('A')->setWidth(40, 'pt');
+        foreach (array_slice($columns, 1) as $col) {
+            $sheet->getColumnDimension($col)->setWidth(130, 'pt');
+        }
+
+        // ==========================
+        // HEADER ROW
+        // ==========================
+        $headers = [
+            'SL No.', 'Receipt ID', 'Receipt Created', 'Receipt Amount(Rs.)',
+            'Late Fine(Rs.)', 'Additional Fees(Rs.)', 'Additional Fees Desc',
+            'Student Name', 'Student Email', 'Contact No', 'Student ID',
+            'Student Result', 'Course', 'Franchise', 'Verified Status'
+        ];
+
+        $headerRow = 4;
+
+        foreach ($headers as $index => $title) {
+            $sheet->setCellValue($columns[$index] . $headerRow, $title);
+        }
+
+        $headerRange = 'A4:O4';
+
+        $sheet->getStyle($headerRange)->applyFromArray($this->styleArray);
+        $sheet->getStyle($headerRange)->getAlignment()
+            ->setHorizontal('center')
+            ->setVertical('center');
+
+        // ==========================
+        // DATA
+        // ==========================
+        if (!empty($receipts)) {
+
+            $row = 5;
+            $dataStartRow = $row;
+
+            foreach ($receipts as $index => $receipt) {
+
+                $sheet->fromArray([
+                    $index + 1,
+                    $receipt['receipt_id'],
+                    $receipt['created_at'],
+                    $receipt['receipt_amount'],
+                    $receipt['late_fine'],
+                    $receipt['extra_fees'],
+                    $receipt['extra_fees_description'],
+                    $receipt['stu_name'],
+                    $receipt['stu_email'],
+                    $receipt['stu_phone'],
+                    $receipt['stu_id'],
+                    ucfirst($receipt['stu_result']),
+                    $receipt['course_title'],
+                    $receipt['center_name'],
+                    $receipt['verified_status']
+                ], null, 'A' . $row);
+
+                $row++;
+            }
+
+            // Apply alignment ONCE (big performance gain)
+            $dataRange = 'A' . $dataStartRow . ':O' . ($row - 1);
+
+            $sheet->getStyle($dataRange)->getAlignment()
+                ->setHorizontal('center')
+                ->setVertical('center')
+                ->setWrapText(true);
+        }
+
+        // ==========================
+        // SAVE FILE (FIXED BUG)
+        // ==========================
+        $filename = 'Receipt_Data_' . time() . '.xlsx';
+
+        $filePath = USER_UPLOAD_DIR . 'runtime_upload/' . $filename;
+        $fileUrl  = USER_UPLOAD_URL . 'runtime_upload/' . $filename;
+
+        $writer->save($filePath);
+
+        return [
+            'check' => 'success',
+            'file_upload_dir' => $filePath,
+            'file_url' => $fileUrl
+        ];
+    }
+
+    public function exportFranchise($franchises, $criteriaText)
+    {
+        $spreadsheet = new Spreadsheet();
+        $sheet = $spreadsheet->getActiveSheet();
+        $writer = new Xlsx($spreadsheet);
+
+        // ==========================
+        // DEFAULT FONT
+        // ==========================
+        $spreadsheet->getDefaultStyle()->getFont()
+            ->setName('Arial')
+            ->setSize(10);
+
+        // ==========================
+        // TOP META ROWS
+        // ==========================
+        $sheet->insertNewRowBefore(1, 3);
+
+        $sheet->setCellValue('A1', 'Franchise Report');
+        $sheet->setCellValue('A2', 'Generated on: ' . date('d M Y h:i A'));
+        $sheet->setCellValue('A3', 'Filters: ' . $criteriaText);
+
+        $sheet->mergeCells('A1:I1');
+        $sheet->mergeCells('A2:I2');
+        $sheet->mergeCells('A3:I3');
+
+        $sheet->getStyle('A1')->getFont()->setBold(true)->setSize(14);
+        $sheet->getStyle('A2:A3')->getFont()->setSize(10);
+        $sheet->getStyle('A3')->getAlignment()->setWrapText(true);
+
+        // ==========================
+        // COLUMN SETUP
+        // ==========================
+        $columns = range('A', 'I');
+
+        $sheet->getColumnDimension('A')->setWidth(40, 'pt');
+
+        foreach (array_slice($columns, 1) as $col) {
+            $sheet->getColumnDimension($col)->setWidth(150, 'pt');
+        }
+
+        // ==========================
+        // HEADER ROW (ROW 4)
+        // ==========================
+        $headers = [
+            'SL No.', 'Franchise Name', 'Owner Name', 'Franchise ID',
+            'Contact No', 'Franchise Email', 'Franchise Address',
+            'Owned Status', 'Total No of Student Enrolled'
+        ];
+
+        $headerRow = 4;
+
+        foreach ($headers as $index => $title) {
+            $sheet->setCellValue($columns[$index] . $headerRow, $title);
+        }
+
+        $headerRange = 'A4:I4';
+
+        $sheet->getStyle($headerRange)->applyFromArray($this->styleArray);
+        $sheet->getStyle($headerRange)->getAlignment()
+            ->setHorizontal('center')
+            ->setVertical('center');
+
+        // ==========================
+        // DATA
+        // ==========================
+        if (!empty($franchises)) {
+
+            $row = 5;
+            $dataStartRow = $row;
+
+            foreach ($franchises as $index => $franchise) {
+
+                $sheet->fromArray([
+                    $index + 1,
+                    $franchise['center_name'],
+                    $franchise['owner_name'],
+                    $franchise['fran_id'],
+                    $franchise['fran_phone'],
+                    $franchise['fran_email'],
+                    $franchise['fran_address'],
+                    $franchise['owned_status'], // no formatting now (as requested)
+                    $franchise['enrolled_student_count']
+                ], null, 'A' . $row);
+
+                $row++;
+            }
+
+            // Apply alignment once (performance boost)
+            $dataRange = 'A' . $dataStartRow . ':I' . ($row - 1);
+
+            $sheet->getStyle($dataRange)->getAlignment()
+                ->setHorizontal('center')
+                ->setVertical('center')
+                ->setWrapText(true);
+        }
+
+        // ==========================
+        // SAVE FILE
+        // ==========================
+        $filename = 'Franchise_Data_' . time() . '.xlsx';
+
+        $filePath = USER_UPLOAD_DIR . 'runtime_upload/' . $filename;
+        $fileUrl  = USER_UPLOAD_URL . 'runtime_upload/' . $filename;
+
+        $writer->save($filePath);
 
         return [
             'check' => 'success',

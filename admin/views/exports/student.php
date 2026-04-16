@@ -1,6 +1,9 @@
 <h2 style="text-align:center; margin-bottom:10px;">
     THE AIMGCSM STUDENT RECORDS
 </h2>
+<h3 style="margin-bottom:10px;">
+    <?=$criteriaText?>
+</h3>
 
 <table border="1" cellpadding="5" cellspacing="0" width="100%">
     <thead>
@@ -22,7 +25,6 @@
 
                 <td>
                     <?= $student["stu_name"] ?><br>
-                    <?= $student["stu_father_name"] ?>
                 </td>
 
                 <td>
@@ -39,8 +41,8 @@
                 </td>
 
                 <td>
-                    <?= ucfirst($student["student_status"]) ?><br>
-                    <?= ucfirst($student["stu_result"]) ?>
+                    <?= $student["student_status"] ?><br>
+                    <?= $student["stu_result"] ?>
                 </td>
 
                 <td><?= $student["receipt_count"] ?></td>

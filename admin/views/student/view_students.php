@@ -1414,7 +1414,10 @@ foreach ($queries as $key => $query_val) {
       var pageNo = $('#pageNo').val();
 
       var course_id = $('#course_id').val();
+      var course_name = $('#course_id option:selected').text();
+
       var franchise_id = $('#franchise_id').val();
+      var franchise_name = $('#franchise_id option:selected').text();
 
       var search_string = $('#search_string').val();
 
@@ -1432,7 +1435,9 @@ foreach ($queries as $key => $query_val) {
         record_limit: record_limit,
         pageNo: pageNo,
         course_id: course_id,
+        course_name: course_name,
         franchise_id: franchise_id,
+        franchise_name: franchise_name,
         search_start: search_start,
         search_end: search_end,
         created: created,

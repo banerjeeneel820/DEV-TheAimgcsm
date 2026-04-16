@@ -994,50 +994,77 @@ class GlobalLibraryHandler
     return !empty($createdZips) ? true : false;
   }
 
+  private function formatDateLabel($key)
+  {
+    // Convert snake_case to readable label
+    $key = str_replace(['_start', '_end'], '', $key);
+    $key = str_replace('_', ' ', $key);
+
+    return ucwords($key);
+  }
+
   public function buildExportCriteria($params)
   {
     $filters = [];
 
-    // Record Status
+    // -----------------------------
+    // BASIC FIELDS
+    // -----------------------------
+
     if (!empty($params['record_status'])) {
       $filters[] = "Status: " . ucfirst($params['record_status']);
     }
 
-    // Course
     if (!empty($params['course_id'])) {
-      // Ideally fetch course name from DB
       $filters[] = "Course: " . $params['course_name'];
     }
 
-    // Franchise
     if (!empty($params['franchise_id'])) {
-      // Ideally fetch franchise name from DB
       $filters[] = "Franchise: " . $params['franchise_name'];
     }
 
-    // Created filter (today / this month etc.)
-    if (!empty($params['created'])) {
-      $filters[] = "Created: " . ucfirst($params['created']);
-    }
-
-    // Date Range
-    if (!empty($params['receipt_season_start']) && !empty($params['receipt_season_end'])) {
-      $filters[] = "Date: " . date('d M Y', strtotime($params['receipt_season_start'])) .
-        " to " . date('d M Y', strtotime($params['receipt_season_end']));
-    }
-
-    // Student ID
     if (!empty($params['student_id'])) {
       $filters[] = "Student ID: " . $params['student_id'];
     }
 
-    // Protocol (source)
     if (!empty($params['protocol'])) {
       $source = ($params['protocol'] == 'dashboard') ? 'Dashboard' : 'Receipt Module';
       $filters[] = "Source: " . $source;
     }
 
-    return !empty($filters) ? implode(' | ', $filters) : 'No Filters Applied';
+    // -----------------------------
+    // CREATED (SPECIAL CASE)
+    // -----------------------------
+    if (!empty($params['created'])) {
+      $filters[] = "Created: " . ucfirst($params['created']);
+    }
+
+    // -----------------------------
+    // GENERIC DATE RANGE HANDLING
+    // -----------------------------
+    $dateRanges = [
+      // Receipts
+      'receipt_season_start' => 'receipt_season_end',
+
+      // Students / Generic search
+      'search_start' => 'search_end',
+    ];
+
+    foreach ($dateRanges as $startKey => $endKey) {
+      if (!empty($params[$startKey]) && !empty($params[$endKey])) {
+
+        $label = $this->formatDateLabel($startKey);
+
+        $filters[] = $label . ": " .
+          date('d M Y', strtotime($params[$startKey])) .
+          " to " .
+          date('d M Y', strtotime($params[$endKey]));
+      }
+    }
+
+    return !empty($filters)
+      ? implode(' | ', $filters)
+      : 'No Filters Applied';
   }
 
   // Method to log request data in a file
