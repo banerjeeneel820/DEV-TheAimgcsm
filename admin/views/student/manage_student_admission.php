@@ -27,11 +27,11 @@
   }    
 
   //Fetching page action permission
-  $viewPermission = $this->globalLibraryHandlerObj->checkUserRolePermission("view_student"); 
-  $createPermission = $this->globalLibraryHandlerObj->checkUserRolePermission("create_student"); 
-  $updatePermission = $this->globalLibraryHandlerObj->checkUserRolePermission("update_student"); 
+  $viewPermission = $this->checkUserRolePermission("view_student"); 
+  $createPermission = $this->checkUserRolePermission("create_student"); 
+  $updatePermission = $this->checkUserRolePermission("update_student"); 
 
-  $updateReceiptPermission = $this->globalLibraryHandlerObj->checkUserRolePermission("update_receipt"); 
+  $updateReceiptPermission = $this->checkUserRolePermission("update_receipt"); 
   
   /*print"<pre>";
   print_r($studentDetails);

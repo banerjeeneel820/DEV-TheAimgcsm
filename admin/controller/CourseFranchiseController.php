@@ -11,7 +11,7 @@ class CourseFranchiseController extends BaseController
 
     public function manage_franchise($data)
     {
-        $post = fn ($key) => $this->GlobalLibraryHandlerObj->postDataSanitize($key);
+        $post = fn ($key) => $this->lib->postDataSanitize($key);
 
         $formDataArr = [];
         $dir = 'franchise';
@@ -25,7 +25,7 @@ class CourseFranchiseController extends BaseController
 
         $role = $isUpdate ? 'update_franchise' : 'create_franchise';
 
-        if (!$this->GlobalLibraryHandlerObj->checkUserRolePermission($role, "hard")) {
+        if (!$this->checkUserRolePermission($role, "hard")) {
             return ['check' => 'failure', 'message' => "You don't have permission!"];
         }
 
@@ -33,7 +33,7 @@ class CourseFranchiseController extends BaseController
         // CREATE LOGIC
         // -----------------------------
         if (!$isUpdate) {
-            $formDataArr['fran_id'] = $this->GlobalLibraryHandlerObj->create_Frnachise_ID();
+            $formDataArr['fran_id'] = $this->create_Frnachise_ID();
         }
 
         // -----------------------------
@@ -54,14 +54,14 @@ class CourseFranchiseController extends BaseController
         // -----------------------------
         $formDataArr['center_name'] = $post('center_name');
 
-        $formDataArr['seo_url_structure'] = $this->GlobalLibraryHandlerObj
+        $formDataArr['seo_url_structure'] = $this->lib
             ->seoUrlStructure($formDataArr['center_name'], 'seo');
 
         // -----------------------------
         // SLUG VALIDATION
         // -----------------------------
-        $slugData = $this->GlobalLibraryHandlerObj
-            ->checkSlugAvailibility('franchise', 'seo_url_structure', $formDataArr['seo_url_structure']);
+        $slugData = $this->interface
+            ->check_Slug_Availibility('franchise', 'seo_url_structure', $formDataArr['seo_url_structure']);
 
         if (!empty($slugData->id) && (!$isUpdate || $slugData->id != $formDataArr['fran_row_id'])) {
             return ['check' => 'failure', 'message' => 'This title is already taken; Please try another.'];
@@ -95,7 +95,7 @@ class CourseFranchiseController extends BaseController
         // -----------------------------
         // FILE HANDLING (USING HELPER)
         // -----------------------------
-        $formDataArr['fran_image'] = $this->GlobalLibraryHandlerObj->handleFileUpload([
+        $formDataArr['fran_image'] = $this->lib->handleFileUpload([
             'input'   => 'local_fran_image',
             'hidden'  => $_POST['hidden_fran_image'] ?? '',
             'default' => null,
@@ -103,7 +103,7 @@ class CourseFranchiseController extends BaseController
             'isUpdate'  => $isUpdate,
         ]);
 
-        $formDataArr['fran_pdf_name'] = $this->GlobalLibraryHandlerObj->handleFileUpload([
+        $formDataArr['fran_pdf_name'] = $this->lib->handleFileUpload([
             'input'   => 'local_fran_pdf',
             'hidden'  => $_POST['hidden_fran_pdf'] ?? '',
             'default' => null,
@@ -114,7 +114,7 @@ class CourseFranchiseController extends BaseController
         // -----------------------------
         // DB OPERATION
         // -----------------------------
-        $returnArr = $this->GlobalInterfaceControllerObj
+        $returnArr = $this->interface
             ->manage_Global_Franchise($formDataArr);
 
         // -----------------------------
@@ -123,7 +123,7 @@ class CourseFranchiseController extends BaseController
         if ($returnArr['check'] === 'success') {
 
             if (!empty($returnArr['last_insert_id'])) {
-                $this->GlobalLibraryHandlerObj->purgeSiteCache("franchise");
+                $this->purgeSiteCache("franchise");
 
                 return [
                     'check' => 'success',
@@ -141,7 +141,7 @@ class CourseFranchiseController extends BaseController
 
     public function manage_course($data)
     {
-        $post = fn ($key) => $this->GlobalLibraryHandlerObj->postDataSanitize($key);
+        $post = fn ($key) => $this->lib->postDataSanitize($key);
 
         $formDataArr = [];
         $dir = 'course';
@@ -154,7 +154,7 @@ class CourseFranchiseController extends BaseController
 
         $role = $isUpdate ? 'update_course' : 'create_course';
 
-        if (!$this->GlobalLibraryHandlerObj->checkUserRolePermission($role, "hard")) {
+        if (!$this->checkUserRolePermission($role, "hard")) {
             return ['check' => 'failure', 'message' => "You don't have permission!"];
         }
 
@@ -163,14 +163,14 @@ class CourseFranchiseController extends BaseController
         // -----------------------------
         $formDataArr['course_title'] = $post('course_title');
 
-        $formDataArr['seo_url_structure'] = $this->GlobalLibraryHandlerObj
+        $formDataArr['seo_url_structure'] = $this->lib
             ->seoUrlStructure($formDataArr['course_title'], 'seo');
 
         // -----------------------------
         // SLUG VALIDATION
         // -----------------------------
-        $slugData = $this->GlobalLibraryHandlerObj
-            ->checkSlugAvailibility('course', 'seo_url_structure', $formDataArr['seo_url_structure']);
+        $slugData = $this->interface
+        ->check_Slug_Availibility('course', 'seo_url_structure', $formDataArr['seo_url_structure']);
 
         if (!empty($slugData->id) && (!$isUpdate || $slugData->id != $formDataArr['course_id'])) {
             return ['check' => 'failure', 'message' => 'This title is already taken; Please try another.'];
@@ -196,7 +196,7 @@ class CourseFranchiseController extends BaseController
         // -----------------------------
         // FILE HANDLING (USING HELPER)
         // -----------------------------
-        $formDataArr['course_thumbnail'] = $this->GlobalLibraryHandlerObj->handleFileUpload([
+        $formDataArr['course_thumbnail'] = $this->lib->handleFileUpload([
             'input'   => 'course_thumbnail_local',
             'hidden'  => $_POST['hidden_course_thumbnail'] ?? '',
             'default' => null,
@@ -204,7 +204,7 @@ class CourseFranchiseController extends BaseController
             'isUpdate'  => $isUpdate,
         ]);
 
-        $formDataArr['course_pdf'] = $this->GlobalLibraryHandlerObj->handleFileUpload([
+        $formDataArr['course_pdf'] = $this->lib->handleFileUpload([
             'input'   => 'local_course_pdf',
             'hidden'  => $_POST['hidden_course_pdf'] ?? '',
             'default' => null,
@@ -215,7 +215,7 @@ class CourseFranchiseController extends BaseController
         // -----------------------------
         // DB OPERATION
         // -----------------------------
-        $returnArr = $this->GlobalInterfaceControllerObj
+        $returnArr = $this->interface
             ->manage_Global_Course($formDataArr);
 
         // -----------------------------
@@ -225,7 +225,7 @@ class CourseFranchiseController extends BaseController
 
             // Only purge cache on create (same behavior as before)
             if (!$isUpdate) {
-                $this->GlobalLibraryHandlerObj->purgeSiteCache("course");
+                $this->purgeSiteCache("course");
             }
 
             return $returnArr;

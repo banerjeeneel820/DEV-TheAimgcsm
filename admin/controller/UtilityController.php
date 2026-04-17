@@ -11,7 +11,7 @@ class UtilityController extends BaseController
 
     public function update_global_status_status($data)
     {
-        $post = fn ($key) => $this->GlobalLibraryHandlerObj->postDataSanitize($key);
+        $post = fn ($key) => $this->lib->postDataSanitize($key);
 
         $idData       = $post('row_id');
         $type         = $post('type');
@@ -43,7 +43,7 @@ class UtilityController extends BaseController
         // -----------------------------
         // PERMISSION
         // -----------------------------
-        if (!$this->GlobalLibraryHandlerObj->checkUserRolePermission($roleMap[$type], "hard")) {
+        if (!$this->checkUserRolePermission($roleMap[$type], "hard")) {
             return ['check' => 'failure', 'message' => "You don't have permission!"];
         }
 
@@ -64,7 +64,7 @@ class UtilityController extends BaseController
         // -----------------------------
         // CALL MODEL (SINGLE CALL)
         // -----------------------------
-        $response = $this->GlobalInterfaceControllerObj
+        $response = $this->interface
             ->update_Global_Record_Status($type, $rowIds, $recordStatus);
 
         if ($response['responseArr']['check'] !== 'success') {
@@ -74,7 +74,7 @@ class UtilityController extends BaseController
         // -----------------------------
         // CACHE PURGE
         // -----------------------------
-        $this->GlobalLibraryHandlerObj->purgeSiteCache($type);
+        $this->purgeSiteCache($type);
 
         return ['check' => 'success', 'message' => 'Status updated successfully!'];
     }
@@ -82,7 +82,7 @@ class UtilityController extends BaseController
     public function update_global_featured_status($data)
     {
         // helper
-        $post = fn ($key) => $this->GlobalLibraryHandlerObj->postDataSanitize($key);
+        $post = fn ($key) => $this->lib->postDataSanitize($key);
 
         $idData          = $post('row_id');
         $type            = $post('type');
@@ -99,7 +99,7 @@ class UtilityController extends BaseController
         $user_role_slug = $roleMap[$type];
 
         // Check permission
-        $checkActionPermission = $this->GlobalLibraryHandlerObj
+        $checkActionPermission = $this->lib
             ->checkUserRolePermission($user_role_slug, "hard");
 
         if (!$checkActionPermission) {
@@ -128,7 +128,7 @@ class UtilityController extends BaseController
         }
 
         // Call updated query method
-        $result = $this->GlobalInterfaceControllerObj
+        $result = $this->interface
             ->update_Global_Featured_Status($type, $rowIds, $featured_status);
 
         if ($result["responseArr"]["check"] === "success") {
@@ -147,7 +147,7 @@ class UtilityController extends BaseController
     public function update_global_verified_status($data)
     {
         // helper
-        $post = fn ($key) => $this->GlobalLibraryHandlerObj->postDataSanitize($key);
+        $post = fn ($key) => $this->lib->postDataSanitize($key);
 
         $idData          = $post('row_id');
         $type            = $post('type');
@@ -163,7 +163,7 @@ class UtilityController extends BaseController
         $user_role_slug = $roleMap[$type];
 
         // Check permission
-        $checkActionPermission = $this->GlobalLibraryHandlerObj
+        $checkActionPermission = $this->lib
             ->checkUserRolePermission($user_role_slug, "hard");
 
         if (!$checkActionPermission) {
@@ -192,7 +192,7 @@ class UtilityController extends BaseController
         }
 
         // Call updated query method
-        $result = $this->GlobalInterfaceControllerObj
+        $result = $this->interface
             ->update_Global_Verified_Status($type, $rowIds, $verified_status);
 
         if ($result["responseArr"]["check"] === "success") {
@@ -210,7 +210,7 @@ class UtilityController extends BaseController
 
     public function delete_global_data($data)
     {
-        $post = fn ($key) => $this->GlobalLibraryHandlerObj->postDataSanitize($key);
+        $post = fn ($key) => $this->lib->postDataSanitize($key);
 
         $idData = $post('row_id');   // "1,2,3" or "5"
         $type   = $post('type');
@@ -243,7 +243,7 @@ class UtilityController extends BaseController
         // -----------------------------
         // PERMISSION CHECK
         // -----------------------------
-        if (!$this->GlobalLibraryHandlerObj->checkUserRolePermission($roleMap[$type], "hard")) {
+        if (!$this->checkUserRolePermission($roleMap[$type], "hard")) {
             return ['check' => 'failure', 'message' => "You don't have permission!"];
         }
 
@@ -264,13 +264,13 @@ class UtilityController extends BaseController
         // -----------------------------
         // FETCH DATA BEFORE DELETE (for file removal)
         // -----------------------------
-        $allRecords = $this->GlobalInterfaceControllerObj
+        $allRecords = $this->interface
             ->fetch_Global_Multiple_Data($type, $rowIds);
 
         // -----------------------------
         // BULK DELETE
         // -----------------------------
-        $response = $this->GlobalInterfaceControllerObj
+        $response = $this->interface
             ->delete_Global_Data([
                 'type'   => $type,
                 'rowIds' => $rowIds
@@ -285,7 +285,7 @@ class UtilityController extends BaseController
         // -----------------------------
         if (!empty($allRecords)) {
             foreach ($allRecords as $record) {
-                $this->GlobalLibraryHandlerObj->remove_File_From_Server($type, $record);
+                $this->lib->remove_File_From_Server($type, $record);
             }
         }
 
@@ -299,7 +299,7 @@ class UtilityController extends BaseController
         // -----------------------------
         // PERMISSION CHECK
         // -----------------------------
-        $hasPermission = $this->GlobalLibraryHandlerObj
+        $hasPermission = $this->lib
             ->checkUserRolePermission("update_site_setting", "hard");
 
         // allow franchise override
@@ -341,7 +341,7 @@ class UtilityController extends BaseController
 
     public function clear_site_cache($data)
     {
-        $post = fn ($key) => $this->GlobalLibraryHandlerObj->postDataSanitize($key);
+        $post = fn ($key) => $this->lib->postDataSanitize($key);
 
         $cacheDir = APP_CACHE_DIR;
         $clearType = $post('clearType');
@@ -367,7 +367,7 @@ class UtilityController extends BaseController
         // -----------------------------
         // PERMISSION CHECK
         // -----------------------------
-        if (!$this->GlobalLibraryHandlerObj->checkUserRolePermission('update_site_setting', "hard")) {
+        if (!$this->checkUserRolePermission('update_site_setting', "hard")) {
             return [
                 'check' => 'failure',
                 'message' => "You don't have the permission to perform this action!"
@@ -391,7 +391,7 @@ class UtilityController extends BaseController
 
     public function remove_file_from_server($data)
     {
-        $post = fn ($key) => $this->GlobalLibraryHandlerObj->postDataSanitize($key);
+        $post = fn ($key) => $this->lib->postDataSanitize($key);
 
         $filePath = $post('file_upload_dir');
 
@@ -445,7 +445,7 @@ class UtilityController extends BaseController
         // -----------------------------
         // PERMISSION CHECK
         // -----------------------------
-        if (!$this->GlobalLibraryHandlerObj->checkUserRolePermission("manage_site_backup")) {
+        if (!$this->checkUserRolePermission("manage_site_backup")) {
             return [
                 'check' => 'failure',
                 'message' => "You don't have the permission to perform this action!"
@@ -455,8 +455,8 @@ class UtilityController extends BaseController
         // -----------------------------
         // CHECK EXISTING TASKS
         // -----------------------------
-        $hasPending = $this->GlobalInterfaceControllerObj->check_Task_Status();
-        $hasRunning = $this->GlobalInterfaceControllerObj->check_Task_Status("running");
+        $hasPending = $this->interface->check_Task_Status();
+        $hasRunning = $this->interface->check_Task_Status("running");
 
         if (!empty($hasPending) || !empty($hasRunning)) {
             return [
@@ -489,7 +489,7 @@ class UtilityController extends BaseController
             'job_type' => "site_backup_creation"
         ];
 
-        $response = $this->GlobalInterfaceControllerObj->manage_Queue_Jobs($payload);
+        $response = $this->interface->manage_Queue_Jobs($payload);
 
         if ($response['check'] !== "success") {
             return [
@@ -517,12 +517,12 @@ class UtilityController extends BaseController
         $formDataArr = [];
 
         // helper
-        $post = fn ($key) => $this->GlobalLibraryHandlerObj->postDataSanitize($key);
+        $post = fn ($key) => $this->lib->postDataSanitize($key);
 
         // -----------------------------
         // PERMISSION CHECK
         // -----------------------------
-        if (!$this->GlobalLibraryHandlerObj->checkUserRolePermission("update_site_setting", "hard")) {
+        if (!$this->checkUserRolePermission("update_site_setting", "hard")) {
             return ['check' => 'failure', 'message' => "You don't have the permission to perform this action!"];
         }
 
@@ -548,7 +548,7 @@ class UtilityController extends BaseController
         // -----------------------------
 
         // signature
-        $formDataArr['signature'] = $this->GlobalLibraryHandlerObj->handleFileUpload([
+        $formDataArr['signature'] = $this->lib->handleFileUpload([
             'input'   => 'signature',
             'hidden'  => $post('hidden_signature'),
             'default' => 'signature.jpg',
@@ -557,7 +557,7 @@ class UtilityController extends BaseController
         ]);
 
         // logo
-        $formDataArr['logo'] = $this->GlobalLibraryHandlerObj->handleFileUpload([
+        $formDataArr['logo'] = $this->lib->handleFileUpload([
             'input'   => 'logo',
             'hidden'  => $post('hidden_logo'),
             'default' => 'company.png',
@@ -566,7 +566,7 @@ class UtilityController extends BaseController
         ]);
 
         // header logo
-        $formDataArr['header_logo'] = $this->GlobalLibraryHandlerObj->handleFileUpload([
+        $formDataArr['header_logo'] = $this->lib->handleFileUpload([
             'input'   => 'header_logo',
             'hidden'  => $post('hidden_header_logo'),
             'default' => null,
@@ -575,7 +575,7 @@ class UtilityController extends BaseController
         ]);
 
         // sticky logo
-        $formDataArr['sticky_logo'] = $this->GlobalLibraryHandlerObj->handleFileUpload([
+        $formDataArr['sticky_logo'] = $this->lib->handleFileUpload([
             'input'   => 'sticky_logo',
             'hidden'  => $post('hidden_sticky_logo'),
             'default' => null,
@@ -584,7 +584,7 @@ class UtilityController extends BaseController
         ]);
 
         // footer logo
-        $formDataArr['footer_logo'] = $this->GlobalLibraryHandlerObj->handleFileUpload([
+        $formDataArr['footer_logo'] = $this->lib->handleFileUpload([
             'input'   => 'footer_logo',
             'hidden'  => $post('hidden_footer_logo'),
             'default' => null,
@@ -593,7 +593,7 @@ class UtilityController extends BaseController
         ]);
 
         // favicon
-        $formDataArr['favicon'] = $this->GlobalLibraryHandlerObj->handleFileUpload([
+        $formDataArr['favicon'] = $this->lib->handleFileUpload([
             'input'   => 'favicon',
             'hidden'  => $post('hidden_favicon'),
             'default' => null,
@@ -604,7 +604,7 @@ class UtilityController extends BaseController
         // -----------------------------
         // DB OPERATION
         // -----------------------------
-        $returnArr = $this->GlobalInterfaceControllerObj
+        $returnArr = $this->interface
             ->update_Global_Site_Setting($formDataArr);
 
         // -----------------------------

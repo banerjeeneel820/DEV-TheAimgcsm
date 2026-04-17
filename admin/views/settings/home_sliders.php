@@ -29,7 +29,7 @@
   }
   
   //Fetching page action permission
-  $pagePermission = $this->globalLibraryHandlerObj->checkUserRolePermission("manage_home_slider"); 
+  $pagePermission = $this->checkUserRolePermission("manage_home_slider"); 
 
   /*print"<pre>";
   print_r($sliderArr);
@@ -331,7 +331,7 @@
                                                     </td>
 
                                                      <td class="project-status" style="width: 10%;">
-                                                        <a href="<?=FRONT_SITE_URL.$slider->banner_link?>" data-toggle="tooltip" data-placement="bottom" title="Banner Link:  <?=$slider->banner_link?>"><?=ucfirst($this->globalLibraryHandlerObj->seoUrlStructure($slider->banner_link,'r_seo'))?></a>
+                                                        <a href="<?=FRONT_SITE_URL.$slider->banner_link?>" data-toggle="tooltip" data-placement="bottom" title="Banner Link:  <?=$slider->banner_link?>"><?=ucfirst($this->lib->seoUrlStructure($slider->banner_link,'r_seo'))?></a>
                                                     </td>
 
                                                     <td class="project-status">

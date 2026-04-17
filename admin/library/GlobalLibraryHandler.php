@@ -1,34 +1,15 @@
 <?php
 defined('ROOTPATH') or exit('No direct script access allowed');
 
-use Dompdf\Dompdf;
 use PHPMailer\PHPMailer\PHPMailer;
 use PHPMailer\PHPMailer\Exception;
 
-class Pdf extends Dompdf
+class GlobalLibraryHandler extends BaseController
 {
-  public function __construct()
-  {
-    parent::__construct();
-  }
-}
-
-class GlobalLibraryHandler
-{
-
-
-  private $GlobalInterfaceControllerObj;
-  private $memObj;
 
   public function __construct()
   {
-    $this->GlobalInterfaceControllerObj = new GlobalInterfaceController();
-    if (SERVER_ENV == "PRODUCTION") {
-      $this->memObj = new Memcached();
-      $this->memObj->addServer("127.0.0.1", 11211);
-    } else {
-      $this->memObj = null;
-    }
+    //parent::__construct();
   }
 
   public function buildBackUrl($newRoute)
@@ -63,90 +44,6 @@ class GlobalLibraryHandler
       mkdir("$runtime_upload_dir_path");
       chmod("$runtime_upload_dir_path", 0755);
     }
-  }
-
-  public function checkUserRolePermission($user_role_slug, $fetch_type = "hard")
-  {
-    $paramArr['user_id'] = $_SESSION['user_id'];
-    $paramArr['user_type'] = $_SESSION['user_type'];
-
-    // Fetch roles
-    if ($fetch_type === "hard") {
-      $userRoleArr = $this->GlobalInterfaceControllerObj->fetch_Current_User_Role($paramArr);
-    } else {
-      $userRoleArr = $_SESSION['user_role'] ?? [];
-    }
-
-    if (!is_array($userRoleArr)) {
-      return false;
-    }
-
-    // If single role → same behavior (no change)
-    if (!is_array($user_role_slug)) {
-      return in_array($user_role_slug, $userRoleArr);
-    }
-
-    // If multiple roles → ALL must exist
-    return count(array_intersect($user_role_slug, $userRoleArr)) === count($user_role_slug);
-  }
-
-  public function purgeSiteCache($section)
-  {
-    if (SERVER_ENV == "PRODUCTION") {
-      switch ($section) {
-        case 'student':
-          if ($_SESSION['user_type'] == 'developer' || $_SESSION['user_type'] == 'admin') {
-            $this->memObj->delete("student_dashboard_today");
-            $this->memObj->delete("student_dashboard_weekly");
-            $this->memObj->delete("student_dashboard_monthly");
-            $this->memObj->delete("student_dashboard_annual");
-          } elseif ($_SESSION['user_type'] == 'franchise') {
-            $franchise_id = $_SESSION['user_id'];
-            $this->memObj->delete("student_dashboard_today_$franchise_id");
-            $this->memObj->delete("student_dashboard_weekly_$franchise_id");
-            $this->memObj->delete("student_dashboard_monthly_$franchise_id");
-            $this->memObj->delete("student_dashboard_annual_$franchise_id");
-          }
-          break;
-
-        case 'student_receipts':
-          if ($_SESSION['user_type'] == 'developer' || $_SESSION['user_type'] == 'admin') {
-            $this->memObj->delete("receipt_dashboard_today");
-            $this->memObj->delete("receipt_dashboard_weekly");
-            $this->memObj->delete("receipt_dashboard_monthly");
-            $this->memObj->delete("receipt_dashboard_annual");
-          } elseif ($_SESSION['user_type'] == 'franchise') {
-            $franchise_id = $_SESSION['user_id'];
-            $this->memObj->delete("receipt_dashboard_today_$franchise_id");
-            $this->memObj->delete("receipt_dashboard_weekly_$franchise_id");
-            $this->memObj->delete("receipt_dashboard_monthly_$franchise_id");
-            $this->memObj->delete("receipt_dashboard_annual_$franchise_id");
-          }
-          break;
-
-        case 'franchise':
-          $this->memObj->delete("franchise_data_active");
-          $this->memObj->delete("franchise_data_blocked");
-          break;
-
-        case 'course':
-          $this->memObj->delete("course_data");
-          $this->memObj->delete("course_data_active");
-          $this->memObj->delete("course_data_blocked");
-          break;
-
-        case 'others':
-          $this->memObj->delete("news_data");
-          $this->memObj->delete("enquiry_data");
-          $this->memObj->delete("gallery_data");
-          break;
-
-        default:
-          # code...
-          break;
-      }
-    }
-    return true;
   }
 
   public function fetchSiteBackupFiles()
@@ -204,70 +101,6 @@ class GlobalLibraryHandler
     closedir($directory);
 
     return json_decode(json_encode($siteBakFilesArr), FALSE);
-  }
-
-  public function create_Frnachise_ID()
-  {
-    //Creating new Franchise id method
-    $franchiseDetail = $this->GlobalInterfaceControllerObj->fetch_Last_Franchise_Detail();
-    $last_fran_id = $franchiseDetail[0]->fran_id;
-
-    if ($last_fran_id != null) {
-      $last_fran_id_part_2 = substr($last_fran_id, 5);
-      $last_fran_id_part_2++;
-    } else {
-      $last_fran_id_part_2 = 1;
-    }
-
-    $current_fran_id = "WBMGF" . $last_fran_id_part_2;
-
-    return $current_fran_id;
-  }
-
-  public function create_Student_ID()
-  {
-    //Creating new Student id method
-    $stuIdDetail = $this->GlobalInterfaceControllerObj->fetch_Last_Student_Detail();
-    $lst_stu_id = $stuIdDetail['lst_stu_id'];
-
-    if (!empty($lst_stu_id)) {
-      $lst_stu_id_part_2 = substr($lst_stu_id, 10);
-      $nxt_stu_id = round($lst_stu_id_part_2 + 1);
-    } else {
-      $lst_stu_id_part_2 = 1;
-      $nxt_stu_id = $lst_stu_id_part_2;
-    }
-
-    $current_stu_id = "WBTAIMGCSM" . $nxt_stu_id;
-
-    return $current_stu_id;
-  }
-
-  public function create_Tmp_Student_ID($min = 999, $max = 999999, $quantity = 1)
-  {
-    $numbers = range($min, $max);
-    shuffle($numbers);
-    $randomNumArr = array_slice($numbers, 0, $quantity);
-
-    return "TMPSTUDENT" . $randomNumArr[0];
-  }
-
-  public function create_Receipt_ID()
-  {
-    //Creating new Franchise id method
-    $receiptDetail = $this->GlobalInterfaceControllerObj->fetch_Last_Receipt_Detail();
-    $last_rcpt_id = $receiptDetail[0]->receipt_id;
-
-    if ($last_rcpt_id != null) {
-      $last_rcpt_id_pt_2 = substr($last_rcpt_id, 17);
-      $last_rcpt_id_pt_2++;
-    } else {
-      $last_rcpt_id_pt_2 = 1;
-    }
-
-    $current_rcpt_id = "WBTAIMGCSMRECEIPT" . $last_rcpt_id_pt_2;
-
-    return $current_rcpt_id;
   }
 
   public function remove_File_From_Server($type, $record)
@@ -353,12 +186,6 @@ class GlobalLibraryHandler
         }
       }
     }
-  }
-
-  public function checkSlugAvailibility($type, $field, $slug)
-  {
-    $returnArr = $this->GlobalInterfaceControllerObj->check_Slug_Availibility($type, $field, $slug);
-    return $returnArr;
   }
 
   public function get_Gloabl_Content_Excerpt($content, $length)
@@ -451,14 +278,6 @@ class GlobalLibraryHandler
     return $data;
   }
 
-  public function fetchSiteSettingDetail()
-  {
-
-    $siteSettingArr = $this->GlobalInterfaceControllerObj->fetch_Global_Site_Setting_Detail();
-
-    return $siteSettingArr;
-  }
-
   public function configure_email_body($emailParam)
   {
     /*print"<pre>";
@@ -471,7 +290,7 @@ class GlobalLibraryHandler
     $emailReturnParamArr['receiver_email'] = $emailParam['receiver_email'];
     $emailReturnParamArr['site_addr'] = FRONT_SITE_URL;
     //fetching site setting detail
-    $siteSettingArr = $this->fetchSiteSettingDetail();
+    $siteSettingArr = $this->interface->fetch_Global_Site_Setting_Detail();
     $emailReturnParamArr['company_name'] = $siteSettingArr->title;
 
     //configure company logo        
@@ -483,7 +302,7 @@ class GlobalLibraryHandler
     $emailReturnParamArr['company_address'] = $siteSettingArr->address;
 
     //fetching required email template detail
-    $emailTemplateArr = $this->GlobalInterfaceControllerObj->fetch_Email_Template_Detail($emailReturnParamArr['email_code']);
+    $emailTemplateArr = $this->interface->fetch_Email_Template_Detail($emailReturnParamArr['email_code']);
     $emailReturnParamArr['email_subject'] = $emailTemplateArr->subject;
     $emailReturnParamArr['sender_name'] = $emailTemplateArr->from_name;
     $emailReturnParamArr['sender_email'] = $emailTemplateArr->from_email;

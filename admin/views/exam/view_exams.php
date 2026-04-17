@@ -12,9 +12,9 @@
   }
 
   //Fetching page action permission
-  $createPermission = $this->globalLibraryHandlerObj->checkUserRolePermission("create_exam"); 
-  $updatePermission = $this->globalLibraryHandlerObj->checkUserRolePermission("update_exam"); 
-  $deletePermission = $this->globalLibraryHandlerObj->checkUserRolePermission("delete_exam"); 
+  $createPermission = $this->checkUserRolePermission("create_exam"); 
+  $updatePermission = $this->checkUserRolePermission("update_exam"); 
+  $deletePermission = $this->checkUserRolePermission("delete_exam"); 
   
   /*print"<pre>";
   print_r($examDataArr); 

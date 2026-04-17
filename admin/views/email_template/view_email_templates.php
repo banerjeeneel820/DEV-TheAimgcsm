@@ -12,9 +12,9 @@
   }
 
   //Fetching page action permission
-  $createPermission = $this->globalLibraryHandlerObj->checkUserRolePermission("create_template"); 
-  $updatePermission = $this->globalLibraryHandlerObj->checkUserRolePermission("update_template"); 
-  $deletePermission = $this->globalLibraryHandlerObj->checkUserRolePermission("delete_template"); 
+  $createPermission = $this->checkUserRolePermission("create_template"); 
+  $updatePermission = $this->checkUserRolePermission("update_template"); 
+  $deletePermission = $this->checkUserRolePermission("delete_template"); 
   /*print"<pre>";
   print_r($templateArr); 
   print"</pre>";*/ 

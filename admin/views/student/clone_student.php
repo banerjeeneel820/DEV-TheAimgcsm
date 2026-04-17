@@ -18,7 +18,7 @@
   //Course data
   $courseArr = $pageContent['pageData']['course_data']; 
 
-  $updatePermission = $this->globalLibraryHandlerObj->checkUserRolePermission("update_student"); 
+  $updatePermission = $this->checkUserRolePermission("update_student"); 
 
   if($_SESSION['user_type'] == 'admin' || $_SESSION['user_type'] == 'developer' && $updatePermission == true){
      $statusUpdatePermission = true;
@@ -31,7 +31,7 @@
   }
 
   // Constructing back button url
-  $backToListUrl = $this->globalLibraryHandlerObj-> buildBackUrl('view_students');
+  $backToListUrl = $this->lib-> buildBackUrl('view_students');
   
   /*print"<pre>";
   print_r($pageContent['student_data']);

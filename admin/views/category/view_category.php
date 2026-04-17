@@ -10,9 +10,9 @@
   }
 
   //Fetching page action permission
-  $createPermission = $this->globalLibraryHandlerObj->checkUserRolePermission("create_category"); 
-  $updatePermission = $this->globalLibraryHandlerObj->checkUserRolePermission("update_category"); 
-  $deletePermission = $this->globalLibraryHandlerObj->checkUserRolePermission("delete_category"); 
+  $createPermission = $this->checkUserRolePermission("create_category"); 
+  $updatePermission = $this->checkUserRolePermission("update_category"); 
+  $deletePermission = $this->checkUserRolePermission("delete_category"); 
 
   /* print"<pre>";
   print_r($pageContent['pageData']); 

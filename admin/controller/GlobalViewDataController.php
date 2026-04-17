@@ -1,45 +1,16 @@
 <?php
 defined('ROOTPATH') or exit('No direct script access allowed');
 
-class GlobalViewDataController
+class GlobalViewDataController extends BaseController
 {
   
   private $globalReturnArr;  
-  private $GlobalLibraryHandlerObj;
-  private $GlobalInterfaceControllerObj;
   private $memObj;
 
   public function __construct()
   { 
+    parent::__construct();
     $this->globalReturnArr = [];
-    $this->GlobalLibraryHandlerObj = new GlobalLibraryHandler();
-    $this->GlobalInterfaceControllerObj = new GlobalInterfaceController();
-    
-    // Load Memcached Environment Object
-    if (SERVER_ENV == "PRODUCTION") {
-      $this->memObj = new Memcached();
-      $this->memObj->addServer("127.0.0.1", 11211);
-    } else {
-      $this->memObj = null;
-    }
-  }
-
-  private function getCachedData($key, $callback)
-  {
-    if ($this->memObj === null) {
-        return $callback();
-    }
-
-    $data = $this->memObj->get($key);
-
-    if ($data) {
-        return $data;
-    }
-
-    $data = $callback();
-    $this->memObj->set($key, $data);
-
-    return $data;
   }
 
   private function getDashboardData($type, $fetchType, $params, $franchise_id = null)
@@ -54,25 +25,25 @@ class GlobalViewDataController
 
     $callback = function () use ($type, $params) {
         if ($type === 'student') {
-            return $this->GlobalInterfaceControllerObj
+            return $this->interface
                 ->fetch_Dashboard_Student_Data($params);
         }
 
-        return $this->GlobalInterfaceControllerObj
+        return $this->interface
             ->fetch_Dashboard_Receipt_Data($params);
     };
 
-    return $this->getCachedData($cacheKey, $callback);
+    return $this->cache($cacheKey, $callback);
   }
 
   public function fetchUserDashboardData()
   {
     $this->globalReturnArr['page_type'] = 'dashboard';
 
-    $page_permission = $this->GlobalLibraryHandlerObj
+    $page_permission = $this->lib
         ->checkUserRolePermission('view_dashboard');
 
-    $site_backup_permission = $this->GlobalLibraryHandlerObj
+    $site_backup_permission = $this->lib
         ->checkUserRolePermission('manage_site_backup');
 
     if (!$page_permission) {
@@ -85,11 +56,11 @@ class GlobalViewDataController
     // SAFE GET HANDLING (SANITIZED)
     // -------------------------
     $dataType = isset($_GET['dataType']) 
-        ? $this->GlobalLibraryHandlerObj->getDataSanitize('dataType')
+        ? $this->get('dataType')
         : null;
 
     $fetchType = isset($_GET['fetchType']) 
-        ? $this->GlobalLibraryHandlerObj->getDataSanitize('fetchType')
+        ? $this->get('fetchType')
         : 'weekly';
 
     // fallback safety
@@ -121,27 +92,27 @@ class GlobalViewDataController
     // SITE BACKUP
     // -------------------------
     $this->globalReturnArr['site_bak_files'] = $site_backup_permission
-        ? $this->GlobalLibraryHandlerObj->fetchSiteBackupFiles()
+        ? $this->lib->fetchSiteBackupFiles()
         : [];
 
     // -------------------------
     // CACHED COMMON DATA
     // -------------------------
-    $this->globalReturnArr['news_data'] = $this->getCachedData(
+    $this->globalReturnArr['news_data'] = $this->cache(
         "news_data",
-        fn() => $this->GlobalInterfaceControllerObj->fetch_Global_News(['record_status' => 'active'])
+        fn() => $this->interface->fetch_Global_News(['record_status' => 'active'])
     );
 
-    $this->globalReturnArr['course_data'] = $this->getCachedData(
+    $this->globalReturnArr['course_data'] = $this->cache(
         "course_data",
-        fn() => $this->GlobalInterfaceControllerObj->fetch_Global_Course()
+        fn() => $this->interface->fetch_Global_Course()
     );
 
     // -------------------------
     // BACKUP QUEUE STATUS
     // -------------------------
     $this->globalReturnArr['site_backup_queue'] =
-        !empty($this->GlobalInterfaceControllerObj->check_Task_Status());
+        !empty($this->interface->check_Task_Status());
 
     // -------------------------
     // ROLE BASED LOGIC
@@ -162,16 +133,16 @@ class GlobalViewDataController
             $rcptParamArr
         );
 
-        $this->globalReturnArr['enquiry_data'] = $this->getCachedData(
+        $this->globalReturnArr['enquiry_data'] = $this->cache(
             "enquiry_data",
-            fn() => $this->GlobalInterfaceControllerObj->fetch_Global_Enquiry($enquiryParamArr)
+            fn() => $this->interface->fetch_Global_Enquiry($enquiryParamArr)
         );
 
     } elseif ($userType === 'franchise') {
 
         $franchise_id = (int) $_SESSION['user_id'];
 
-        $franchise = $this->GlobalInterfaceControllerObj
+        $franchise = $this->interface
             ->fetch_Global_Single_Franchise($franchise_id);
 
         $owned_status = $franchise->owned_status ?? 'no';
@@ -191,9 +162,9 @@ class GlobalViewDataController
                 $franchise_id
             );
         } else {
-            $this->globalReturnArr['gallery_data'] = $this->getCachedData(
+            $this->globalReturnArr['gallery_data'] = $this->cache(
                 "gallery_data",
-                fn() => $this->GlobalInterfaceControllerObj->fetch_Gallery_Arr('active')
+                fn() => $this->interface->fetch_Gallery_Arr('active')
             );
         }
     }
@@ -211,7 +182,7 @@ class GlobalViewDataController
     $this->globalReturnArr['page_title'] = "View Franchise";
     $this->globalReturnArr['page_type'] = $type;
     //Check user permission for this section
-    $this->globalReturnArr['page_permission'] = $this->GlobalLibraryHandlerObj->checkUserRolePermission($user_role_slug);
+    $this->globalReturnArr['page_permission'] = $this->checkUserRolePermission($user_role_slug);
 
     if ($this->globalReturnArr['page_permission']) {
       if (isset($_GET['record_status'])) {
@@ -221,17 +192,17 @@ class GlobalViewDataController
       }
 
       //Call read global blog method
-      $this->globalReturnArr['data'] = $this->GlobalInterfaceControllerObj->fetch_Global_Franchise($record_status);
+      $this->globalReturnArr['data'] = $this->interface->fetch_Global_Franchise($record_status);
 
       if ($this->memObj == null) {
-        $this->globalReturnArr['data'] = $this->GlobalInterfaceControllerObj->fetch_Global_Franchise($record_status);
+        $this->globalReturnArr['data'] = $this->interface->fetch_Global_Franchise($record_status);
       } else {
         $response = $this->memObj->get("franchise_data_$record_status");
         //Check if data stored in memcached
         if ($response) {
           $this->globalReturnArr['data'] = $response;
         } else {
-          $response = $this->GlobalInterfaceControllerObj->fetch_Global_Franchise($record_status);
+          $response = $this->interface->fetch_Global_Franchise($record_status);
           $this->memObj->set("franchise_data_$record_status", $response);
           //Set data into a key of memcached
           $this->globalReturnArr['data'] = $response;
@@ -250,11 +221,11 @@ class GlobalViewDataController
 
     $user_role_slug = 'manage_profile';
     //Check user permission for this section
-    $this->globalReturnArr['page_permission'] = $this->GlobalLibraryHandlerObj->checkUserRolePermission($user_role_slug);
+    $this->globalReturnArr['page_permission'] = $this->checkUserRolePermission($user_role_slug);
 
     if ($this->globalReturnArr['page_permission']) {
       //Fetching franchise detail
-      $this->globalReturnArr['frnachise_data'] = $this->GlobalInterfaceControllerObj->fetch_Global_Single_Franchise($franchise_id);
+      $this->globalReturnArr['frnachise_data'] = $this->interface->fetch_Global_Single_Franchise($franchise_id);
     } else {
       $this->globalReturnArr['frnachise_data'] = array();
     }
@@ -276,18 +247,18 @@ class GlobalViewDataController
     if (isset($_GET['id'])) {
       $user_role_slug = 'update_franchise';
       //Check user permission for this section
-      $this->globalReturnArr['page_permission'] = $this->GlobalLibraryHandlerObj->checkUserRolePermission($user_role_slug);
+      $this->globalReturnArr['page_permission'] = $this->checkUserRolePermission($user_role_slug);
 
       if ($this->globalReturnArr['page_permission']) {
         //Fetching franchise detail
-        $this->globalReturnArr['frnachise_data'] = $this->GlobalInterfaceControllerObj->fetch_Global_Single_Franchise($franchise_id);
+        $this->globalReturnArr['frnachise_data'] = $this->interface->fetch_Global_Single_Franchise($franchise_id);
       } else {
         $this->globalReturnArr['frnachise_data'] = array();
       }
     } else {
       $user_role_slug = 'create_franchise';
       //Check user permission for this section
-      $this->globalReturnArr['page_permission'] = $this->GlobalLibraryHandlerObj->checkUserRolePermission($user_role_slug);
+      $this->globalReturnArr['page_permission'] = $this->checkUserRolePermission($user_role_slug);
       $this->globalReturnArr['frnachise_data'] = array();
     }
 
@@ -299,7 +270,7 @@ class GlobalViewDataController
   public function view_Course_Required_Data()
   {
     //Check user permission for this section
-    $this->globalReturnArr['page_permission'] = $this->GlobalLibraryHandlerObj->checkUserRolePermission('view_course');
+    $this->globalReturnArr['page_permission'] = $this->checkUserRolePermission('view_course');
     $type = 'course';
     if (isset($_GET['record_status'])) {
       $record_status = $_GET['record_status'];
@@ -312,14 +283,14 @@ class GlobalViewDataController
     if ($this->globalReturnArr['page_permission']) {
       //Fetch course data based on parameters
       if ($this->memObj == null) {
-        $this->globalReturnArr['data'] = $this->GlobalInterfaceControllerObj->fetch_Global_Course($record_status);
+        $this->globalReturnArr['data'] = $this->interface->fetch_Global_Course($record_status);
       } else {
         $response = $this->memObj->get("course_data_$record_status");
         //Check if data stored in memcached
         if ($response) {
           $this->globalReturnArr['data'] = $response;
         } else {
-          $response = $this->GlobalInterfaceControllerObj->fetch_Global_Course($record_status);
+          $response = $this->interface->fetch_Global_Course($record_status);
           $this->memObj->set("course_data_$record_status", $response);
           //Set data into a key of memcached
           $this->globalReturnArr['data'] = $response;
@@ -340,18 +311,18 @@ class GlobalViewDataController
     if (isset($_GET['id'])) {
       $user_role_slug = 'update_course';
       //Check user permission for this section
-      $this->globalReturnArr['page_permission'] = $this->GlobalLibraryHandlerObj->checkUserRolePermission($user_role_slug);
+      $this->globalReturnArr['page_permission'] = $this->checkUserRolePermission($user_role_slug);
 
       if ($this->globalReturnArr['page_permission']) {
         //Fetching course detail
-        $this->globalReturnArr['course_data'] = $this->GlobalInterfaceControllerObj->fetch_Global_Single_Course($course_id);
+        $this->globalReturnArr['course_data'] = $this->interface->fetch_Global_Single_Course($course_id);
       } else {
         $this->globalReturnArr['course_data'] = array();
       }
     } else {
       $user_role_slug = 'create_course';
       //Check user permission for this section
-      $this->globalReturnArr['page_permission'] = $this->GlobalLibraryHandlerObj->checkUserRolePermission($user_role_slug);
+      $this->globalReturnArr['page_permission'] = $this->checkUserRolePermission($user_role_slug);
       $this->globalReturnArr['course_data'] = array();
     }
 
@@ -367,14 +338,14 @@ class GlobalViewDataController
 
     //Fetch franchise data based on memcached
     if ($this->memObj == null) {
-      $activeCourseFranchiseArr['franchise'] = $this->GlobalInterfaceControllerObj->fetch_Global_Franchise("active");
+      $activeCourseFranchiseArr['franchise'] = $this->interface->fetch_Global_Franchise("active");
     } else {
       $response = $this->memObj->get("franchise_data_active");
       //Check if data stored in memcached
       if ($response) {
         $activeCourseFranchiseArr['franchise'] = $response;
       } else {
-        $response = $this->GlobalInterfaceControllerObj->fetch_Global_Franchise("active");
+        $response = $this->interface->fetch_Global_Franchise("active");
         $this->memObj->set("franchise_data_active", $response);
         //Set data into a key of memcached
         $activeCourseFranchiseArr['franchise'] = $response;
@@ -383,14 +354,14 @@ class GlobalViewDataController
 
     //Fetch course data based on memcached
     if ($this->memObj == null) {
-      $activeCourseFranchiseArr['course'] = $this->GlobalInterfaceControllerObj->fetch_Global_Course("active");
+      $activeCourseFranchiseArr['course'] = $this->interface->fetch_Global_Course("active");
     } else {
       $response = $this->memObj->get("course_data_active");
       //Check if data stored in memcached
       if ($response) {
         $activeCourseFranchiseArr['course'] = $response;
       } else {
-        $response = $this->GlobalInterfaceControllerObj->fetch_Global_Course("active");
+        $response = $this->interface->fetch_Global_Course("active");
         $this->memObj->set("course_data_active", $response);
         //Set data into a key of memcached
         $activeCourseFranchiseArr['course'] = $response;
@@ -417,7 +388,7 @@ class GlobalViewDataController
 
     if ($this->globalReturnArr['page_permission']) {
       //Call read global news method
-      $returnArr = $this->GlobalInterfaceControllerObj->fetch_Global_Exams($dataArr);
+      $returnArr = $this->interface->fetch_Global_Exams($dataArr);
       $this->globalReturnArr['exam_data'] = $returnArr;
     } else {
       $this->globalReturnArr['exam_data'] = array();
@@ -429,12 +400,12 @@ class GlobalViewDataController
   public function view_Student_Required_Data()
   {
     $type = 'student';
-    $GLH = $this->GlobalLibraryHandlerObj;
+    $this->lib = $this->lib;
 
     // =========================
     // PERMISSION
     // =========================
-    $hasPermission = $GLH->checkUserRolePermission('view_student');
+    $hasPermission = $this->checkUserRolePermission('view_student');
 
     $this->globalReturnArr['page_permission'] = $hasPermission;
     $this->globalReturnArr['page_type'] = $type;
@@ -454,11 +425,11 @@ class GlobalViewDataController
     // =========================
     $dataArr = [
         'record_status' => isset($_GET['record_status']) 
-            ? $GLH->getDataSanitize('record_status') 
+            ? $this->get('record_status') 
             : 'active',
 
         'pageNo' => isset($_GET['pageNo']) 
-            ? (int)$GLH->getDataSanitize('pageNo') 
+            ? (int)$this->get('pageNo') 
             : 1,
 
         'limit' => 50
@@ -468,19 +439,19 @@ class GlobalViewDataController
     // OPTIONAL FILTERS
     // =========================
     if (!empty($_GET['student_status'])) {
-        $dataArr['student_status'] = $GLH->getDataSanitize('student_status');
+        $dataArr['student_status'] = $this->get('student_status');
     }
 
     if (!empty($_GET['result_status'])) {
-        $dataArr['result_status'] = $GLH->getDataSanitize('result_status');
+        $dataArr['result_status'] = $this->get('result_status');
     }
 
     if (!empty($_GET['verified_status'])) {
-        $dataArr['verified_status'] = $GLH->getDataSanitize('verified_status');
+        $dataArr['verified_status'] = $this->get('verified_status');
     }
 
     if (!empty($_GET['course_id']) && (int)$_GET['course_id'] > 0) {
-        $dataArr['course_id'] = (int)$GLH->getDataSanitize('course_id');
+        $dataArr['course_id'] = (int)$this->get('course_id');
     }
 
     // =========================
@@ -489,7 +460,7 @@ class GlobalViewDataController
     if ($_SESSION['user_type'] === 'franchise') {
         $dataArr['franchise_id'] = (int)$_SESSION['user_id'];
     } elseif (!empty($_GET['franchise_id']) && (int)$_GET['franchise_id'] > 0) {
-        $dataArr['franchise_id'] = (int)$GLH->getDataSanitize('franchise_id');
+        $dataArr['franchise_id'] = (int)$this->get('franchise_id');
     }
 
     // =========================
@@ -497,15 +468,15 @@ class GlobalViewDataController
     // =========================
     if (!empty($_GET['search_string'])) {
         $dataArr['search_string'] = trim(
-            $GLH->getDataSanitize('search_string')
+            $this->get('search_string')
         );
     }
 
     // =========================
     // DATE FORMATTER
     // =========================
-    $formatDate = function ($key) use ($GLH) {
-        $date = $GLH->getDataSanitize($key);
+    $formatDate = function ($key) {
+        $date = $this->get($key);
         $date = str_replace('/', '-', $date);
         return date('Y-m-d', strtotime($date));
     };
@@ -534,7 +505,7 @@ class GlobalViewDataController
     // FETCH STUDENTS
     // =========================
     $this->globalReturnArr['student_data'] =
-    $this->GlobalInterfaceControllerObj->fetch_Global_Student($dataArr);
+    $this->interface->fetch_Global_Student($dataArr);
 
     return $this->globalReturnArr;
   } 
@@ -546,7 +517,7 @@ class GlobalViewDataController
       // =========================
       // SANITIZED INPUT
       // =========================
-      $student_id = $this->GlobalLibraryHandlerObj->getDataSanitize('id');
+      $student_id = $this->get('id');
       $student_id = !empty($student_id) ? (int)$student_id : null;
   
       // =========================
@@ -556,11 +527,11 @@ class GlobalViewDataController
   
           // UPDATE
           $this->globalReturnArr['page_permission'] =
-              $this->GlobalLibraryHandlerObj->checkUserRolePermission('update_student');
+              $this->checkUserRolePermission('update_student');
   
           if ($this->globalReturnArr['page_permission']) {
   
-              $studentData = $this->GlobalInterfaceControllerObj
+              $studentData = $this->interface
                   ->fetch_Global_Single_Student($student_id);
   
               $this->globalReturnArr['student_data'] = $studentData ?: [];
@@ -580,7 +551,7 @@ class GlobalViewDataController
   
           // CREATE
           $this->globalReturnArr['page_permission'] =
-              $this->GlobalLibraryHandlerObj->checkUserRolePermission('create_student');
+              $this->checkUserRolePermission('create_student');
   
           $this->globalReturnArr['student_data'] = [];
       }
@@ -609,9 +580,9 @@ class GlobalViewDataController
     // =========================
     // SANITIZED INPUTS
     // =========================
-    $student_id = $this->GlobalLibraryHandlerObj->getDataSanitize('student_id');
-    $tmp_id     = $this->GlobalLibraryHandlerObj->getDataSanitize('tmp_id');
-    $actionType = $this->GlobalLibraryHandlerObj->getDataSanitize('actionType');
+    $student_id = $this->get('student_id');
+    $tmp_id     = $this->get('tmp_id');
+    $actionType = $this->get('actionType');
 
     // Type safety (important)
     $student_id = !empty($student_id) ? (int)$student_id : null;
@@ -639,11 +610,11 @@ class GlobalViewDataController
         if (!empty($student_id)) {
 
             $this->globalReturnArr['page_permission'] =
-                $this->GlobalLibraryHandlerObj->checkUserRolePermission('update_student');
+                $this->checkUserRolePermission('update_student');
 
             if ($this->globalReturnArr['page_permission']) {
                 $this->globalReturnArr['student_data'] =
-                    $this->GlobalInterfaceControllerObj->fetch_Global_Single_Student($student_id);
+                    $this->interface->fetch_Global_Single_Student($student_id);
             } else {
                 $this->globalReturnArr['student_data'] = [];
             }
@@ -654,10 +625,10 @@ class GlobalViewDataController
         } elseif (!empty($tmp_id)) {
 
             $this->globalReturnArr['page_permission'] =
-                $this->GlobalLibraryHandlerObj->checkUserRolePermission('create_student');
+                $this->checkUserRolePermission('create_student');
 
             $this->globalReturnArr['student_data'] =
-                $this->GlobalInterfaceControllerObj->fetch_Tmp_Single_Student($tmp_id);
+                $this->interface->fetch_Tmp_Single_Student($tmp_id);
 
         // =====================
         // CREATE NEW
@@ -665,7 +636,7 @@ class GlobalViewDataController
         } else {
 
             $this->globalReturnArr['page_permission'] =
-                $this->GlobalLibraryHandlerObj->checkUserRolePermission('create_student');
+                $this->checkUserRolePermission('create_student');
 
             $this->globalReturnArr['student_data'] = [];
         }
@@ -679,7 +650,7 @@ class GlobalViewDataController
         $this->globalReturnArr['course_data']    = $activeCourseFranchiseList['course'];
 
         $this->globalReturnArr['category_data'] =
-            $this->GlobalInterfaceControllerObj->fetch_Single_Parent_Category($receipt_category_type);
+            $this->interface->fetch_Single_Parent_Category($receipt_category_type);
 
     } 
     // =========================
@@ -688,7 +659,7 @@ class GlobalViewDataController
     else {
 
         $this->globalReturnArr['page_permission'] =
-            $this->GlobalLibraryHandlerObj->checkUserRolePermission('view_student');
+            $this->checkUserRolePermission('view_student');
 
         if ($this->globalReturnArr['page_permission']) {
 
@@ -701,7 +672,7 @@ class GlobalViewDataController
             }
 
             $this->globalReturnArr['student_list'] =
-                $this->GlobalInterfaceControllerObj->fetch_Fresh_Students($dataArr);
+                $this->interface->fetch_Fresh_Students($dataArr);
 
         } else {
             $this->globalReturnArr['student_list'] = [];
@@ -720,22 +691,22 @@ class GlobalViewDataController
     // =========================
     // SANITIZED INPUTS
     // =========================
-    $GLH = $this->GlobalLibraryHandlerObj;
+    $this->lib = $this->lib;
 
-    $tmp_id        = $GLH->getDataSanitize('tmp_id');
-    $actionType    = $GLH->getDataSanitize('actionType');
-    $record_status = $GLH->getDataSanitize('record_status') ?: 'active';
+    $tmp_id        = $this->get('tmp_id');
+    $actionType    = $this->get('actionType');
+    $record_status = $this->get('record_status') ?: 'active';
 
-    $course_id     = (int) $GLH->getDataSanitize('course_id');
-    $franchise_id  = (int) $GLH->getDataSanitize('franchise_id');
-    $pageNo        = (int) $GLH->getDataSanitize('pageNo') ?: 1;
+    $course_id     = (int) $this->get('course_id');
+    $franchise_id  = (int) $this->get('franchise_id');
+    $pageNo        = (int) $this->get('pageNo') ?: 1;
 
-    $search_string     = $GLH->getDataSanitize('search_string');
-    $created           = $GLH->getDataSanitize('created');
-    $search_start      = $GLH->getDataSanitize('search_start');
-    $search_end        = $GLH->getDataSanitize('search_end');
-    $conversion_status = $GLH->getDataSanitize('conversion_status');
-    $verified_status   = $GLH->getDataSanitize('verified_status');
+    $search_string     = $this->get('search_string');
+    $created           = $this->get('created');
+    $search_start      = $this->get('search_start');
+    $search_end        = $this->get('search_end');
+    $conversion_status = $this->get('conversion_status');
+    $verified_status   = $this->get('verified_status');
 
     $tmp_id = !empty($tmp_id) ? trim($tmp_id) : null;
 
@@ -767,17 +738,17 @@ class GlobalViewDataController
         if (!empty($tmp_id)) {
 
             $this->globalReturnArr['page_permission'] =
-                $GLH->checkUserRolePermission('update_student');
+                $this->checkUserRolePermission('update_student');
 
             $this->globalReturnArr['student_data'] =
                 $this->globalReturnArr['page_permission']
-                ? $this->GlobalInterfaceControllerObj->fetch_Tmp_Single_Student($tmp_id)
+                ? $this->interface->fetch_Tmp_Single_Student($tmp_id)
                 : [];
 
         } else {
 
             $this->globalReturnArr['page_permission'] =
-                $GLH->checkUserRolePermission('create_student');
+                $this->checkUserRolePermission('create_student');
 
             $this->globalReturnArr['student_data'] = [];
         }
@@ -794,7 +765,7 @@ class GlobalViewDataController
     else {
 
         $this->globalReturnArr['page_permission'] =
-            $GLH->checkUserRolePermission('view_student');
+            $this->checkUserRolePermission('view_student');
 
         if ($this->globalReturnArr['page_permission']) {
 
@@ -874,7 +845,7 @@ class GlobalViewDataController
             // FETCH DATA
             // =====================
             $this->globalReturnArr['student_data'] =
-                $this->GlobalInterfaceControllerObj->fetch_Tmp_Students($dataArr);
+                $this->interface->fetch_Tmp_Students($dataArr);
 
         } else {
             $this->globalReturnArr['student_data'] = [];
@@ -892,16 +863,15 @@ class GlobalViewDataController
   public function manage_Receipt_Required_Data()
   {
     $type = 'receipt';
-    $GLH  = $this->GlobalLibraryHandlerObj;
 
     $this->globalReturnArr['page_type'] = $type;
 
     // =========================
     // SANITIZED INPUTS
     // =========================
-    $student_id = $GLH->getDataSanitize('stu_id');
-    $actionType = $GLH->getDataSanitize('actionType');
-    $receipt_id = $GLH->getDataSanitize('rcpt_id');
+    $student_id = $this->get('stu_id');
+    $actionType = $this->get('actionType');
+    $receipt_id = $this->get('rcpt_id');
 
     $student_id = !empty($student_id) ? trim($student_id) : null;
     $receipt_id = !empty($receipt_id) ? (int)$receipt_id : null;
@@ -909,8 +879,8 @@ class GlobalViewDataController
     // =========================
     // DATE FORMATTER
     // =========================
-    $formatDate = function ($key) use ($GLH) {
-        $value = $GLH->getDataSanitize($key);
+    $formatDate = function ($key) {
+        $value = $this->get($key);
         if (empty($value)) return null;
 
         return date('Y-m-d', strtotime(str_replace('/', '-', $value)));
@@ -923,18 +893,18 @@ class GlobalViewDataController
 
         // Fetch category (common)
         $this->globalReturnArr['category_data'] =
-            $this->GlobalInterfaceControllerObj->fetch_Single_Parent_Category($type);
+            $this->interface->fetch_Single_Parent_Category($type);
 
         if ($actionType === "create") {
 
             // CREATE
             $this->globalReturnArr['page_permission'] =
-                $GLH->checkUserRolePermission('create_receipt');
+                $this->checkUserRolePermission('create_receipt');
 
             if ($this->globalReturnArr['page_permission']) {
                 $this->globalReturnArr['receipt_data'] = [];
                 $this->globalReturnArr['student_data'] =
-                    $this->GlobalInterfaceControllerObj->fetch_Global_Single_Student($student_id);
+                    $this->interface->fetch_Global_Single_Student($student_id);
             } else {
                 $this->globalReturnArr['receipt_data'] = [];
                 $this->globalReturnArr['student_data'] = [];
@@ -944,18 +914,18 @@ class GlobalViewDataController
 
             // UPDATE
             $this->globalReturnArr['page_permission'] =
-                $GLH->checkUserRolePermission('update_receipt');
+                $this->checkUserRolePermission('update_receipt');
 
             if ($this->globalReturnArr['page_permission']) {
 
                 $receiptData =
-                    $this->GlobalInterfaceControllerObj->fetch_Single_Receipt_Data($receipt_id);
+                    $this->interface->fetch_Single_Receipt_Data($receipt_id);
 
                 $this->globalReturnArr['receipt_data'] = $receiptData ?: [];
 
                 $this->globalReturnArr['student_data'] =
                     !empty($receiptData)
-                        ? $this->GlobalInterfaceControllerObj
+                        ? $this->interface
                             ->fetch_Global_Single_Student($receiptData->stu_id)
                         : [];
 
@@ -971,27 +941,27 @@ class GlobalViewDataController
     // LIST VIEW
     // =========================
     $this->globalReturnArr['page_permission'] =
-        $GLH->checkUserRolePermission('view_receipt');
+        $this->checkUserRolePermission('view_receipt');
 
     // Base filters
     $dataArr = [
-        'record_status' => $GLH->getDataSanitize('record_status') ?: 'active',
-        'verified_status' => $GLH->getDataSanitize('verified_status') ?: null,
+        'record_status' => $this->get('record_status') ?: 'active',
+        'verified_status' => $this->get('verified_status') ?: null,
         'student_id' => $student_id,
-        'pageNo' => (int)($GLH->getDataSanitize('pageNo') ?: 1),
+        'pageNo' => (int)($this->get('pageNo') ?: 1),
         'limit' => 20
     ];
 
     // Optional filters
     if (!empty($_GET['course_id']) && (int)$_GET['course_id'] > 0) {
-        $dataArr['course_id'] = (int)$GLH->getDataSanitize('course_id');
+        $dataArr['course_id'] = (int)$this->get('course_id');
     }
 
     // Franchise logic
     if ($_SESSION['user_type'] === 'franchise') {
         $dataArr['franchise_id'] = (int)$_SESSION['user_id'];
     } elseif (!empty($_GET['franchise_id']) && (int)$_GET['franchise_id'] > 0) {
-        $dataArr['franchise_id'] = (int)$GLH->getDataSanitize('franchise_id');
+        $dataArr['franchise_id'] = (int)$this->get('franchise_id');
     }
 
     // Dates
@@ -1021,11 +991,11 @@ class GlobalViewDataController
     if ($this->globalReturnArr['page_permission']) {
 
         $this->globalReturnArr['receipt_data'] =
-            $this->GlobalInterfaceControllerObj->fetch_Global_Receipt($dataArr);
+            $this->interface->fetch_Global_Receipt($dataArr);
 
         $this->globalReturnArr['student_data'] =
             !empty($student_id)
-                ? $this->GlobalInterfaceControllerObj->fetch_Student_Receipt_Summary($dataArr)
+                ? $this->interface->fetch_Student_Receipt_Summary($dataArr)
                 : [];
 
     } else {
@@ -1039,13 +1009,12 @@ class GlobalViewDataController
   public function view_Due_Students_Data()
   {
     $type = 'due_students';
-    $GLH  = $this->GlobalLibraryHandlerObj;
 
     // =========================
     // PERMISSION
     // =========================
     $this->globalReturnArr['page_permission'] =
-        $GLH->checkUserRolePermission('view_due_students');
+        $this->checkUserRolePermission('view_due_students');
 
     $this->globalReturnArr['page_type'] = $type;
 
@@ -1068,8 +1037,8 @@ class GlobalViewDataController
     // =========================
     // SANITIZED INPUTS
     // =========================
-    $student_id = $GLH->getDataSanitize('stu_id');
-    $fetchType  = $GLH->getDataSanitize('fetchType');
+    $student_id = $this->get('stu_id');
+    $fetchType  = $this->get('fetchType');
 
     $student_id = !empty($student_id) ? trim($student_id) : null;
 
@@ -1077,9 +1046,9 @@ class GlobalViewDataController
     // BASE PARAMS
     // =========================
     $dataArr = [
-        'record_status' => $GLH->getDataSanitize('record_status') ?: 'active',
+        'record_status' => $this->get('record_status') ?: 'active',
         'student_id'    => $student_id,
-        'pageNo'        => (int)($GLH->getDataSanitize('pageNo') ?: 1),
+        'pageNo'        => (int)($this->get('pageNo') ?: 1),
         'limit'         => 20
     ];
 
@@ -1087,14 +1056,14 @@ class GlobalViewDataController
     // OPTIONAL FILTERS
     // =========================
     if (!empty($_GET['course_id']) && (int)$_GET['course_id'] > 0) {
-        $dataArr['course_id'] = (int)$GLH->getDataSanitize('course_id');
+        $dataArr['course_id'] = (int)$this->get('course_id');
     }
 
     // Franchise logic
     if ($_SESSION['user_type'] === 'franchise') {
         $dataArr['franchise_id'] = (int)$_SESSION['user_id'];
     } elseif (!empty($_GET['franchise_id']) && (int)$_GET['franchise_id'] > 0) {
-        $dataArr['franchise_id'] = (int)$GLH->getDataSanitize('franchise_id');
+        $dataArr['franchise_id'] = (int)$this->get('franchise_id');
     }
 
     // =========================
@@ -1103,13 +1072,13 @@ class GlobalViewDataController
     if (empty($fetchType) || $fetchType === 'dueList') {
 
         $this->globalReturnArr['student_data'] =
-            $this->GlobalInterfaceControllerObj
+            $this->interface
                 ->fetch_Due_Students_Data($dataArr);
 
     } else {
 
         $this->globalReturnArr['student_data'] =
-            $this->GlobalInterfaceControllerObj
+            $this->interface
                 ->fetch_Updated_Markup_Students_Data($dataArr);
     }
 
@@ -1132,35 +1101,35 @@ class GlobalViewDataController
     if (empty($_GET['type'])) {
       $user_role_slug = 'view_gallery';
       //Check user permission for this section
-      $this->globalReturnArr['page_permission'] = $this->GlobalLibraryHandlerObj->checkUserRolePermission($user_role_slug);
+      $this->globalReturnArr['page_permission'] = $this->checkUserRolePermission($user_role_slug);
 
       if ($this->globalReturnArr['page_permission']) {
         //Fetch gallery item
-        $this->globalReturnArr['gallery_data'] = $this->GlobalInterfaceControllerObj->fetch_Gallery_Arr($record_status);
+        $this->globalReturnArr['gallery_data'] = $this->interface->fetch_Gallery_Arr($record_status);
       } else {
         $this->globalReturnArr['gallery_data'] = array();
       }
     } else if ($_GET['type'] == 'add') {
       $user_role_slug = 'create_gallery';
       //Check user permission for this section
-      $this->globalReturnArr['page_permission'] = $this->GlobalLibraryHandlerObj->checkUserRolePermission($user_role_slug);
+      $this->globalReturnArr['page_permission'] = $this->checkUserRolePermission($user_role_slug);
 
       if ($this->globalReturnArr['page_permission']) {
         //Fetch all category list
-        $this->globalReturnArr['category_data'] = $this->GlobalInterfaceControllerObj->fetch_Single_Parent_Category($type);
+        $this->globalReturnArr['category_data'] = $this->interface->fetch_Single_Parent_Category($type);
       } else {
         $this->globalReturnArr['category_data'] = array();
       }
     } else {
       $user_role_slug = 'update_gallery';
       //Check user permission for this section
-      $this->globalReturnArr['page_permission'] = $this->GlobalLibraryHandlerObj->checkUserRolePermission($user_role_slug);
+      $this->globalReturnArr['page_permission'] = $this->checkUserRolePermission($user_role_slug);
 
       if ($this->globalReturnArr['page_permission']) {
         $media_id = $_GET['id'];
-        $this->globalReturnArr['gallery_data'] = $this->GlobalInterfaceControllerObj->fetch_Gallery_Item_Detail($media_id);
+        $this->globalReturnArr['gallery_data'] = $this->interface->fetch_Gallery_Item_Detail($media_id);
         //Fetch all category list
-        $this->globalReturnArr['category_data'] = $this->GlobalInterfaceControllerObj->fetch_Single_Parent_Category($type);
+        $this->globalReturnArr['category_data'] = $this->interface->fetch_Single_Parent_Category($type);
       } else {
         $this->globalReturnArr['gallery_data'] = array();
         $this->globalReturnArr['category_data'] = array();
@@ -1174,7 +1143,7 @@ class GlobalViewDataController
   {
 
     //Check user permission for this section
-    $this->globalReturnArr['page_permission'] = $this->GlobalLibraryHandlerObj->checkUserRolePermission('view_category');
+    $this->globalReturnArr['page_permission'] = $this->checkUserRolePermission('view_category');
 
     $type = 'parent_category';
 
@@ -1188,7 +1157,7 @@ class GlobalViewDataController
     $this->globalReturnArr['page_type'] = $type;
 
     if ($this->globalReturnArr['page_permission']) {
-      $this->globalReturnArr['category_data'] = $this->GlobalInterfaceControllerObj->fetch_Parent_Category($record_status);
+      $this->globalReturnArr['category_data'] = $this->interface->fetch_Parent_Category($record_status);
     } else {
       $this->globalReturnArr['category_data'] = array();
     }
@@ -1200,7 +1169,7 @@ class GlobalViewDataController
   {
 
     //Check user permission for this section
-    $this->globalReturnArr['page_permission'] = $this->GlobalLibraryHandlerObj->checkUserRolePermission('manage_city_db');
+    $this->globalReturnArr['page_permission'] = $this->checkUserRolePermission('manage_city_db');
 
     $type = 'cities';
 
@@ -1214,7 +1183,7 @@ class GlobalViewDataController
     $this->globalReturnArr['page_type'] = $type;
 
     if ($this->globalReturnArr['page_permission']) {
-      $this->globalReturnArr['city_data'] = $this->GlobalInterfaceControllerObj->fetch_Global_Cities($record_status);
+      $this->globalReturnArr['city_data'] = $this->interface->fetch_Global_Cities($record_status);
     } else {
       $this->globalReturnArr['city_data'] = array();
     }
@@ -1226,7 +1195,7 @@ class GlobalViewDataController
   {
 
     //Check user permission for this section
-    $this->globalReturnArr['page_permission'] = $this->GlobalLibraryHandlerObj->checkUserRolePermission('view_enquiry');
+    $this->globalReturnArr['page_permission'] = $this->checkUserRolePermission('view_enquiry');
 
     $type = 'enquiry';
 
@@ -1266,7 +1235,7 @@ class GlobalViewDataController
       $activeCourseFranchiseList = $this->fetch_Active_Course_Franchise_Data();
       $this->globalReturnArr['course_data'] = $activeCourseFranchiseList['course'];
 
-      $this->globalReturnArr['enquiry_data'] = $this->GlobalInterfaceControllerObj->fetch_Global_Enquiry($dataArr);
+      $this->globalReturnArr['enquiry_data'] = $this->interface->fetch_Global_Enquiry($dataArr);
     } else {
       $this->globalReturnArr['enquiry_data'] = array();
       $this->globalReturnArr['course_data']  = array();
@@ -1278,7 +1247,7 @@ class GlobalViewDataController
   public function view_Email_Templates_Required_Data()
   {
     //Check user permission for this section
-    $this->globalReturnArr['page_permission'] = $this->GlobalLibraryHandlerObj->checkUserRolePermission('view_template');
+    $this->globalReturnArr['page_permission'] = $this->checkUserRolePermission('view_template');
 
     $type = 'email_template';
     //Fetching record status
@@ -1291,7 +1260,7 @@ class GlobalViewDataController
 
     if ($this->globalReturnArr['page_permission']) {
       //Call read global email template method
-      $returnArr = $this->GlobalInterfaceControllerObj->fetch_Email_Templates($record_status);
+      $returnArr = $this->interface->fetch_Email_Templates($record_status);
       $this->globalReturnArr['email_template_data'] = $returnArr;
     } else {
       $this->globalReturnArr['email_template_data'] = array();
@@ -1309,18 +1278,18 @@ class GlobalViewDataController
     if ($template_id > 0) {
       $user_role_slug = 'update_template';
       //Check user permission for this section
-      $this->globalReturnArr['page_permission'] = $this->GlobalLibraryHandlerObj->checkUserRolePermission($user_role_slug);
+      $this->globalReturnArr['page_permission'] = $this->checkUserRolePermission($user_role_slug);
 
       if ($this->globalReturnArr['page_permission']) {
         //Fetch email template detail
-        $this->globalReturnArr['email_template_details'] = $this->GlobalInterfaceControllerObj->fetch_Global_Email_Template_Detail($template_id);
+        $this->globalReturnArr['email_template_details'] = $this->interface->fetch_Global_Email_Template_Detail($template_id);
       } else {
         $this->globalReturnArr['email_template_details'] = array();
       }
     } else {
       $user_role_slug = 'create_template';
       //Check user permission for this section
-      $this->globalReturnArr['page_permission'] = $this->GlobalLibraryHandlerObj->checkUserRolePermission($user_role_slug);
+      $this->globalReturnArr['page_permission'] = $this->checkUserRolePermission($user_role_slug);
       $this->globalReturnArr['email_template_details'] = array();
     }
     return $this->globalReturnArr;
@@ -1329,7 +1298,7 @@ class GlobalViewDataController
   public function view_News_Required_Data()
   {
     //Check user permission for this section
-    $this->globalReturnArr['page_permission'] = $this->GlobalLibraryHandlerObj->checkUserRolePermission('view_news');
+    $this->globalReturnArr['page_permission'] = $this->checkUserRolePermission('view_news');
 
     $type = 'news';
     //Fetching record status
@@ -1343,7 +1312,7 @@ class GlobalViewDataController
 
     if ($this->globalReturnArr['page_permission']) {
       //Call read global news method
-      $returnArr = $this->GlobalInterfaceControllerObj->fetch_Global_News($dataArr);
+      $returnArr = $this->interface->fetch_Global_News($dataArr);
       $this->globalReturnArr['news_data'] = $returnArr;
     } else {
       $this->globalReturnArr['news_data'] = array();
@@ -1361,18 +1330,18 @@ class GlobalViewDataController
     if ($news_id > 0) {
       $user_role_slug = 'update_news';
       //Check user permission for this section
-      $this->globalReturnArr['page_permission'] = $this->GlobalLibraryHandlerObj->checkUserRolePermission($user_role_slug);
+      $this->globalReturnArr['page_permission'] = $this->checkUserRolePermission($user_role_slug);
 
       if ($this->globalReturnArr['page_permission']) {
         //Fetch news detail
-        $this->globalReturnArr['news_details'] = $this->GlobalInterfaceControllerObj->fetch_Global_News_Detail($news_id);
+        $this->globalReturnArr['news_details'] = $this->interface->fetch_Global_News_Detail($news_id);
       } else {
         $this->globalReturnArr['news_details'] = array();
       }
     } else {
       $user_role_slug = 'create_news';
       //Check user permission for this section
-      $this->globalReturnArr['page_permission'] = $this->GlobalLibraryHandlerObj->checkUserRolePermission($user_role_slug);
+      $this->globalReturnArr['page_permission'] = $this->checkUserRolePermission($user_role_slug);
       $this->globalReturnArr['news_details'] = array();
     }
     return $this->globalReturnArr;
@@ -1404,26 +1373,26 @@ class GlobalViewDataController
       $paramArr['slider_type'] = $slider_type;
 
       //Check user permission for this section
-      $this->globalReturnArr['page_permission'] = $this->GlobalLibraryHandlerObj->checkUserRolePermission($user_role_slug);
+      $this->globalReturnArr['page_permission'] = $this->checkUserRolePermission($user_role_slug);
 
       if ($this->globalReturnArr['page_permission']) {
         //Fetch gallery item
-        $this->globalReturnArr['slider_data'] = $this->GlobalInterfaceControllerObj->fetch_Slider_Arr($paramArr);
+        $this->globalReturnArr['slider_data'] = $this->interface->fetch_Slider_Arr($paramArr);
       } else {
         $this->globalReturnArr['slider_data'] = array();
       }
     } else if ($_GET['type'] == 'add') {
       $user_role_slug = 'manage_home_slider';
       //Check user permission for this section
-      $this->globalReturnArr['page_permission'] = $this->GlobalLibraryHandlerObj->checkUserRolePermission($user_role_slug);
+      $this->globalReturnArr['page_permission'] = $this->checkUserRolePermission($user_role_slug);
     } else {
       $user_role_slug = 'manage_home_slider';
       //Check user permission for this section
-      $this->globalReturnArr['page_permission'] = $this->GlobalLibraryHandlerObj->checkUserRolePermission($user_role_slug);
+      $this->globalReturnArr['page_permission'] = $this->checkUserRolePermission($user_role_slug);
 
       if ($this->globalReturnArr['page_permission']) {
         $slider_id = $_GET['id'];
-        $this->globalReturnArr['slider_data'] = $this->GlobalInterfaceControllerObj->fetch_Slider_Detail($slider_id);
+        $this->globalReturnArr['slider_data'] = $this->interface->fetch_Slider_Detail($slider_id);
         //Fetch all category list
       } else {
         $this->globalReturnArr['slider_data'] = array();
@@ -1436,7 +1405,7 @@ class GlobalViewDataController
   public function view_Exam_Required_Data()
   {
     //Check user permission for this section
-    $this->globalReturnArr['page_permission'] = $this->GlobalLibraryHandlerObj->checkUserRolePermission('view_exam');
+    $this->globalReturnArr['page_permission'] = $this->checkUserRolePermission('view_exam');
 
     $type = 'exams';
     //Fetching record status
@@ -1450,7 +1419,7 @@ class GlobalViewDataController
 
     if ($this->globalReturnArr['page_permission']) {
       //Call read global news method
-      $returnArr = $this->GlobalInterfaceControllerObj->fetch_Global_Exams($dataArr);
+      $returnArr = $this->interface->fetch_Global_Exams($dataArr);
       $this->globalReturnArr['exam_data'] = $returnArr;
     } else {
       $this->globalReturnArr['exam_data'] = array();
@@ -1471,11 +1440,11 @@ class GlobalViewDataController
     if ($exam_id > 0) {
       $user_role_slug = 'update_exam';
       //Check user permission for this section
-      $this->globalReturnArr['page_permission'] = $this->GlobalLibraryHandlerObj->checkUserRolePermission($user_role_slug);
+      $this->globalReturnArr['page_permission'] = $this->checkUserRolePermission($user_role_slug);
 
       if ($this->globalReturnArr['page_permission']) {
         //Fetch news detail
-        $this->globalReturnArr['exam_details'] = $this->GlobalInterfaceControllerObj->fetch_Student_Exam_Detail($exam_id);
+        $this->globalReturnArr['exam_details'] = $this->interface->fetch_Student_Exam_Detail($exam_id);
 
         //Fetch all active course & franchise list
         $activeCourseFranchiseList = $this->fetch_Active_Course_Franchise_Data();
@@ -1488,7 +1457,7 @@ class GlobalViewDataController
     } else {
       $user_role_slug = 'create_exam';
       //Check user permission for this section
-      $this->globalReturnArr['page_permission'] = $this->GlobalLibraryHandlerObj->checkUserRolePermission($user_role_slug);
+      $this->globalReturnArr['page_permission'] = $this->checkUserRolePermission($user_role_slug);
       $this->globalReturnArr['exam_details'] = array();
 
       //Fetch all active course & franchise list
@@ -1513,14 +1482,14 @@ class GlobalViewDataController
     if ($exam_id > 0) {
       $user_role_slug = 'update_exam';
       //Check user permission for this section
-      $this->globalReturnArr['page_permission'] = $this->GlobalLibraryHandlerObj->checkUserRolePermission($user_role_slug);
+      $this->globalReturnArr['page_permission'] = $this->checkUserRolePermission($user_role_slug);
 
       if ($this->globalReturnArr['page_permission']) {
         //Fetch news detail
-        $this->globalReturnArr['exam_details'] = $this->GlobalInterfaceControllerObj->fetch_Student_Exam_Detail($exam_id);
+        $this->globalReturnArr['exam_details'] = $this->interface->fetch_Student_Exam_Detail($exam_id);
 
         //Fetch news detail
-        $this->globalReturnArr['questions'] = $this->GlobalInterfaceControllerObj->fetch_Exam_Questions($exam_id);
+        $this->globalReturnArr['questions'] = $this->interface->fetch_Exam_Questions($exam_id);
       } else {
         $this->globalReturnArr['questions'] = array();
       }
@@ -1548,10 +1517,10 @@ class GlobalViewDataController
 
       if ($this->globalReturnArr['page_permission']) {
         //Fetch news detail
-        $this->globalReturnArr['exam_details'] = $this->GlobalInterfaceControllerObj->fetch_Student_Exam_Detail($exam_id);
+        $this->globalReturnArr['exam_details'] = $this->interface->fetch_Student_Exam_Detail($exam_id);
 
         //Fetch news detail
-        $this->globalReturnArr['questions'] = $this->GlobalInterfaceControllerObj->fetch_Exam_Questions($exam_id);
+        $this->globalReturnArr['questions'] = $this->interface->fetch_Exam_Questions($exam_id);
       } else {
         $this->globalReturnArr['questions'] = array();
       }
@@ -1574,13 +1543,13 @@ class GlobalViewDataController
 
     $user_role_slug = 'manage_profile';
     //Check user permission for this section
-    $this->globalReturnArr['page_permission'] = $this->GlobalLibraryHandlerObj->checkUserRolePermission($user_role_slug);
+    $this->globalReturnArr['page_permission'] = $this->checkUserRolePermission($user_role_slug);
 
     if ($this->globalReturnArr['page_permission']) {
 
       if ($user_id > 0) {
         //Fetching franchise detail
-        $this->globalReturnArr['profile_data'] = $this->GlobalInterfaceControllerObj->fetch_Admin_Profile_Data($user_id);
+        $this->globalReturnArr['profile_data'] = $this->interface->fetch_Admin_Profile_Data($user_id);
       } else {
         $this->globalReturnArr['profile_data'] = array();
       }
@@ -1601,13 +1570,13 @@ class GlobalViewDataController
 
     $user_role_slug = 'manage_profile';
     //Check user permission for this section
-    $this->globalReturnArr['page_permission'] = $this->GlobalLibraryHandlerObj->checkUserRolePermission($user_role_slug);
+    $this->globalReturnArr['page_permission'] = $this->checkUserRolePermission($user_role_slug);
 
     if ($this->globalReturnArr['page_permission']) {
 
       if ($user_id > 0) {
         //Fetching franchise detail
-        $this->globalReturnArr['profile_data'] = $this->GlobalInterfaceControllerObj->fetch_Developer_Profile_Data($user_id);
+        $this->globalReturnArr['profile_data'] = $this->interface->fetch_Developer_Profile_Data($user_id);
       } else {
         $this->globalReturnArr['profile_data'] = array();
       }
@@ -1626,11 +1595,11 @@ class GlobalViewDataController
 
     $user_role_slug = 'update_site_setting';
     //Check user permission for this section
-    $this->globalReturnArr['page_permission'] = $this->GlobalLibraryHandlerObj->checkUserRolePermission($user_role_slug);
+    $this->globalReturnArr['page_permission'] = $this->checkUserRolePermission($user_role_slug);
 
     if ($this->globalReturnArr['page_permission']) {
       //Fetch site setting detail
-      $this->globalReturnArr['site_settings'] = $this->GlobalInterfaceControllerObj->fetch_Global_Site_Setting_Detail();
+      $this->globalReturnArr['site_settings'] = $this->interface->fetch_Global_Site_Setting_Detail();
     } else {
       $this->globalReturnArr['site_settings'] = array();
     }

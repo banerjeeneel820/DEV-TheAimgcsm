@@ -18,7 +18,7 @@
   $courseArr = $pageContent['pageData']['course_data']; 
 
   //Fetching page action permission
-  $deletePermission = $this->globalLibraryHandlerObj->checkUserRolePermission("delete_enquiry"); 
+  $deletePermission = $this->checkUserRolePermission("delete_enquiry"); 
   
   /*print'<pre>';
   print_r($enquiryListArr);

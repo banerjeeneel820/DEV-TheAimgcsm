@@ -17,7 +17,7 @@ class StudentController extends BaseController
         $dir = 'student';
 
         // helper
-        $post = fn ($key) => $this->GlobalLibraryHandlerObj->postDataSanitize($key);
+        $post = fn ($key) => $this->lib->postDataSanitize($key);
 
         $action_type = $post('action_type');
         $formDataArr['stu_row_id'] = $post('stu_row_id');
@@ -27,7 +27,7 @@ class StudentController extends BaseController
 
         // fetch student if update
         if ($isUpdate) {
-            $studentDetailArr = $this->GlobalInterfaceControllerObj->fetch_Detail_Single_Student($formDataArr['stu_row_id']);
+            $studentDetailArr = $this->interface->fetch_Detail_Single_Student($formDataArr['stu_row_id']);
         }
 
         // check for valid student data
@@ -44,14 +44,14 @@ class StudentController extends BaseController
                 return ['check' => 'failure', 'message' => "You don't have the permission to perform this action!"];
             }
 
-            $franchiseDetailArr = $this->GlobalInterfaceControllerObj->fetch_Global_Single_Franchise($franchise_id);
+            $franchiseDetailArr = $this->interface->fetch_Global_Single_Franchise($franchise_id);
             $owned_status = $franchiseDetailArr->owned_status;
         } else {
             $owned_status = "yes";
         }
 
         // permission check
-        if (!$this->GlobalLibraryHandlerObj->checkUserRolePermission($user_role_slug, "hard")) {
+        if (!$this->checkUserRolePermission($user_role_slug, "hard")) {
             return ['check' => 'failure', 'message' => "You don't have the permission to perform this action!"];
         }
 
@@ -84,7 +84,7 @@ class StudentController extends BaseController
                         'record_status' => "blocked",
                         'stu_result' => "unqualified",
                         'conversion_status' => 'n',
-                        'stu_id' => $this->GlobalLibraryHandlerObj->create_Student_ID()
+                        'stu_id' => $this->create_Student_ID()
                     ];
                 }
 
@@ -101,7 +101,7 @@ class StudentController extends BaseController
                 $formDataArr['record_status'] = $post('record_status') ?? ($isUpdate ? $studentDetailArr->record_status : 'active');
 
                 if (!$isUpdate) {
-                    $formDataArr['stu_id'] = $this->GlobalLibraryHandlerObj->create_Student_ID();
+                    $formDataArr['stu_id'] = $this->create_Student_ID();
                 }
 
                 foreach (['stu_course_fees', 'monthly_course_fees', 'month_exclude_receipt', 'stu_course_discount', 'fees_paid_before_dr'] as $f) {
@@ -119,7 +119,7 @@ class StudentController extends BaseController
             $formDataArr['record_status'] = $post('record_status') ?? ($isUpdate ? $studentDetailArr->record_status : 'active');
 
             if (!$isUpdate) {
-                $formDataArr['stu_id'] = $this->GlobalLibraryHandlerObj->create_Student_ID();
+                $formDataArr['stu_id'] = $this->create_Student_ID();
             }
 
             foreach (['stu_course_fees', 'monthly_course_fees', 'month_exclude_receipt', 'stu_course_discount', 'fees_paid_before_dr'] as $f) {
@@ -156,7 +156,7 @@ class StudentController extends BaseController
         // ===== VALIDATE STUDENT DATA BEFORE CREATE OR UPDATE =====
         $validationDataArr = $formDataArr;
         $validationDataArr['fran_own_status'] = $owned_status;
-        $validationResult = $this->GlobalValidationControllerObj->validateGlobalStudentData($validationDataArr);
+        $validationResult = $this->validator->validateGlobalStudentData($validationDataArr);
 
         if ($validationResult['check'] == 'failure') {
             return $validationResult;
@@ -167,7 +167,7 @@ class StudentController extends BaseController
 
         if (!empty($_FILES["local_stu_image"]["size"])) {
 
-            $uploadReturnArr = $this->GlobalLibraryHandlerObj->upload_file('local_stu_image', $dir);
+            $uploadReturnArr = $this->lib->upload_file('local_stu_image', $dir);
 
             if ($uploadReturnArr['check'] != 'success') {
                 return ['check' => 'failure', 'msg' => "Image upload failed!"];
@@ -184,7 +184,7 @@ class StudentController extends BaseController
                 if (!empty($oldFile)) {
 
                     $ext = pathinfo($oldFile, PATHINFO_EXTENSION);
-                    $newFileName = $this->GlobalLibraryHandlerObj->generateRandomString() . '_' . time() . '.' . $ext;
+                    $newFileName = $this->lib->generateRandomString() . '_' . time() . '.' . $ext;
 
                     $source = USER_UPLOAD_DIR . $dir . '/' . $oldFile;
                     $dest   = USER_UPLOAD_DIR . $dir . '/' . $newFileName;
@@ -203,7 +203,7 @@ class StudentController extends BaseController
         }
 
         // ===== SAVE =====
-        $returnArr = $this->GlobalInterfaceControllerObj->manage_Global_Student($formDataArr);
+        $returnArr = $this->interface->manage_Global_Student($formDataArr);
 
         if ($returnArr['check'] == 'success') {
 
@@ -224,7 +224,7 @@ class StudentController extends BaseController
             $returnArr['course'] = $post('course_name');
 
             if (!$isUpdate) {
-                $this->GlobalLibraryHandlerObj->purgeSiteCache("student");
+                $this->purgeSiteCache("student");
             }
         } else {
 
@@ -250,7 +250,7 @@ class StudentController extends BaseController
         $returnArr = [];
 
         // helper
-        $post = fn ($key) => $this->GlobalLibraryHandlerObj->postDataSanitize($key);
+        $post = fn ($key) => $this->lib->postDataSanitize($key);
 
         // -----------------------------
         // Basic Data
@@ -264,12 +264,12 @@ class StudentController extends BaseController
         // -----------------------------
         // Permission Check
         // -----------------------------
-        if (!$this->GlobalLibraryHandlerObj->checkUserRolePermission($user_role_slug, "hard")) {
+        if (!$this->checkUserRolePermission($user_role_slug, "hard")) {
             return ['check' => 'failure', 'message' => "You don't have the permission to perform this action!"];
         }
 
         // permission check
-        if (!$this->GlobalLibraryHandlerObj->checkUserRolePermission($receipt_role_slug, "hard")) {
+        if (!$this->checkUserRolePermission($receipt_role_slug, "hard")) {
             return ['check' => 'failure', 'message' => "No permission to create receipt"];
         }
 
@@ -277,7 +277,7 @@ class StudentController extends BaseController
         // Fetch Student (if update)
         // -----------------------------
         if ($isUpdate) {
-            $studentDetailArr = $this->GlobalInterfaceControllerObj
+            $studentDetailArr = $this->interface
                 ->fetch_Detail_Single_Student($formDataArr['student_id']);
         }
 
@@ -333,7 +333,7 @@ class StudentController extends BaseController
         // Create Student ID
         // -----------------------------
         if (!$isUpdate) {
-            $formDataArr['stu_id'] = $this->GlobalLibraryHandlerObj->create_Student_ID();
+            $formDataArr['stu_id'] = $this->create_Student_ID();
         }
 
         // -----------------------------
@@ -344,7 +344,7 @@ class StudentController extends BaseController
         // -----------------------------
         // Save Student
         // -----------------------------
-        $studentReturnArr = $this->GlobalInterfaceControllerObj->manage_Student_Admission($formDataArr);
+        $studentReturnArr = $this->interface->manage_Student_Admission($formDataArr);
 
         // -----------------------------
         // Receipt Creation + Rollback
@@ -363,7 +363,7 @@ class StudentController extends BaseController
             if ($receiptResult['check'] === 'failure') {
 
                 // delete created student (rollback)
-                $this->GlobalInterfaceControllerObj
+                $this->interface
                     ->delete_Student_By_Id($formDataArr['stu_id']);
 
                 return [
@@ -379,7 +379,7 @@ class StudentController extends BaseController
         $tmp_id = $post('tmp_id');
 
         if ($studentReturnArr['check'] == 'success' && !empty($tmp_id)) {
-            $this->GlobalInterfaceControllerObj->update_Tmp_Student_Conversion_Status($tmp_id, 'y');
+            $this->interface->update_Tmp_Student_Conversion_Status($tmp_id, 'y');
         }
 
         // -----------------------------
@@ -406,7 +406,7 @@ class StudentController extends BaseController
         $receipt_role_slug = 'create_receipt';
 
         // permission check
-        if (!$this->GlobalLibraryHandlerObj->checkUserRolePermission($receipt_role_slug, "hard")) {
+        if (!$this->checkUserRolePermission($receipt_role_slug, "hard")) {
             return ['check' => 'failure', 'message' => "No permission to create receipt"];
         }
 
@@ -417,7 +417,7 @@ class StudentController extends BaseController
         }
 
         $receiptFormArr = [
-            'receipt_id'             => $this->GlobalLibraryHandlerObj->create_Receipt_ID(),
+            'receipt_id'             => $this->create_Receipt_ID(),
             'stu_id'                 => $formDataArr['stu_id'],
             'category_id'            => $post('category_id'),
             'receipt_amount'         => $receiptAmount,
@@ -426,7 +426,7 @@ class StudentController extends BaseController
             'record_status'          => 'active'
         ];
 
-        return $this->GlobalInterfaceControllerObj
+        return $this->interface
             ->create_Student_Admission_Receipt($receiptFormArr);
     }
 
@@ -437,7 +437,7 @@ class StudentController extends BaseController
         $returnArr = [];
 
         // helper
-        $post = fn ($key) => $this->GlobalLibraryHandlerObj->postDataSanitize($key);
+        $post = fn ($key) => $this->lib->postDataSanitize($key);
 
         // -----------------------------
         // Basic Data
@@ -450,7 +450,7 @@ class StudentController extends BaseController
         // -----------------------------
         // Permission Check
         // -----------------------------
-        if (!$this->GlobalLibraryHandlerObj->checkUserRolePermission($user_role_slug, "hard")) {
+        if (!$this->checkUserRolePermission($user_role_slug, "hard")) {
             return ['check' => 'failure', 'message' => "You don't have the permission to perform this action!"];
         }
 
@@ -462,7 +462,7 @@ class StudentController extends BaseController
             $franchise_id = $_SESSION['user_id'];
 
             if ($isUpdate) {
-                $studentDetailArr = $this->GlobalInterfaceControllerObj
+                $studentDetailArr = $this->interface
                     ->fetch_Detail_Single_Student($formDataArr['tmp_id']);
 
                 if ($studentDetailArr->franchise_id != $franchise_id) {
@@ -471,7 +471,7 @@ class StudentController extends BaseController
             }
 
             // kept for future use (as in your original code)
-            // $franchiseDetailArr = $this->GlobalInterfaceControllerObj
+            // $franchiseDetailArr = $this->interface
             //     ->fetch_Global_Single_Franchise($franchise_id);
 
             // $owned_status = $franchiseDetailArr->owned_status;
@@ -494,13 +494,13 @@ class StudentController extends BaseController
         // Create Temp Student ID
         // -----------------------------
         if (!$isUpdate) {
-            $formDataArr['tmp_stu_id'] = $this->GlobalLibraryHandlerObj->create_Tmp_Student_ID();
+            $formDataArr['tmp_stu_id'] = $this->create_Tmp_Student_ID();
         }
 
         // -----------------------------
         // DB Operation
         // -----------------------------
-        $returnArr = $this->GlobalInterfaceControllerObj->manage_Temp_Student($formDataArr);
+        $returnArr = $this->interface->manage_Temp_Student($formDataArr);
 
         // -----------------------------
         // Response Handling
@@ -526,7 +526,7 @@ class StudentController extends BaseController
         $returnArr = [];
 
         // helper
-        $post = fn ($key) => $this->GlobalLibraryHandlerObj->postDataSanitize($key);
+        $post = fn ($key) => $this->lib->postDataSanitize($key);
 
         // -----------------------------
         // Determine Status Type & Permission
@@ -537,7 +537,7 @@ class StudentController extends BaseController
         // -----------------------------
         // Permission Check
         // -----------------------------
-        if (!$this->GlobalLibraryHandlerObj->checkUserRolePermission($user_role_slug, "hard")) {
+        if (!$this->checkUserRolePermission($user_role_slug, "hard")) {
             return ['check' => 'failure', 'message' => "You don't have the permission to perform this action!"];
         }
 
@@ -558,7 +558,7 @@ class StudentController extends BaseController
         // -----------------------------
         // DB Operation
         // -----------------------------
-        $returnArr = $this->GlobalInterfaceControllerObj
+        $returnArr = $this->interface
             ->manage_Student_Status($formDataArr);
 
         // -----------------------------
@@ -570,14 +570,14 @@ class StudentController extends BaseController
     public function update_student_bulk_status($data)
     {
         // helper
-        $post = fn ($key) => $this->GlobalLibraryHandlerObj->postDataSanitize($key);
+        $post = fn ($key) => $this->lib->postDataSanitize($key);
 
         // -----------------------------
         // Permission Check
         // -----------------------------
         $user_role_slug = "update_student";
 
-        if (!$this->GlobalLibraryHandlerObj->checkUserRolePermission($user_role_slug, "hard")) {
+        if (!$this->checkUserRolePermission($user_role_slug, "hard")) {
             return ['check' => 'failure', 'message' => "You don't have the permission to perform this action!"];
         }
 
@@ -610,7 +610,7 @@ class StudentController extends BaseController
         // -----------------------------
         // Process Bulk Update
         // -----------------------------
-        $response = $this->GlobalInterfaceControllerObj->update_Bulk_Student_Status($paramArr);
+        $response = $this->interface->update_Bulk_Student_Status($paramArr);
 
         return $response['responseArr']['check'] === 'success'
             ? ['check' => 'success', 'message' => 'Bulk update successful']
@@ -619,12 +619,12 @@ class StudentController extends BaseController
 
     public function fetch_student_detail_modal($data)
     {
-        $post = fn ($key) => $this->GlobalLibraryHandlerObj->postDataSanitize($key);
+        $post = fn ($key) => $this->lib->postDataSanitize($key);
 
         // -----------------------------
         // PERMISSION CHECK
         // -----------------------------
-        if (!$this->GlobalLibraryHandlerObj->checkUserRolePermission("view_student", "hard")) {
+        if (!$this->checkUserRolePermission("view_student", "hard")) {
             return ['check' => 'failure', 'message' => "You don't have the permission to perform this action!"];
         }
 
@@ -633,7 +633,7 @@ class StudentController extends BaseController
         // -----------------------------
         $student_id = (int) $post('student_id');
 
-        $student = $this->GlobalInterfaceControllerObj
+        $student = $this->interface
             ->fetch_Global_Single_Student($student_id);
 
         if (empty($student)) {

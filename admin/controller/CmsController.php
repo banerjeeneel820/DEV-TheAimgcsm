@@ -16,7 +16,7 @@ class CmsController extends BaseController
         $dir = 'gallery';
 
         // helper
-        $post = fn ($key) => $this->GlobalLibraryHandlerObj->postDataSanitize($key);
+        $post = fn ($key) => $this->lib->postDataSanitize($key);
 
         // -----------------------------
         // Basic Data & Permission
@@ -26,7 +26,7 @@ class CmsController extends BaseController
 
         $user_role_slug = $isUpdate ? 'update_gallery' : 'create_gallery';
 
-        if (!$this->GlobalLibraryHandlerObj->checkUserRolePermission($user_role_slug, "hard")) {
+        if (!$this->checkUserRolePermission($user_role_slug, "hard")) {
             return ['check' => 'failure', 'message' => "You don't have the permission to perform this action!"];
         }
 
@@ -53,7 +53,7 @@ class CmsController extends BaseController
 
                 if (!empty($_FILES["local_media_image"]["size"])) {
 
-                    $uploadReturnArr = $this->GlobalLibraryHandlerObj->upload_file('local_media_image', $dir);
+                    $uploadReturnArr = $this->lib->upload_file('local_media_image', $dir);
 
                     if ($uploadReturnArr['check'] !== 'success') {
                         return ['check' => 'failure', 'msg' => "File upload failed!"];
@@ -102,7 +102,7 @@ class CmsController extends BaseController
         // -----------------------------
         // Save
         // -----------------------------
-        $returnArr = $this->GlobalInterfaceControllerObj
+        $returnArr = $this->interface
             ->manage_Global_Media($formDataArr);
 
         if ($returnArr['check'] !== 'success') {
@@ -161,7 +161,7 @@ class CmsController extends BaseController
             'category_id' => $post(['category_id'])
         ];
 
-        $this->GlobalInterfaceControllerObj
+        $this->interface
             ->edit_Post_Category($updateCategoryArr);
 
         return $returnArr;
@@ -174,21 +174,21 @@ class CmsController extends BaseController
         $dir = 'gallery';
 
         // helper
-        $post = fn ($key) => $this->GlobalLibraryHandlerObj->postDataSanitize($key);
+        $post = fn ($key) => $this->lib->postDataSanitize($key);
 
         // -----------------------------
         // Permission Check
         // -----------------------------
         $user_role_slug = 'create_gallery';
 
-        if (!$this->GlobalLibraryHandlerObj->checkUserRolePermission($user_role_slug, "hard")) {
+        if (!$this->checkUserRolePermission($user_role_slug, "hard")) {
             return ['check' => 'failure', 'message' => "You don't have the permission to perform this action!"];
         }
 
         // -----------------------------
         // File Validation (Image Only)
         // -----------------------------
-        $validation = $this->GlobalLibraryHandlerObj->validateFile($_FILES['file'], 'image');
+        $validation = $this->lib->validateFile($_FILES['file'], 'image');
 
         if ($validation['check'] !== 'success') {
             return $validation;
@@ -209,12 +209,12 @@ class CmsController extends BaseController
         // -----------------------------
         $categoryListArr = json_decode(
             json_encode(
-                $this->GlobalInterfaceControllerObj->fetch_Single_Parent_Category($dir)
+                $this->interface->fetch_Single_Parent_Category($dir)
             ),
             true
         );
 
-        $shuffled = array_values($this->GlobalLibraryHandlerObj->shuffle_assoc($categoryListArr));
+        $shuffled = array_values($this->lib->shuffle_assoc($categoryListArr));
 
         $categoryIdArr = [];
         foreach ($shuffled as $index => $category) {
@@ -226,7 +226,7 @@ class CmsController extends BaseController
         // -----------------------------
         // File Upload
         // -----------------------------
-        $uploadReturnArr = $this->GlobalLibraryHandlerObj->upload_file('file', $dir);
+        $uploadReturnArr = $this->lib->upload_file('file', $dir);
 
         if ($uploadReturnArr['check'] !== 'success') {
             return ['check' => 'failure', 'message' => "File upload failed!"];
@@ -237,7 +237,7 @@ class CmsController extends BaseController
         // -----------------------------
         // Save
         // -----------------------------
-        $returnArr = $this->GlobalInterfaceControllerObj
+        $returnArr = $this->interface
             ->manage_Global_Media($formDataArr);
 
         if ($returnArr['check'] !== 'success') {
@@ -253,7 +253,7 @@ class CmsController extends BaseController
         // -----------------------------
         // Category Mapping
         // -----------------------------
-        $this->GlobalInterfaceControllerObj->edit_Post_Category([
+        $this->interface->edit_Post_Category([
             'post_type'   => "gallery",
             'post_id'     => $returnArr['last_insert_id'],
             'category_id' => $categoryIdArr
@@ -271,7 +271,7 @@ class CmsController extends BaseController
     public function manage_parent_category($data)
     {
         // helper
-        $post = fn ($key) => $this->GlobalLibraryHandlerObj->postDataSanitize($key);
+        $post = fn ($key) => $this->lib->postDataSanitize($key);
 
         $formDataArr = [];
 
@@ -282,7 +282,7 @@ class CmsController extends BaseController
         $user_role_slug = $isUpdate ? 'update_category' : 'create_category';
 
         // permission check (early return)
-        if (!$this->GlobalLibraryHandlerObj->checkUserRolePermission($user_role_slug, "hard")) {
+        if (!$this->checkUserRolePermission($user_role_slug, "hard")) {
             return ['check' => 'failure', 'message' => "You don't have the permission to perform this action!"];
         }
 
@@ -292,18 +292,18 @@ class CmsController extends BaseController
         $formDataArr['record_status'] = $post('record_status');
 
         // call interface
-        return $this->GlobalInterfaceControllerObj->manage_Parent_Category($formDataArr);
+        return $this->interface->manage_Parent_Category($formDataArr);
     }
 
     public function manage_global_city($data)
     {
         // helper
-        $post = fn ($key) => $this->GlobalLibraryHandlerObj->postDataSanitize($key);
+        $post = fn ($key) => $this->lib->postDataSanitize($key);
 
         $formDataArr = [];
 
         // permission check (early return)
-        if (!$this->GlobalLibraryHandlerObj->checkUserRolePermission('manage_city_db', "hard")) {
+        if (!$this->checkUserRolePermission('manage_city_db', "hard")) {
             return ['check' => 'failure', 'message' => "You don't have the permission to perform this action!"];
         }
 
@@ -313,7 +313,7 @@ class CmsController extends BaseController
         $formDataArr['record_status'] = $post('record_status');
 
         // call interface
-        return $this->GlobalInterfaceControllerObj->manage_Global_City($formDataArr);
+        return $this->interface->manage_Global_City($formDataArr);
     }
 
     public function manage_email_template($data)
@@ -321,7 +321,7 @@ class CmsController extends BaseController
         $formDataArr = [];
 
         // helper
-        $post = fn ($key) => $this->GlobalLibraryHandlerObj->postDataSanitize($key);
+        $post = fn ($key) => $this->lib->postDataSanitize($key);
 
         // -----------------------------
         // Determine Action Type
@@ -334,7 +334,7 @@ class CmsController extends BaseController
         // -----------------------------
         // Permission Check
         // -----------------------------
-        if (!$this->GlobalLibraryHandlerObj->checkUserRolePermission($user_role_slug, "hard")) {
+        if (!$this->checkUserRolePermission($user_role_slug, "hard")) {
             return ['check' => 'failure', 'message' => "You don't have the permission to perform this action!"];
         }
 
@@ -354,8 +354,8 @@ class CmsController extends BaseController
         // -----------------------------
         // Slug (Code) Validation
         // -----------------------------
-        $existingId = $this->GlobalLibraryHandlerObj
-            ->checkSlugAvailibility('email_template', 'code', $formDataArr['code'])
+        $existingId = $this->interface
+            ->check_Slug_Availibility('email_template', 'code', $formDataArr['code'])
             ->id ?? null;
 
         if (
@@ -371,7 +371,7 @@ class CmsController extends BaseController
         // -----------------------------
         // DB Operation
         // -----------------------------
-        return $this->GlobalInterfaceControllerObj
+        return $this->interface
             ->manage_Global_Email_Template($formDataArr);
     }
 
@@ -381,14 +381,14 @@ class CmsController extends BaseController
         $dir = 'home_sliders';
 
         // helper
-        $post = fn ($key) => $this->GlobalLibraryHandlerObj->postDataSanitize($key);
+        $post = fn ($key) => $this->lib->postDataSanitize($key);
 
         // -----------------------------
         // Permission Check
         // -----------------------------
         $user_role_slug = 'manage_home_slider';
 
-        if (!$this->GlobalLibraryHandlerObj->checkUserRolePermission($user_role_slug, "hard")) {
+        if (!$this->checkUserRolePermission($user_role_slug, "hard")) {
             return ['check' => 'failure', 'message' => "You don't have the permission to perform this action!"];
         }
 
@@ -412,7 +412,7 @@ class CmsController extends BaseController
 
         if ($formDataArr['file_upload_type'] === "local") {
 
-            $validation = $this->GlobalLibraryHandlerObj->validateFile($_FILES['banner_image_local'], 'image');
+            $validation = $this->lib->validateFile($_FILES['banner_image_local'], 'image');
 
             if ($validation['check'] !== 'success') {
                 return $validation;
@@ -420,7 +420,7 @@ class CmsController extends BaseController
 
             if (!empty($_FILES["banner_image_local"]["size"])) {
 
-                $uploadReturnArr = $this->GlobalLibraryHandlerObj->upload_file('banner_image_local', $dir);
+                $uploadReturnArr = $this->lib->upload_file('banner_image_local', $dir);
 
                 if ($uploadReturnArr['check'] !== 'success') {
                     return ['check' => 'failure', 'msg' => "File upload failed!"];
@@ -437,7 +437,7 @@ class CmsController extends BaseController
         // -----------------------------
         // DB Operation
         // -----------------------------
-        $returnArr = $this->GlobalInterfaceControllerObj->manage_Home_Slider($formDataArr);
+        $returnArr = $this->interface->manage_Home_Slider($formDataArr);
 
         // -----------------------------
         // Post Operation (File Cleanup)
@@ -477,7 +477,7 @@ class CmsController extends BaseController
         $dir = 'news';
 
         // helper
-        $post = fn ($key) => $this->GlobalLibraryHandlerObj->postDataSanitize($key);
+        $post = fn ($key) => $this->lib->postDataSanitize($key);
 
         // -----------------------------
         // Determine Action Type
@@ -490,7 +490,7 @@ class CmsController extends BaseController
         // -----------------------------
         // Permission Check
         // -----------------------------
-        if (!$this->GlobalLibraryHandlerObj->checkUserRolePermission($user_role_slug, "hard")) {
+        if (!$this->checkUserRolePermission($user_role_slug, "hard")) {
             return ['check' => 'failure', 'message' => "You don't have the permission to perform this action!"];
         }
 
@@ -510,14 +510,14 @@ class CmsController extends BaseController
         if (!empty($_FILES["local_news_pdf"]["size"])) {
 
             // validate file (using your new helper)
-            $validation = $this->GlobalLibraryHandlerObj
+            $validation = $this->lib
                 ->validateFile($_FILES['local_news_pdf'], 'pdf');
 
             if ($validation['check'] !== 'success') {
                 return $validation;
             }
 
-            $uploadReturnArr = $this->GlobalLibraryHandlerObj
+            $uploadReturnArr = $this->lib
                 ->upload_file('local_news_pdf', $dir);
 
             if ($uploadReturnArr['check'] !== 'success') {
@@ -534,7 +534,7 @@ class CmsController extends BaseController
         // -----------------------------
         // DB Operation
         // -----------------------------
-        $returnArr = $this->GlobalInterfaceControllerObj
+        $returnArr = $this->interface
             ->manage_Global_News($formDataArr);
 
         // -----------------------------

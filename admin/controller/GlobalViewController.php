@@ -1,8 +1,8 @@
 <?php    
     defined('ROOTPATH') OR exit('No direct script access allowed');
     
-    class GlobalViewController{
-
+    class GlobalViewController extends BaseController
+	{
     	private $page_route;
     	private $page_title;
     	private $page_assets;
@@ -10,9 +10,9 @@
 		private $isTinyEditorAllowed;
     	private $site_setting_data;
 		private $GlobalViewDataControllerObj;
-    	private $globalLibraryHandlerObj;
 
     	public function __construct($route,$_dataArr){
+			parent::__construct();
     		$this->page_route = $route;
     		$this->page_content = $_dataArr;
     		$this->page_title = $_dataArr['pageData']['page_title'];
@@ -21,7 +21,6 @@
 			$this->isTinyEditorAllowed = $_dataArr['pageData']['tiny_allowed'] ?? true;
             
     		//Creating object for global library & view data class
-    		$this->globalLibraryHandlerObj = new GlobalLibraryHandler();
 			$this->GlobalViewDataControllerObj = new GlobalViewDataController();
     	}
 

@@ -233,7 +233,7 @@ class ExportService extends BaseController
                 'fetchType' => $input['fetchType']
             ];
 
-            $result = $this->GlobalInterfaceControllerObj
+            $result = $this->interface
                 ->fetch_Dashboard_Student_Data($data)['data'];
 
             return [
@@ -248,13 +248,13 @@ class ExportService extends BaseController
             'search_end'
         ]);
 
-        $result = $this->GlobalInterfaceControllerObj
+        $result = $this->interface
             ->fetch_Global_Student_Recipts($params);
 
         $students = $this->toArray($result);
 
         // Build criteria (same as receipt now)
-        $criteria = $this->GlobalLibraryHandlerObj
+        $criteria = $this->lib
             ->buildExportCriteria($params);
 
         return [
@@ -337,7 +337,7 @@ class ExportService extends BaseController
                 'fetchType' => $input['fetchType']
             ];
 
-            $result = $this->GlobalInterfaceControllerObj
+            $result = $this->interface
                 ->fetch_Dashboard_Receipt_Data($data)['data'];
 
             return [
@@ -354,16 +354,16 @@ class ExportService extends BaseController
         //print_r($params);exit;
 
         if ($input['student_id']) {
-            $result = $this->GlobalInterfaceControllerObj
+            $result = $this->interface
                 ->fetch_Single_Student_Receipt($input['student_id'], $params);
         } else {
-            $result = $this->GlobalInterfaceControllerObj
+            $result = $this->interface
                 ->fetch_Global_Receipts($params);
         }
 
         $receipts = $this->toArray($result);
 
-        $criteria = $this->GlobalLibraryHandlerObj
+        $criteria = $this->lib
             ->buildExportCriteria($params);
 
         return [
@@ -432,13 +432,13 @@ class ExportService extends BaseController
         // Internal helper (as you wanted earlier)
         $params = $this->buildCommonFilters($input);
 
-        $result = $this->GlobalInterfaceControllerObj
+        $result = $this->interface
             ->fetch_Global_Franchise($params);
 
         $franchises = $this->toArray($result);
 
         // Build criteria (same as receipt now)
-        $criteria = $this->GlobalLibraryHandlerObj
+        $criteria = $this->lib
             ->buildExportCriteria($params);
 
         return [

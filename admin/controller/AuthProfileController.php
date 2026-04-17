@@ -1,7 +1,7 @@
 <?php
 defined('ROOTPATH') or exit('No direct script access allowed');
 
-class UserProfileController extends BaseController
+class AuthProfileController extends BaseController
 {
 
     public function __construct()
@@ -14,7 +14,7 @@ class UserProfileController extends BaseController
         $paramArr = [];
 
         // helper
-        $post = fn ($key) => $this->GlobalLibraryHandlerObj->postDataSanitize($key);
+        $post = fn ($key) => $this->lib->postDataSanitize($key);
 
         $paramArr['user_email'] = $post('user_email');
         $paramArr['user_pswd'] = md5($post('user_pswd'));
@@ -23,10 +23,10 @@ class UserProfileController extends BaseController
         //Validating captch & collecting response 
         $recaptcha_response = $data('g-recaptcha-response');
 
-        $validate_captcha = true; //$this->GlobalLibraryHandlerObj->checkCaptchaResponse($recaptcha_response);
+        $validate_captcha = true; //$this->lib->checkCaptchaResponse($recaptcha_response);
 
         if ($validate_captcha) {
-            $returnArr = $this->GlobalInterfaceControllerObj->check_User_Login($paramArr);
+            $returnArr = $this->interface->check_User_Login($paramArr);
 
             if ($returnArr['check'] == 'success') {
                 //Setting cookies for browser
@@ -52,14 +52,14 @@ class UserProfileController extends BaseController
         $returnArr = [];
 
         // helper
-        $post = fn ($key) => $this->GlobalLibraryHandlerObj->postDataSanitize($key);
+        $post = fn ($key) => $this->lib->postDataSanitize($key);
 
         // -----------------------------
         // Permission Check
         // -----------------------------
         $user_role_slug = "manage_profile";
 
-        if (!$this->GlobalLibraryHandlerObj->checkUserRolePermission($user_role_slug, "hard")) {
+        if (!$this->checkUserRolePermission($user_role_slug, "hard")) {
             return ['check' => 'failure', 'message' => "You don't have the permission to perform this action!"];
         }
 
@@ -103,12 +103,12 @@ class UserProfileController extends BaseController
         // -----------------------------
         // DB Operation
         // -----------------------------
-        return $this->GlobalInterfaceControllerObj->manage_Profile_Data($formDataArr);
+        return $this->interface->manage_Profile_Data($formDataArr);
     }
 
     public function manage_franchise_profile($data)
     {
-        $post = fn ($key) => $this->GlobalLibraryHandlerObj->postDataSanitize($key);
+        $post = fn ($key) => $this->lib->postDataSanitize($key);
 
         $formDataArr = [];
         $dir = 'franchise';
@@ -118,7 +118,7 @@ class UserProfileController extends BaseController
         // -----------------------------
         // PERMISSION CHECK
         // -----------------------------
-        if (!$this->GlobalLibraryHandlerObj->checkUserRolePermission('manage_profile', "hard")) {
+        if (!$this->checkUserRolePermission('manage_profile', "hard")) {
             return ['check' => 'failure', 'message' => "You don't have the permission!"];
         }
 
@@ -154,7 +154,7 @@ class UserProfileController extends BaseController
         // -----------------------------
         // FILE HANDLING (GENERIC)
         // -----------------------------
-        $formDataArr['fran_image'] = $this->GlobalLibraryHandlerObj->handleFileUpload([
+        $formDataArr['fran_image'] = $this->lib->handleFileUpload([
             'input'        => 'fran_image',
             'hidden'       => $_POST['hidden_fran_image'] ?? '',
             'default'      => 'profile_small_old.png',
@@ -162,7 +162,7 @@ class UserProfileController extends BaseController
             'row_id'       => $formDataArr['fran_row_id'],
         ]);
 
-        $formDataArr['fran_pdf_name'] = $this->GlobalLibraryHandlerObj->handleFileUpload([
+        $formDataArr['fran_pdf_name'] = $this->lib->handleFileUpload([
             'input'        => 'fran_pdf_name',
             'hidden'       => $_POST['hidden_fran_pdf'] ?? '',
             'default'      => 'COMPUTER-COURSE.pdf',
@@ -173,13 +173,13 @@ class UserProfileController extends BaseController
         // -----------------------------
         // DB CALL
         // -----------------------------
-        return $this->GlobalInterfaceControllerObj
+        return $this->interface
             ->edit_Franchise_Profile($formDataArr);
     }
 
     public function check_user_email_availability($data)
     {
-        $post = fn ($key) => $this->GlobalLibraryHandlerObj->postDataSanitize($key);
+        $post = fn ($key) => $this->lib->postDataSanitize($key);
 
         // -----------------------------
         // INPUT DATA
@@ -203,7 +203,7 @@ class UserProfileController extends BaseController
         // -----------------------------
         // CALL MODEL
         // -----------------------------
-        return $this->GlobalInterfaceControllerObj
+        return $this->interface
             ->check_User_Email_Availability($payload);
     }
 }

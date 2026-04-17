@@ -12,9 +12,9 @@
   }
 
   //Fetching page action permission
-  $createPermission = $this->globalLibraryHandlerObj->checkUserRolePermission("create_news"); 
-  $updatePermission = $this->globalLibraryHandlerObj->checkUserRolePermission("update_news"); 
-  $deletePermission = $this->globalLibraryHandlerObj->checkUserRolePermission("delete_news"); 
+  $createPermission = $this->checkUserRolePermission("create_news"); 
+  $updatePermission = $this->checkUserRolePermission("update_news"); 
+  $deletePermission = $this->checkUserRolePermission("delete_news"); 
   /*print"<pre>";
   print_r($newsDataArr); 
   print"</pre>";*/ 

@@ -16,7 +16,7 @@ class StudentReceiptController extends BaseController
         $dir = 'receipt';
 
         // helper
-        $post = fn ($key) => $this->GlobalLibraryHandlerObj->postDataSanitize($key);
+        $post = fn ($key) => $this->lib->postDataSanitize($key);
 
         $rawData = [
             'student_id' => $post('stu_id'),
@@ -28,7 +28,7 @@ class StudentReceiptController extends BaseController
             'extra_fees_description' => $post('extra_fees_description')
         ];
 
-        $validationResult = $this->GlobalValidationControllerObj->validateStudentReceiptData($rawData);
+        $validationResult = $this->validator->validateStudentReceiptData($rawData);
 
         if ($validationResult['check'] == 'failure') {
             return $validationResult;
@@ -44,20 +44,20 @@ class StudentReceiptController extends BaseController
         } else {
             $user_role_slug = 'create_receipt';
             $formDataArr['receipt_row_id'] = null;
-            $formDataArr['receipt_id'] = $this->GlobalLibraryHandlerObj->create_Receipt_ID();
+            $formDataArr['receipt_id'] = $this->create_Receipt_ID();
         }
 
         $formDataArr['category_id'] = $post('category_id');
         $send_mail = $post('send_mail');
 
         // ===== PERMISSION =====
-        if (!$this->GlobalLibraryHandlerObj->checkUserRolePermission($user_role_slug, "hard")) {
+        if (!$this->checkUserRolePermission($user_role_slug, "hard")) {
             return ['check' => 'failure', 'message' => "You don't have the permission to perform this action!"];
         }
 
         // ===== FETCH EXISTING RECEIPT =====
         $receiptDetailArr = $isUpdate
-            ? $this->GlobalInterfaceControllerObj->fetch_Receipt_Detail($formDataArr['receipt_row_id'])
+            ? $this->interface->fetch_Receipt_Detail($formDataArr['receipt_row_id'])
             : null;
 
         // ===== VALIDATE RECEIPT EXISTS =====
@@ -92,7 +92,7 @@ class StudentReceiptController extends BaseController
         }
 
         // ===== STUDENT DETAILS =====
-        $stuReceiptDetails = $this->GlobalInterfaceControllerObj->fetch_Global_Single_Student($formDataArr['student_id']);
+        $stuReceiptDetails = $this->interface->fetch_Global_Single_Student($formDataArr['student_id']);
 
         // ===== VALIDATE RECEIPT EXISTS =====
         if (empty($stuReceiptDetails)) {
@@ -138,7 +138,7 @@ class StudentReceiptController extends BaseController
 
         // ===== FRANCHISE CHECK =====
         if ($_SESSION['user_type'] == "franchise") {
-            $studentDetailArr = $this->GlobalInterfaceControllerObj->fetch_Detail_Single_Student($formDataArr['student_id']);
+            $studentDetailArr = $this->interface->fetch_Detail_Single_Student($formDataArr['student_id']);
 
             if ($studentDetailArr->franchise_id != $_SESSION['user_id']) {
                 return ['check' => 'failure', 'message' => "You don't have the permission to perform this action!"];
@@ -178,7 +178,7 @@ class StudentReceiptController extends BaseController
         }
 
         // ===== SAVE =====
-        $returnArr = $this->GlobalInterfaceControllerObj->manage_Student_Receipt($formDataArr);
+        $returnArr = $this->interface->manage_Student_Receipt($formDataArr);
 
         if ($returnArr['check'] != 'success') {
             return ['check' => 'failure', 'message' => "Something went wrong!"];
@@ -195,9 +195,9 @@ class StudentReceiptController extends BaseController
             }
         } else {
             $receipt_id = $returnArr['last_insert_id'];
-            $receiptDetails = $this->GlobalInterfaceControllerObj->fetch_Single_Receipt_Data($receipt_id);
+            $receiptDetails = $this->interface->fetch_Single_Receipt_Data($receipt_id);
 
-            $this->GlobalLibraryHandlerObj->purgeSiteCache("student_receipts");
+            $this->purgeSiteCache("student_receipts");
         }
 
         // ===== PDF GENERATION =====
@@ -214,7 +214,7 @@ class StudentReceiptController extends BaseController
                 'email_template' => $receiptPdfRslt['email_template']
             ];
 
-            $this->GlobalLibraryHandlerObj->php_mailer_send_mail($emailParamArr);
+            $this->lib->php_mailer_send_mail($emailParamArr);
         }
 
         // ===== FINAL RESPONSE =====
@@ -238,14 +238,14 @@ class StudentReceiptController extends BaseController
         $returnArr = [];
 
         // helper
-        $post = fn ($key) => $this->GlobalLibraryHandlerObj->postDataSanitize($key);
+        $post = fn ($key) => $this->lib->postDataSanitize($key);
 
         // -----------------------------
         // Permission Check
         // -----------------------------
         $user_role_slug = "view_receipt";
 
-        if (!$this->GlobalLibraryHandlerObj->checkUserRolePermission($user_role_slug, "hard")) {
+        if (!$this->checkUserRolePermission($user_role_slug, "hard")) {
             return ['check' => 'failure', 'message' => "You don't have the permission to perform this action!"];
         }
 
@@ -285,7 +285,7 @@ class StudentReceiptController extends BaseController
         // -----------------------------
         $receiptDataArr = json_decode(
             json_encode(
-                $this->GlobalInterfaceControllerObj->fetch_Receipt_Collection($formDataArr)
+                $this->interface->fetch_Receipt_Collection($formDataArr)
             ),
             true
         );
@@ -302,7 +302,7 @@ class StudentReceiptController extends BaseController
 
     public function export_student_receipt($data)
     {
-        $post = fn ($key) => $this->GlobalLibraryHandlerObj->postDataSanitize($key);
+        $post = fn ($key) => $this->lib->postDataSanitize($key);
 
         // -----------------------------
         // INPUT
@@ -316,7 +316,7 @@ class StudentReceiptController extends BaseController
         // -----------------------------
         // PERMISSION CHECK
         // -----------------------------
-        if (!$this->GlobalLibraryHandlerObj->checkUserRolePermission('create_receipt', "hard")) {
+        if (!$this->checkUserRolePermission('create_receipt', "hard")) {
             return ['check' => 'failure', 'message' => "You don't have permission!"];
         }
 
@@ -347,21 +347,21 @@ class StudentReceiptController extends BaseController
         // -----------------------------
         // PERMISSION
         // -----------------------------
-        if (!$this->GlobalLibraryHandlerObj->checkUserRolePermission('create_receipt', "hard")) {
+        if (!$this->checkUserRolePermission('create_receipt', "hard")) {
             return ['check' => 'failure', 'message' => "You don't have permission!"];
         }
 
         // -----------------------------
         // FETCH DATA
         // -----------------------------
-        $receipt = $this->GlobalInterfaceControllerObj
+        $receipt = $this->interface
             ->fetch_Single_Receipt_Data($receipt_id);
 
         if (empty($receipt)) {
             return ['check' => 'failure', 'message' => 'Invalid receipt data'];
         }
 
-        $student = $this->GlobalInterfaceControllerObj
+        $student = $this->interface
             ->fetch_Global_Single_Student($receipt->stu_id, $receipt->created_at);
 
         // -----------------------------
@@ -377,8 +377,8 @@ class StudentReceiptController extends BaseController
         // -----------------------------
         $email_code = $this->getStuReceiptEmailCode($receipt->category);
 
-        $site = $this->GlobalLibraryHandlerObj->fetchSiteSettingDetail();
-        $template = $this->GlobalInterfaceControllerObj->fetch_Email_Template_Detail($email_code);
+        $site = $this->interface->fetch_Global_Site_Setting_Detail();
+        $template = $this->interface->fetch_Email_Template_Detail($email_code);
 
         // -----------------------------
         // CALCULATIONS
@@ -504,14 +504,14 @@ class StudentReceiptController extends BaseController
 
     public function export_temp_student_receipt($data)
     {
-        $post = fn ($key) => $this->GlobalLibraryHandlerObj->postDataSanitize($key);
+        $post = fn ($key) => $this->lib->postDataSanitize($key);
 
         $tmp_id = $post('tmp_id');
 
         // -----------------------------
         // PERMISSION CHECK
         // -----------------------------
-        if (!$this->GlobalLibraryHandlerObj->checkUserRolePermission('create_receipt', "hard")) {
+        if (!$this->checkUserRolePermission('create_receipt', "hard")) {
             return ['check' => 'failure', 'message' => "You don't have the permission to perform this action!"];
         }
 
@@ -522,7 +522,7 @@ class StudentReceiptController extends BaseController
         // -----------------------------
         // FETCH DATA
         // -----------------------------
-        $tmpStudent = $this->GlobalInterfaceControllerObj->fetch_Tmp_Single_Student($tmp_id);
+        $tmpStudent = $this->interface->fetch_Tmp_Single_Student($tmp_id);
 
         if (empty($tmpStudent)) {
             return ['check' => 'failure', 'message' => 'Student not found'];
@@ -550,9 +550,9 @@ class StudentReceiptController extends BaseController
         // -----------------------------
         // PREPARE DATA
         // -----------------------------
-        $site = $this->GlobalLibraryHandlerObj->fetchSiteSettingDetail();
+        $site = $this->interface->fetch_Global_Site_Setting_Detail();
 
-        $template = $this->GlobalInterfaceControllerObj
+        $template = $this->interface
             ->fetch_Email_Template_Detail('student-temp-receipt-invoice')->template;
 
         $swap = [

@@ -58,4 +58,5 @@ return [
 
     // Import & Export Routes
     'manageExportData' => ['ExportController', 'handle_export_data'],
+    'manageImportData' => ['ImportController', 'handle_import_data'],
 ];

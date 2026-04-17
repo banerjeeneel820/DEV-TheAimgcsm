@@ -65,15 +65,15 @@ if($siteBackupQueue){
 }
 
 //Fetching page action permission
-$viewStuPermission = $this->globalLibraryHandlerObj->checkUserRolePermission("view_student");
-$viewReceiptPermission = $this->globalLibraryHandlerObj->checkUserRolePermission("view_receipt");
-$viewCoursePermission = $this->globalLibraryHandlerObj->checkUserRolePermission("view_course");
+$viewStuPermission = $this->checkUserRolePermission("view_student");
+$viewReceiptPermission = $this->checkUserRolePermission("view_receipt");
+$viewCoursePermission = $this->checkUserRolePermission("view_course");
 
-$viewNewsPermission = $this->globalLibraryHandlerObj->checkUserRolePermission("view_news");
-$viewGalleryPermission = $this->globalLibraryHandlerObj->checkUserRolePermission("view_gallery");
+$viewNewsPermission = $this->checkUserRolePermission("view_news");
+$viewGalleryPermission = $this->checkUserRolePermission("view_gallery");
 
-$stuUpdatePermission = $this->globalLibraryHandlerObj->checkUserRolePermission("update_student");
-$updateReceiptPermission = $this->globalLibraryHandlerObj->checkUserRolePermission("update_receipt");
+$stuUpdatePermission = $this->checkUserRolePermission("update_student");
+$updateReceiptPermission = $this->checkUserRolePermission("update_receipt");
 
 if ($viewCoursePermission) {
   $view_course_url = SITE_URL . "?route=view_course";
@@ -107,7 +107,7 @@ if ($_SESSION['user_type'] == 'franchise') {
   }
 }
 
-$siteBakupPermission = $this->globalLibraryHandlerObj->checkUserRolePermission("manage_site_backup");
+$siteBakupPermission = $this->checkUserRolePermission("manage_site_backup");
 $backupLimit = $_SESSION['user_type'] == "developer" ? true : ($_COOKIE["backupCount"] < 2 ? true : false);
 
 /*print"<pre>";

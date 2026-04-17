@@ -9,7 +9,7 @@ class GlobalValidationController
     public function __construct()
     {
         $this->globalErrorArr = [];
-        $this->GlobalLibraryHandlerObj = new GlobalLibraryHandler();
+        $this->lib = new GlobalLibraryHandler();
     }
 
     public function validateGlobalStudentData($data)

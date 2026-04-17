@@ -14,7 +14,7 @@ class ExportController extends BaseController
     public function handle_export_data($data)
     {
         // helper
-        $post = fn ($key) => $this->GlobalLibraryHandlerObj->postDataSanitize($key);
+        $post = fn ($key) => $this->lib->postDataSanitize($key);
         
         $type = $post('export_table') ?? '';
         
@@ -23,7 +23,7 @@ class ExportController extends BaseController
                 // Check user permission
                 $user_role_slug_arr = ['view_student','update_student'];
 
-                if (!$this->GlobalLibraryHandlerObj->checkUserRolePermission($user_role_slug_arr, "hard")) {
+                if (!$this->checkUserRolePermission($user_role_slug_arr, "hard")) {
                     return ['check' => 'failure', 'message' => "You don't have the permission to perform this action!"];
                 }
                 // Return export data if user has permission
