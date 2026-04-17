@@ -11,17 +11,23 @@
     	private $site_setting_data;
 		private $GlobalViewDataControllerObj;
 
+		private $utilityService;
+
     	public function __construct($route,$_dataArr){
 			parent::__construct();
-    		$this->page_route = $route;
+    		
+			$this->page_route = $route;
     		$this->page_content = $_dataArr;
     		$this->page_title = $_dataArr['pageData']['page_title'];
             $this->page_assets = $_dataArr['assetData']; 
     		$this->site_setting_data = $this->page_content['site_setting_data'];
 			$this->isTinyEditorAllowed = $_dataArr['pageData']['tiny_allowed'] ?? true;
             
-    		//Creating object for global library & view data class
+    		//Creating object for global view data class
 			$this->GlobalViewDataControllerObj = new GlobalViewDataController();
+
+			//Creating object for utility service class
+			$this->utilityService = new UtilityService($this->interface,$this->lib);
     	}
 
     	public function render(){

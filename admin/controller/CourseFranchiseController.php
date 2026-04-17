@@ -3,10 +3,30 @@ defined('ROOTPATH') or exit('No direct script access allowed');
 
 class CourseFranchiseController extends BaseController
 {
-
+    private $utilityService;
+    
     public function __construct()
     {
         parent::__construct();
+        $this->utilityService = new UtilityService($this->interface,$this->lib);    
+    }
+
+    protected function create_Frnachise_ID()
+    {
+        //Creating new Franchise id method
+        $franchiseDetail = $this->interface->fetch_Last_Franchise_Detail();
+        $last_fran_id = $franchiseDetail[0]->fran_id;
+
+        if ($last_fran_id != null) {
+            $last_fran_id_part_2 = substr($last_fran_id, 5);
+            $last_fran_id_part_2++;
+        } else {
+            $last_fran_id_part_2 = 1;
+        }
+
+        $current_fran_id = "WBMGF" . $last_fran_id_part_2;
+
+        return $current_fran_id;
     }
 
     public function manage_franchise($data)
@@ -25,7 +45,7 @@ class CourseFranchiseController extends BaseController
 
         $role = $isUpdate ? 'update_franchise' : 'create_franchise';
 
-        if (!$this->checkUserRolePermission($role, "hard")) {
+        if (!$this->utilityService->checkUserRolePermission($role, "hard")) {
             return ['check' => 'failure', 'message' => "You don't have permission!"];
         }
 
@@ -154,7 +174,7 @@ class CourseFranchiseController extends BaseController
 
         $role = $isUpdate ? 'update_course' : 'create_course';
 
-        if (!$this->checkUserRolePermission($role, "hard")) {
+        if (!$this->utilityService->checkUserRolePermission($role, "hard")) {
             return ['check' => 'failure', 'message' => "You don't have permission!"];
         }
 

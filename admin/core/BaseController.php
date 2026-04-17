@@ -19,31 +19,6 @@ class BaseController
         $this->lib->checkRunTimeFolderExistance();
     }
 
-    protected function checkUserRolePermission($user_role_slug, $fetch_type = "hard")
-    {
-        $paramArr['user_id'] = $_SESSION['user_id'];
-        $paramArr['user_type'] = $_SESSION['user_type'];
-
-        // Fetch roles
-        if ($fetch_type === "hard") {
-            $userRoleArr = $this->interface->fetch_Current_User_Role($paramArr);
-        } else {
-            $userRoleArr = $_SESSION['user_role'] ?? [];
-        }
-
-        if (!is_array($userRoleArr)) {
-            return false;
-        }
-
-        // If single role → same behavior (no change)
-        if (!is_array($user_role_slug)) {
-            return in_array($user_role_slug, $userRoleArr);
-        }
-
-        // If multiple roles → ALL must exist
-        return count(array_intersect($user_role_slug, $userRoleArr)) === count($user_role_slug);
-    }
-
     protected function json($data, $statusCode = 200)
     {
         http_response_code($statusCode);
@@ -60,7 +35,8 @@ class BaseController
     {
         return $this->lib->postDataSanitize($key);
     }
-
+    
+    // Purge admin cache
     protected function purgeSiteCache($section)
     {
         if (SERVER_ENV !== "PRODUCTION") {
@@ -127,68 +103,6 @@ class BaseController
 
         return [];
     }
+    // End here
 
-    protected function create_Frnachise_ID()
-    {
-        //Creating new Franchise id method
-        $franchiseDetail = $this->interface->fetch_Last_Franchise_Detail();
-        $last_fran_id = $franchiseDetail[0]->fran_id;
-
-        if ($last_fran_id != null) {
-            $last_fran_id_part_2 = substr($last_fran_id, 5);
-            $last_fran_id_part_2++;
-        } else {
-            $last_fran_id_part_2 = 1;
-        }
-
-        $current_fran_id = "WBMGF" . $last_fran_id_part_2;
-
-        return $current_fran_id;
-    }
-
-    protected function create_Student_ID()
-    {
-        //Creating new Student id method
-        $stuIdDetail = $this->interface->fetch_Last_Student_Detail();
-        $lst_stu_id = $stuIdDetail['lst_stu_id'];
-
-        if (!empty($lst_stu_id)) {
-            $lst_stu_id_part_2 = substr($lst_stu_id, 10);
-            $nxt_stu_id = round($lst_stu_id_part_2 + 1);
-        } else {
-            $lst_stu_id_part_2 = 1;
-            $nxt_stu_id = $lst_stu_id_part_2;
-        }
-
-        $current_stu_id = "WBTAIMGCSM" . $nxt_stu_id;
-
-        return $current_stu_id;
-    }
-
-    protected function create_Tmp_Student_ID($min = 999, $max = 999999, $quantity = 1)
-    {
-        $numbers = range($min, $max);
-        shuffle($numbers);
-        $randomNumArr = array_slice($numbers, 0, $quantity);
-
-        return "TMPSTUDENT" . $randomNumArr[0];
-    }
-
-    protected function create_Receipt_ID()
-    {
-        //Creating new Franchise id method
-        $receiptDetail = $this->interface->fetch_Last_Receipt_Detail();
-        $last_rcpt_id = $receiptDetail[0]->receipt_id;
-
-        if ($last_rcpt_id != null) {
-            $last_rcpt_id_pt_2 = substr($last_rcpt_id, 17);
-            $last_rcpt_id_pt_2++;
-        } else {
-            $last_rcpt_id_pt_2 = 1;
-        }
-
-        $current_rcpt_id = "WBTAIMGCSMRECEIPT" . $last_rcpt_id_pt_2;
-
-        return $current_rcpt_id;
-    }
 }

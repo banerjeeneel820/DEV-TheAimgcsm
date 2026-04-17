@@ -4,9 +4,12 @@ defined('ROOTPATH') or exit('No direct script access allowed');
 class StudentController extends BaseController
 {
 
+    private $utilityService;
+
     public function __construct()
     {
         parent::__construct();
+        $this->utilityService = new UtilityService($this->interface,$this->lib);
     }
 
     public function manage_student($data)
@@ -51,7 +54,7 @@ class StudentController extends BaseController
         }
 
         // permission check
-        if (!$this->checkUserRolePermission($user_role_slug, "hard")) {
+        if (!$this->utilityService->checkUserRolePermission($user_role_slug, "hard")) {
             return ['check' => 'failure', 'message' => "You don't have the permission to perform this action!"];
         }
 
@@ -84,7 +87,7 @@ class StudentController extends BaseController
                         'record_status' => "blocked",
                         'stu_result' => "unqualified",
                         'conversion_status' => 'n',
-                        'stu_id' => $this->create_Student_ID()
+                        'stu_id' => $this->utilityService->create_Student_ID()
                     ];
                 }
 
@@ -101,7 +104,7 @@ class StudentController extends BaseController
                 $formDataArr['record_status'] = $post('record_status') ?? ($isUpdate ? $studentDetailArr->record_status : 'active');
 
                 if (!$isUpdate) {
-                    $formDataArr['stu_id'] = $this->create_Student_ID();
+                    $formDataArr['stu_id'] = $this->utilityService->create_Student_ID();
                 }
 
                 foreach (['stu_course_fees', 'monthly_course_fees', 'month_exclude_receipt', 'stu_course_discount', 'fees_paid_before_dr'] as $f) {
@@ -119,7 +122,7 @@ class StudentController extends BaseController
             $formDataArr['record_status'] = $post('record_status') ?? ($isUpdate ? $studentDetailArr->record_status : 'active');
 
             if (!$isUpdate) {
-                $formDataArr['stu_id'] = $this->create_Student_ID();
+                $formDataArr['stu_id'] = $this->utilityService->create_Student_ID();
             }
 
             foreach (['stu_course_fees', 'monthly_course_fees', 'month_exclude_receipt', 'stu_course_discount', 'fees_paid_before_dr'] as $f) {
@@ -264,12 +267,12 @@ class StudentController extends BaseController
         // -----------------------------
         // Permission Check
         // -----------------------------
-        if (!$this->checkUserRolePermission($user_role_slug, "hard")) {
+        if (!$this->utilityService->checkUserRolePermission($user_role_slug, "hard")) {
             return ['check' => 'failure', 'message' => "You don't have the permission to perform this action!"];
         }
 
         // permission check
-        if (!$this->checkUserRolePermission($receipt_role_slug, "hard")) {
+        if (!$this->utilityService->checkUserRolePermission($receipt_role_slug, "hard")) {
             return ['check' => 'failure', 'message' => "No permission to create receipt"];
         }
 
@@ -333,7 +336,7 @@ class StudentController extends BaseController
         // Create Student ID
         // -----------------------------
         if (!$isUpdate) {
-            $formDataArr['stu_id'] = $this->create_Student_ID();
+            $formDataArr['stu_id'] = $this->utilityService->create_Student_ID();
         }
 
         // -----------------------------
@@ -406,7 +409,7 @@ class StudentController extends BaseController
         $receipt_role_slug = 'create_receipt';
 
         // permission check
-        if (!$this->checkUserRolePermission($receipt_role_slug, "hard")) {
+        if (!$this->utilityService->checkUserRolePermission($receipt_role_slug, "hard")) {
             return ['check' => 'failure', 'message' => "No permission to create receipt"];
         }
 
@@ -417,7 +420,7 @@ class StudentController extends BaseController
         }
 
         $receiptFormArr = [
-            'receipt_id'             => $this->create_Receipt_ID(),
+            'receipt_id'             => $this->utilityService->create_Receipt_ID(),
             'stu_id'                 => $formDataArr['stu_id'],
             'category_id'            => $post('category_id'),
             'receipt_amount'         => $receiptAmount,
@@ -450,7 +453,7 @@ class StudentController extends BaseController
         // -----------------------------
         // Permission Check
         // -----------------------------
-        if (!$this->checkUserRolePermission($user_role_slug, "hard")) {
+        if (!$this->utilityService->checkUserRolePermission($user_role_slug, "hard")) {
             return ['check' => 'failure', 'message' => "You don't have the permission to perform this action!"];
         }
 
@@ -494,7 +497,7 @@ class StudentController extends BaseController
         // Create Temp Student ID
         // -----------------------------
         if (!$isUpdate) {
-            $formDataArr['tmp_stu_id'] = $this->create_Tmp_Student_ID();
+            $formDataArr['tmp_stu_id'] = $this->utilityService->create_Tmp_Student_ID();
         }
 
         // -----------------------------
@@ -537,7 +540,7 @@ class StudentController extends BaseController
         // -----------------------------
         // Permission Check
         // -----------------------------
-        if (!$this->checkUserRolePermission($user_role_slug, "hard")) {
+        if (!$this->utilityService->checkUserRolePermission($user_role_slug, "hard")) {
             return ['check' => 'failure', 'message' => "You don't have the permission to perform this action!"];
         }
 
@@ -577,7 +580,7 @@ class StudentController extends BaseController
         // -----------------------------
         $user_role_slug = "update_student";
 
-        if (!$this->checkUserRolePermission($user_role_slug, "hard")) {
+        if (!$this->utilityService->checkUserRolePermission($user_role_slug, "hard")) {
             return ['check' => 'failure', 'message' => "You don't have the permission to perform this action!"];
         }
 
@@ -624,7 +627,7 @@ class StudentController extends BaseController
         // -----------------------------
         // PERMISSION CHECK
         // -----------------------------
-        if (!$this->checkUserRolePermission("view_student", "hard")) {
+        if (!$this->utilityService->checkUserRolePermission("view_student", "hard")) {
             return ['check' => 'failure', 'message' => "You don't have the permission to perform this action!"];
         }
 

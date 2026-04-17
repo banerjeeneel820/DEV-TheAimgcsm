@@ -35,9 +35,9 @@
   $galleryCategoryArr = explode(',',$pageContent['pageData']['gallery_data']->category_string);
 
   //Fetching page action permission
-  $createPermission = $this->checkUserRolePermission("create_gallery"); 
-  $updatePermission = $this->checkUserRolePermission("update_gallery"); 
-  $deletePermission = $this->checkUserRolePermission("delete_gallery"); 
+  $createPermission = $this->utilityService->checkUserRolePermission("create_gallery"); 
+  $updatePermission = $this->utilityService->checkUserRolePermission("update_gallery"); 
+  $deletePermission = $this->utilityService->checkUserRolePermission("delete_gallery"); 
 
   /*print"<pre>";
   print_r($itemArr);

@@ -12,7 +12,7 @@
   }
 
   //Fetching page action permission
-  $examStartPermission = $this->checkUserRolePermission("create_exam"); 
+  $examStartPermission = $this->utilityService->checkUserRolePermission("create_exam"); 
   
   /*print"<pre>";
   print_r($examDataArr); 

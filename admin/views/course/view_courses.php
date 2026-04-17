@@ -12,9 +12,9 @@
   $courseListArr = $pageContent['pageData']['data'];
 
   //Fetching page action permission
-  $createPermission = $this->checkUserRolePermission("create_course"); 
-  $updatePermission = $this->checkUserRolePermission("update_course"); 
-  $deletePermission = $this->checkUserRolePermission("delete_course"); 
+  $createPermission = $this->utilityService->checkUserRolePermission("create_course"); 
+  $updatePermission = $this->utilityService->checkUserRolePermission("update_course"); 
+  $deletePermission = $this->utilityService->checkUserRolePermission("delete_course"); 
 ?>
                     
             <div class="wrapper wrapper-content fadeInRight">  

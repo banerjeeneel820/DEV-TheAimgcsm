@@ -1,14 +1,17 @@
 <?php
 defined('ROOTPATH') or exit('No direct script access allowed');
 
-class ExportService extends BaseController
-{
+class ExportService
+{   
+    private $interface;
+    private $lib;
     private $pdfService;
     private $excelService;
 
-    public function __construct()
+    public function __construct($interface, $lib)
     {
-        parent::__construct();
+        $this->interface = $interface;
+        $this->lib = $lib;
 
         $this->pdfService = new PdfService(new PdfFactory());
         $this->excelService = new ExcelService();
@@ -17,41 +20,10 @@ class ExportService extends BaseController
     // -----------------------------
     // COMMON HELPERS
     // -----------------------------
-    protected function getPostData($post, array $keys)
-    {
-        $data = [];
-
-        foreach ($keys as $key) {
-            $data[$key] = $post($key);
-        }
-
-        return $data;
-    }
-    private function fail($message)
-    {
-        return ['check' => 'failure', 'message' => $message];
-    }
-
-    private function generateFilename($prefix, $ext)
-    {
-        return $prefix . '_' . time() . '.' . $ext;
-    }
 
     private function isPdfLimitExceeded($data, $limit = 400)
     {
         return count($data) > $limit;
-    }
-
-    public function formatDate($date)
-    {
-        return empty($date)
-            ? null
-            : date('Y-m-d', strtotime(str_replace('/', '-', $date)));
-    }
-
-    private function toArray($data)
-    {
-        return json_decode(json_encode($data), true);
     }
 
     private function renderView($view, $data = [])
@@ -87,12 +59,12 @@ class ExportService extends BaseController
         }
 
         if ($input['created']) {
-            $params['created'] = $this->formatDate($input['created']);
+            $params['created'] = $this->lib->formatDate($input['created']);
         }
 
         foreach ($dateFields as $field) {
             if ($input[$field]) {
-                $params[$field] = $this->formatDate($input[$field]);
+                $params[$field] = $this->lib->formatDate($input[$field]);
             }
         }
 
@@ -165,7 +137,7 @@ class ExportService extends BaseController
     public function exportStudent($post)
     {
         // Extract all required fields at once
-        $input = $this->getPostData($post, [
+        $input = $this->lib->getPostData($post, [
             'export_method',
             'protocol',
             'fetchType',
@@ -189,7 +161,7 @@ class ExportService extends BaseController
         $criteria = $result['filter'];
 
         if (empty($students)) {
-            return $this->fail('No record found');
+            return $this->lib->fail('No record found');
         }
 
         // Format receipt data before generating csv file
@@ -211,7 +183,7 @@ class ExportService extends BaseController
     private function handleStudentPdf($students, $criteria)
     {
         if ($this->isPdfLimitExceeded($students)) {
-            return $this->fail('Too much data for PDF. Please export as Excel.');
+            return $this->lib->fail('Too much data for PDF. Please export as Excel.');
         }
 
         $html = $this->renderView('student', [
@@ -221,7 +193,7 @@ class ExportService extends BaseController
 
         return $this->pdfService->generate(
             $html,
-            $this->generateFilename('Student_Data', 'pdf'),
+            $this->lib->generateFilename('Student_Data', 'pdf'),
             'export_data'
         );
     }
@@ -237,7 +209,7 @@ class ExportService extends BaseController
                 ->fetch_Dashboard_Student_Data($data)['data'];
 
             return [
-                'data' => $this->toArray($result),
+                'data' => $this->lib->toArray($result),
                 'filter' => ''
             ];
         }
@@ -251,7 +223,7 @@ class ExportService extends BaseController
         $result = $this->interface
             ->fetch_Global_Student_Recipts($params);
 
-        $students = $this->toArray($result);
+        $students = $this->lib->toArray($result);
 
         // Build criteria (same as receipt now)
         $criteria = $this->lib
@@ -269,7 +241,7 @@ class ExportService extends BaseController
     public function exportReceipt($post)
     {
         // Extract all required fields at once
-        $input = $this->getPostData($post, [
+        $input = $this->lib->getPostData($post, [
             'export_method',
             'protocol',
             'fetchType',
@@ -292,7 +264,7 @@ class ExportService extends BaseController
         $criteria = $result['filter'];
 
         if (empty($receipts)) {
-            return $this->fail('No record found');
+            return $this->lib->fail('No record found');
         }
 
         // Format receipt data before generating csv file
@@ -315,7 +287,7 @@ class ExportService extends BaseController
     private function handleReceiptPdf($receipts, $criteria)
     {
         if ($this->isPdfLimitExceeded($receipts)) {
-            return $this->fail('Too much data for PDF. Please export as Excel.');
+            return $this->lib->fail('Too much data for PDF. Please export as Excel.');
         }
 
         $html = $this->renderView('receipt', [
@@ -325,7 +297,7 @@ class ExportService extends BaseController
 
         return $this->pdfService->generate(
             $html,
-            $this->generateFilename('Receipt_Data', 'pdf'),
+            $this->lib->generateFilename('Receipt_Data', 'pdf'),
             'export_data'
         );
     }
@@ -341,7 +313,7 @@ class ExportService extends BaseController
                 ->fetch_Dashboard_Receipt_Data($data)['data'];
 
             return [
-                'data' => $this->toArray($result),
+                'data' => $this->lib->toArray($result),
                 'filter' => ''
             ];
         }
@@ -361,7 +333,7 @@ class ExportService extends BaseController
                 ->fetch_Global_Receipts($params);
         }
 
-        $receipts = $this->toArray($result);
+        $receipts = $this->lib->toArray($result);
 
         $criteria = $this->lib
             ->buildExportCriteria($params);
@@ -378,7 +350,7 @@ class ExportService extends BaseController
     public function exportFranchise($post)
     {
         // Extract all required fields at once
-        $input = $this->getPostData($post, [
+        $input = $this->lib->getPostData($post, [
             'export_method',
             'record_status',
             'owned_status'
@@ -392,7 +364,7 @@ class ExportService extends BaseController
         $criteria = $result['filter'];
 
         if (empty($franchises)) {
-            return $this->fail('No record found');
+            return $this->lib->fail('No record found');
         }
 
         // Format receipt data before generating csv file
@@ -411,7 +383,7 @@ class ExportService extends BaseController
     private function handleFranchisePdf($franchises, $criteria)
     {
         if ($this->isPdfLimitExceeded($franchises)) {
-            return $this->fail('Too much data for PDF. Please export as Excel.');
+            return $this->lib->fail('Too much data for PDF. Please export as Excel.');
         }
 
         $html = $this->renderView('franchise', [
@@ -421,11 +393,10 @@ class ExportService extends BaseController
 
         return $this->pdfService->generate(
             $html,
-            $this->generateFilename('Franchise_Data', 'pdf'),
+            $this->lib->generateFilename('Franchise_Data', 'pdf'),
             'export_data'
         );
     }
-
 
     private function getFranchiseData($input)
     {
@@ -435,7 +406,7 @@ class ExportService extends BaseController
         $result = $this->interface
             ->fetch_Global_Franchise($params);
 
-        $franchises = $this->toArray($result);
+        $franchises = $this->lib->toArray($result);
 
         // Build criteria (same as receipt now)
         $criteria = $this->lib

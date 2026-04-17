@@ -4,13 +4,8 @@ defined('ROOTPATH') or exit('No direct script access allowed');
 use PHPMailer\PHPMailer\PHPMailer;
 use PHPMailer\PHPMailer\Exception;
 
-class GlobalLibraryHandler extends BaseController
+class GlobalLibraryHandler
 {
-
-  public function __construct()
-  {
-    //parent::__construct();
-  }
 
   public function buildBackUrl($newRoute)
   {
@@ -156,21 +151,6 @@ class GlobalLibraryHandler extends BaseController
     return true;
   }
 
-  public function delete_Global_File($type, $dir, $file_type, $row_id)
-  {
-
-    $GlobalInterfaceObj = new GlobalInterfaceModel();
-    $resultArr = $GlobalInterfaceObj->fetch_Global_Single_Data($type, $row_id);
-
-    $fileDir = USER_UPLOAD_DIR . $dir . '/' . $resultArr->$file_type;
-
-    if ($fileDir && file_exists($fileDir)) {
-      unlink($fileDir);
-    }
-    //print $featuredImageDir."<br>";
-    return true;
-  }
-
   public function config_Required_Upload_Dir()
   {
     $uploadDirArr = array('article', 'brochure', 'campus', 'default', 'event', 'gallery', 'institute');
@@ -276,102 +256,6 @@ class GlobalLibraryHandler extends BaseController
   {
     $data = stripslashes($data);
     return $data;
-  }
-
-  public function configure_email_body($emailParam)
-  {
-    /*print"<pre>";
-        print_r($emailParam);
-        print"</pre>";*/
-
-    $emailReturnParamArr = array();
-    $emailReturnParamArr['email_code'] = $emailParam['email_code'];
-    $emailReturnParamArr['receiver_name'] = $emailParam['receiver_name'];
-    $emailReturnParamArr['receiver_email'] = $emailParam['receiver_email'];
-    $emailReturnParamArr['site_addr'] = FRONT_SITE_URL;
-    //fetching site setting detail
-    $siteSettingArr = $this->interface->fetch_Global_Site_Setting_Detail();
-    $emailReturnParamArr['company_name'] = $siteSettingArr->title;
-
-    //configure company logo        
-    $emailReturnParamArr['company_logo'] = USER_UPLOAD_URL . 'others/' . $siteSettingArr->logo;
-    $emailReturnParamArr['company_signature'] = USER_UPLOAD_URL . 'others/' . $siteSettingArr->signature;
-
-    $emailReturnParamArr['company_contact_email'] = $siteSettingArr->contact_email;
-    $emailReturnParamArr['company_contact_no'] = $siteSettingArr->phone;
-    $emailReturnParamArr['company_address'] = $siteSettingArr->address;
-
-    //fetching required email template detail
-    $emailTemplateArr = $this->interface->fetch_Email_Template_Detail($emailReturnParamArr['email_code']);
-    $emailReturnParamArr['email_subject'] = $emailTemplateArr->subject;
-    $emailReturnParamArr['sender_name'] = $emailTemplateArr->from_name;
-    $emailReturnParamArr['sender_email'] = $emailTemplateArr->from_email;
-    $emailReturnParamArr['cc_email'] = $emailTemplateArr->cc_email;
-    $emailReturnParamArr['email_template'] = $emailTemplateArr->template;
-
-    switch ($emailReturnParamArr['email_code']) {
-
-      case 'student-receipt-invoice':
-        //create a list of the variables to be swapped in the html template
-        $swap_var = array(
-          "{SITE_ADDR}" => $emailReturnParamArr['site_addr'],
-          "{COMPANY_NAME}" => $emailReturnParamArr['company_name'],
-          "{COMPANY_EMAIL}" => $emailReturnParamArr['company_contact_email'],
-          "{COMPANY_CONTACT_NO}" => $emailReturnParamArr['company_contact_no'],
-          "{COMPANY_ADDRESS}" => $emailReturnParamArr['company_address'],
-          "{COMPANY_LOGO}" => $emailReturnParamArr['company_logo'],
-          "{COMPANY_SIGNATURE}" => $emailReturnParamArr['company_signature'],
-          "{EMAIL_TITLE}" => $emailReturnParamArr['email_subject'],
-          "{INVOICE_DATE}" => $emailParam['invoice_date'],
-          "{STUDENT_NAME}" => $emailReturnParamArr['receiver_name'],
-          "{STUDENT_EMAIL}" => $emailParam['receiver_email'],
-          "{STUDENT_CONTACT}" => $emailParam['stu_phone'],
-          "{STUDENT_ID}" => $emailParam['stu_id'],
-          "{COURSE}" => $emailParam['course'],
-          "{FRANCHISE}" => $emailParam['franchise'],
-          "{RECEIPT_ID}" => $emailParam['receipt_id'],
-          "{RECEIPT_SEASON}" => $emailParam['receipt_season'],
-          "{RECEIPT_STATUS}" => $emailParam['receipt_status'],
-          "{RECEIPT_AMOUNT}" => $emailParam['receipt_amount']
-        );
-        break;
-
-      default:
-        # code...
-        break;
-    }
-
-    //search and replace for predefined variables, like SITE_ADDR, {NAME}, {lOGO}, {CUSTOM_URL} etc
-    foreach (array_keys($swap_var) as $key) {
-      if (strlen($key) > 2 && trim($swap_var[$key]) != '') {
-        $emailReturnParamArr['email_template'] = str_replace($key, $swap_var[$key], $emailReturnParamArr['email_template']);
-      }
-    }
-
-    if ($emailReturnParamArr['email_code'] == "student-receipt-invoice") {
-
-      if ($emailParam['attachment_path'] !== null) {
-        $emailReturnParamArr['attachment_path'] = $emailParam['attachment_path'];
-        $emailReturnParamArr['attachment_type'] = "local";
-      } else {
-
-        $file_upload_dir =  USER_UPLOAD_DIR . 'runtime_upload/' . "Receipt_" . $emailParam['receipt_id'] . '.pdf';
-
-        $html_code = $emailReturnParamArr['email_template'];
-
-        $dompdf = new Pdf();
-        $dompdf->set_option('isRemoteEnabled', true);
-        $dompdf->load_html($html_code);
-        $dompdf->render();
-        $file = $dompdf->output();
-        file_put_contents($file_upload_dir, $file);
-
-        $emailReturnParamArr['attachment_path'] = $file_upload_dir;
-        $emailReturnParamArr['attachment_type'] = "dynamic";
-      }
-    }
-    //echo $emailReturnParamArr['email_template'];exit;
-    return $emailReturnParamArr;
   }
 
   public function php_mailer_send_mail($paramArr)
@@ -946,6 +830,37 @@ class GlobalLibraryHandler extends BaseController
     }
   }
 
+  public function toArray($data)
+  {
+    return json_decode(json_encode($data), true);
+  }
+
+  public function getPostData($post, array $keys)
+  {
+    $data = [];
+
+    foreach ($keys as $key) {
+      $data[$key] = $post($key);
+    }
+
+    return $data;
+  }
+
+  public function success($message)
+  {
+    return ['check' => 'success', 'message' => $message];
+  }
+
+  public function fail($message)
+  {
+    return ['check' => 'failure', 'message' => $message];
+  }
+
+  public function generateFilename($prefix, $ext)
+  {
+    return $prefix . '_' . time() . '.' . $ext;
+  }
+
   // helper for sanitization
   private function inputDataSanitize($key, $method = 'post', $escape = false)
   {
@@ -980,5 +895,12 @@ class GlobalLibraryHandler extends BaseController
   {
     $value = $this->inputDataSanitize($key, 'post', true);
     return $value !== null ? $value : $default;
+  }
+
+  public function formatDateDB($date)
+  {
+    if (empty($date)) return null;
+    $date = str_replace('/', '-', $date);
+    return date('Y-m-d', strtotime($date));
   }
 }

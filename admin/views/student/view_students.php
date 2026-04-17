@@ -55,13 +55,13 @@ if (!empty($_GET['result_status'])) {
 }
 
 //Fetching page action permission
-$viewFeedbackPermission = $this->checkUserRolePermission("view_feedback");
-$createPermission = $this->checkUserRolePermission("create_student");
-$updatePermission = $this->checkUserRolePermission("update_student");
-$deletePermission = $this->checkUserRolePermission("delete_student");
+$viewFeedbackPermission = $this->utilityService->checkUserRolePermission("view_feedback");
+$createPermission = $this->utilityService->checkUserRolePermission("create_student");
+$updatePermission = $this->utilityService->checkUserRolePermission("update_student");
+$deletePermission = $this->utilityService->checkUserRolePermission("delete_student");
 
-$resultUpdatePermission = $this->checkUserRolePermission("update_result");
-$createReceiptPermission = $this->checkUserRolePermission("create_receipt");
+$resultUpdatePermission = $this->utilityService->checkUserRolePermission("update_result");
+$createReceiptPermission = $this->utilityService->checkUserRolePermission("create_receipt");
 
 if ($_SESSION['user_type'] == 'franchise') {
   if ($_SESSION['owned_status'] == "yes" && $updatePermission == true) {

@@ -4,11 +4,13 @@ defined('ROOTPATH') or exit('No direct script access allowed');
 class ImportController extends BaseController
 {
     private $importService;
+    private $utilityService;
 
     public function __construct()
     {   
         parent::__construct();
         $this->importService = new ImportService();
+        $this->utilityService = new UtilityService($this->interface,$this->lib);
     }
 
     public function handle_import_data($data)
@@ -23,17 +25,17 @@ class ImportController extends BaseController
                 // Check user permission
                 $user_role_slug_arr = ['update_exam','view_student','update_student','manage_city_db'];
 
-                if (!$this->checkUserRolePermission($user_role_slug_arr, "hard")) {
+                if (!$this->utilityService->checkUserRolePermission($user_role_slug_arr, "hard")) {
                     return ['check' => 'failure', 'message' => "You don't have the permission to perform this action!"];
                 }
                 // Return export import if user has permission
-                return $this->importService->importStudent($post);
+                //return $this->importService->importStudent($post);
 
             case 'city':
-                return $this->importService->importCity($post);
+                //return $this->importService->importCity($post);
 
             case 'students_monthly_fees':
-                return $this->importService->importStuMonthlyFee($post);
+                //return $this->importService->importStuMonthlyFee($post);
 
             default:
                 return ['check' => 'failure', 'message' => 'Invalid import type'];

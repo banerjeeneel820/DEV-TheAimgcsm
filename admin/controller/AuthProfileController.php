@@ -4,9 +4,12 @@ defined('ROOTPATH') or exit('No direct script access allowed');
 class AuthProfileController extends BaseController
 {
 
+    private $utilityService;
+
     public function __construct()
     {
         parent::__construct();
+        $this->utilityService = new UtilityService($this->interface,$this->lib);
     }
 
     public function check_user_login($data)
@@ -59,7 +62,7 @@ class AuthProfileController extends BaseController
         // -----------------------------
         $user_role_slug = "manage_profile";
 
-        if (!$this->checkUserRolePermission($user_role_slug, "hard")) {
+        if (!$this->utilityService->checkUserRolePermission($user_role_slug, "hard")) {
             return ['check' => 'failure', 'message' => "You don't have the permission to perform this action!"];
         }
 
@@ -118,7 +121,7 @@ class AuthProfileController extends BaseController
         // -----------------------------
         // PERMISSION CHECK
         // -----------------------------
-        if (!$this->checkUserRolePermission('manage_profile', "hard")) {
+        if (!$this->utilityService->checkUserRolePermission('manage_profile', "hard")) {
             return ['check' => 'failure', 'message' => "You don't have the permission!"];
         }
 
