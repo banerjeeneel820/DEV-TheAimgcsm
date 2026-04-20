@@ -178,6 +178,33 @@ function buildUrl(newRoute, options = {}) {
   return `${url.origin}${url.pathname}?${newParams.toString()}`;
 }
 
+function ajaxRequest(formData, url, successCallback) {
+  $.ajax({
+    url: url,
+    method: "POST",
+    data: formData,
+    beforeSend: function () {
+      $(".content_div_loader").addClass("sk-loading");
+      $(".overlayer").fadeIn();
+    },
+    success: function (responseData) {
+      let data = typeof responseData === "object"
+          ? responseData
+          : JSON.parse(responseData);
+
+      $(".content_div_loader").removeClass("sk-loading");
+      $(".overlayer").fadeOut();
+
+      successCallback(data);
+    },
+    error: function () {
+      $(".content_div_loader").removeClass("sk-loading");
+      $(".overlayer").fadeOut();
+      toastr.error("Something went wrong", "Error!");
+    },
+  });
+}
+
 $(window).scroll(function () {
   var window_top = $(window).scrollTop() - 0;
 

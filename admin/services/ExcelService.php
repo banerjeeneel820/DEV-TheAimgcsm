@@ -42,6 +42,43 @@ class ExcelService
         ];
     }
 
+    public function read($file)
+    {
+        $allowedTypes = [
+            'application/vnd.ms-excel',
+            'text/xls',
+            'text/xlsx',
+            'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+        ];
+
+        if (!in_array($file['type'], $allowedTypes)) {
+            return ['check' => 'failure', 'message' => 'Invalid file type'];
+        }
+
+        if ($file['size'] <= 0) {
+            return ['check' => 'failure', 'message' => 'Empty file'];
+        }
+
+        $targetPath = USER_UPLOAD_DIR . 'runtime_upload/' . $file['name'];
+
+        move_uploaded_file($file['tmp_name'], $targetPath);
+
+        $reader = new \PhpOffice\PhpSpreadsheet\Reader\Xlsx();
+        $spreadsheet = $reader->load($targetPath);
+
+        $rows = $spreadsheet->getActiveSheet()->toArray();
+
+        unlink($targetPath);
+
+        // Remove header
+        $rows = array_slice($rows, 1);
+
+        // Remove empty rows
+        $rows = array_values(array_filter($rows, fn ($row) => array_filter($row)));
+
+        return ['check' => 'success', 'data' => $rows];
+    }
+
     public function exportStudent($students, $criteriaText)
     {
         $spreadsheet = new Spreadsheet();

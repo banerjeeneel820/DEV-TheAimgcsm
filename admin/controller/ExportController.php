@@ -32,12 +32,15 @@ class ExportController extends BaseController
                 }
                 // Return export data if user has permission
                 return $this->exportService->exportStudent($post);
+                break;
 
             case 'receipt':
                 return $this->exportService->exportReceipt($post);
+                break;
 
             case 'franchise':
                 return $this->exportService->exportFranchise($post);
+                break;
 
             default:
                 return ['check' => 'failure', 'message' => 'Invalid export type'];

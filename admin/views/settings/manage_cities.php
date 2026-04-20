@@ -70,6 +70,7 @@
                         </div>   
                         <div class="col-lg-12 col-md-12 col-sm-12"> 
                           <form method="post" id="import_table_data_form" class="wp-upload-form" onsubmit="return false;">
+                            <input type="hidden" name="action" id="action" value="manageImportData">
                             <input type="hidden" name="import_table" value="city"> 
 
                             <div class="btn-group">
@@ -405,7 +406,7 @@
                     function() {
                        $.ajax({
                           type: 'POST',
-                          url: importTableDataController,
+                          url: ajaxControllerHandler,
                           data: formData,
                           contentType: false,
                           processData: false,

@@ -93,7 +93,7 @@
 				    break;  
 				
 				case "view_due_students":
-					include_once(ROOTPATH. "/view/receipt/view_due_students.php");	
+					include_once(ROOTPATH. "/views/receipt/view_due_students.php");	
 					break; 
 
 				case "view_exams":

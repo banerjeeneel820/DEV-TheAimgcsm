@@ -9,7 +9,7 @@ class ImportController extends BaseController
     public function __construct()
     {   
         parent::__construct();
-        $this->importService = new ImportService();
+        $this->importService = new ImportService($this->interface,$this->lib);
         $this->utilityService = new UtilityService($this->interface,$this->lib);
     }
 
@@ -29,13 +29,16 @@ class ImportController extends BaseController
                     return ['check' => 'failure', 'message' => "You don't have the permission to perform this action!"];
                 }
                 // Return export import if user has permission
-                //return $this->importService->importStudent($post);
+                return $this->importService->importExamQuestions($post, $_FILES);
+                break;
 
             case 'city':
-                //return $this->importService->importCity($post);
+                return $this->importService->importCity($post, $_FILES);
+                break;
 
             case 'students_monthly_fees':
-                //return $this->importService->importStuMonthlyFee($post);
+                return $this->importService->importStuMonthlyFee($post, $_FILES);
+                break;
 
             default:
                 return ['check' => 'failure', 'message' => 'Invalid import type'];
