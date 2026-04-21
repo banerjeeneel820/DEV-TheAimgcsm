@@ -27,6 +27,7 @@ return [
 
     // Exam Routes
     'manageGlobalExam' => ['ExamController', 'manage_exam'],
+    'fetchQuestions' => ['ExamController', 'fetch_limited_questions'],
     'fetchAllQuestions' => ['ExamController', 'fetch_all_questions'],
     'manageExamQuestions' => ['ExamController', 'manage_exam_questions'],
     'sortExamQuestions' => ['ExamController', 'sort_exam_questions'],

@@ -358,7 +358,7 @@ class StudentReceiptController extends BaseController
     public function export_temp_student_receipt($data)
     {
         $post = fn ($key) => $this->lib->postDataSanitize($key);
-        $tmp_id = $post('tmp_id');
+        $id = $post('id');
 
         // PERMISSION
         if (!$this->utilityService->checkUserRolePermission('create_receipt', "hard")) {
@@ -366,11 +366,11 @@ class StudentReceiptController extends BaseController
         }
 
         // VALIDATION
-        if (empty($tmp_id)) {
+        if (empty($id)) {
             return ['check' => 'failure', 'message' => 'Invalid student ID'];
         }
 
         // 👉 Delegate to service
-        return $this->studentReceiptService->generateTempReceiptPdf($tmp_id);
+        return $this->studentReceiptService->generateTempReceiptPdf($id);
     }
 }

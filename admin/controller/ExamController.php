@@ -4,11 +4,11 @@ defined('ROOTPATH') or exit('No direct script access allowed');
 class ExamController extends BaseController
 {
     private $utilityService;
-    
+
     public function __construct()
     {
         parent::__construct();
-        $this->utilityService = new UtilityService($this->interface,$this->lib);
+        $this->utilityService = new UtilityService($this->interface, $this->lib);
     }
 
     public function manage_exam($data)
@@ -132,6 +132,49 @@ class ExamController extends BaseController
         // Fetch Questions
         // -----------------------------
         $questions = $this->interface->fetch_Exam_Questions($exam_id);
+
+        // -----------------------------
+        // Response
+        // -----------------------------
+        return [
+            'check'     => 'success',
+            'questions' => $questions
+        ];
+    }
+
+    public function fetch_limited_questions($data)
+    {
+        //Declaring necessary variables
+        $paramArr = [];
+        $returnArr = [];
+
+        // helper
+        $post = fn ($key) => $this->lib->postDataSanitize($key);
+
+        // -----------------------------
+        // Permission Check
+        // -----------------------------
+        $user_role_slug = 'update_exam';
+
+        if (!$this->utilityService->checkUserRolePermission($user_role_slug, "hard")) {
+            return ['check' => 'failure', 'message' => "You don't have the permission to perform this action!"];
+        }
+
+        // -----------------------------
+        // Basic Data
+        // -----------------------------
+        $paramArr['exam_id'] = $post('exam_id');
+
+        // -----------------------------
+        // Pagination Data
+        // -----------------------------
+        $paramArr['offset'] = $post('offset') ?? 0;
+        $paramArr['limit']  = $post('limit') ?? 10;
+
+        // -----------------------------
+        // Fetch Questions
+        // -----------------------------
+        $questions = $this->interface->fetch_Exam_Questions_Limit($paramArr);
 
         // -----------------------------
         // Response

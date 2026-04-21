@@ -379,10 +379,10 @@ class StudentController extends BaseController
         // -----------------------------
         // Temp Conversion Update
         // -----------------------------
-        $tmp_id = $post('tmp_id');
+        $id = $post('id');
 
-        if ($studentReturnArr['check'] == 'success' && !empty($tmp_id)) {
-            $this->interface->update_Tmp_Student_Conversion_Status($tmp_id, 'y');
+        if ($studentReturnArr['check'] == 'success' && !empty($id)) {
+            $this->interface->update_Tmp_Student_Conversion_Status($id, 'y');
         }
 
         // -----------------------------
@@ -445,9 +445,9 @@ class StudentController extends BaseController
         // -----------------------------
         // Basic Data
         // -----------------------------
-        $formDataArr['tmp_id'] = $post('tmp_id');
+        $formDataArr['id'] = $post('id');
 
-        $isUpdate = !empty($formDataArr['tmp_id']) && $formDataArr['tmp_id'] != "null";
+        $isUpdate = !empty($formDataArr['id']) && $formDataArr['id'] != "null";
         $user_role_slug = $isUpdate ? 'update_student' : 'create_student';
 
         // -----------------------------
@@ -466,7 +466,7 @@ class StudentController extends BaseController
 
             if ($isUpdate) {
                 $studentDetailArr = $this->interface
-                    ->fetch_Detail_Single_Student($formDataArr['tmp_id']);
+                    ->fetch_Detail_Single_Student($formDataArr['id']);
 
                 if ($studentDetailArr->franchise_id != $franchise_id) {
                     return ['check' => 'failure', 'message' => "You don't have the permission to perform this action!"];

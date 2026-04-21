@@ -164,12 +164,12 @@ class StudentReceiptService
         ];
     }
 
-    public function generateTempReceiptPdf($tmp_id)
+    public function generateTempReceiptPdf($id)
     {
         // -----------------------------
         // FETCH DATA
         // -----------------------------
-        $tmpStudent = $this->interface->fetch_Tmp_Single_Student($tmp_id);
+        $tmpStudent = $this->interface->fetch_Tmp_Single_Student($id);
 
         if (empty($tmpStudent)) {
             return ['check' => 'failure', 'message' => 'Student not found'];

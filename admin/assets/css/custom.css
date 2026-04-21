@@ -682,3 +682,13 @@ label.error {
     position: relative;
 }
 /*End here*/
+
+#load_more_btn {
+  min-width: 220px;
+  font-weight: 500;
+}
+
+#load_more_btn:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}

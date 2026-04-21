@@ -406,7 +406,7 @@ class GlobalInterfaceController
    
            ORDER BY enrolled_student_count DESC
        ";
-      
+
       // Debug
       // $this->debugQuery($sql, $queryParams); 
 
@@ -1003,7 +1003,7 @@ class GlobalInterfaceController
          FROM " . DB_AIMGCSM . "." . TABLEPREFIX . "students stu
 
          LEFT JOIN " . DB_AIMGCSM . "." . TABLEPREFIX . "temp_students tmp_stu 
-               ON stu.tmp_stu_record_id = tmp_stu.tmp_id
+               ON stu.tmp_stu_record_id = tmp_stu.id
 
          LEFT JOIN ($receiptSubQuery) rcpt 
                ON stu.stu_id = rcpt.stu_id
@@ -1683,7 +1683,7 @@ class GlobalInterfaceController
 
          $baseSql
 
-         ORDER BY tmp_stu.tmp_id DESC
+         ORDER BY tmp_stu.id DESC
          LIMIT ?, ?
       ";
 
@@ -1691,7 +1691,7 @@ class GlobalInterfaceController
       // COUNT QUERY
       // =========================
       $countSql = "
-         SELECT COUNT(DISTINCT tmp_stu.tmp_id) as total
+         SELECT COUNT(DISTINCT tmp_stu.id) as total
          $baseSql
       ";
 
@@ -1948,6 +1948,55 @@ class GlobalInterfaceController
       $resultArr = $this->conn->global_Fetch_All_DB($sql);
 
       return $resultArr;
+   }
+
+   public function fetch_Exam_Questions_Limit($dataArr)
+   {
+      $where = [];
+      $params = [];
+
+      // Mandatory filter
+      $where[] = "eqs.exam_id = ?";
+      $params[] = $dataArr['exam_id'];
+
+      $whereSql = "WHERE " . implode(" AND ", $where);
+
+      // Pagination (important for Load More)
+      $limitSql = "";
+      if (isset($dataArr['offset']) && isset($dataArr['limit'])) {
+         $limitSql = " LIMIT ?, ?";
+         $params[] = (int)$dataArr['offset'];
+         $params[] = (int)$dataArr['limit'];
+      }
+
+      $sql = "
+        SELECT 
+            eqs.id,
+            eqs.exam_id,
+            eqs.ques,
+            eqs.opt1,
+            eqs.opt2,
+            eqs.opt3,
+            eqs.opt4,
+            eqs.cor_ans,
+            eqs.marks,
+            eqs.record_status,
+            eqs.ordering,
+            eqs.created_at
+
+        FROM " . DB_AIMGCSM . "." . TABLEPREFIX . "exam_questions eqs
+
+        $whereSql
+
+        ORDER BY eqs.ordering ASC
+
+        $limitSql
+    ";
+
+      // Debug if needed
+      // $this->debugQuery($sql, $params);
+
+      return $this->conn->global_Fetch_All_DB($sql, $params);
    }
 
    public function fetch_User_Exam_Answers($answerParamArr)
@@ -2429,7 +2478,7 @@ class GlobalInterfaceController
    public function manage_Temp_Student($stuDataArr)
    {
 
-      $tmp_id = $stuDataArr['tmp_id'];
+      $id = $stuDataArr['id'];
 
       $stu_name = $stuDataArr['stu_name'];
       $stu_father_name = $stuDataArr['stu_father_name'];
@@ -2440,8 +2489,8 @@ class GlobalInterfaceController
 
       $advanced_fees = $stuDataArr['advanced_fees'];
 
-      if ($tmp_id != 'null') {
-         $sql = "UPDATE " . DB_AIMGCSM . "." . TABLEPREFIX . "temp_students SET `stu_name` = '$stu_name', `stu_father_name` = '$stu_father_name',`stu_phone` = '$stu_phone', `course_id` = '$course_id', `franchise_id` = '$franchise_id', `advanced_fees` = '$advanced_fees',`verified_status` = 'n', `updated_at` = now() WHERE `tmp_id`='$tmp_id'";
+      if ($id != 'null') {
+         $sql = "UPDATE " . DB_AIMGCSM . "." . TABLEPREFIX . "temp_students SET `stu_name` = '$stu_name', `stu_father_name` = '$stu_father_name',`stu_phone` = '$stu_phone', `course_id` = '$course_id', `franchise_id` = '$franchise_id', `advanced_fees` = '$advanced_fees',`verified_status` = 'n', `updated_at` = now() WHERE `id`='$id'";
       } else {
          //student id 
          $tmp_stu_id = $stuDataArr['tmp_stu_id'];
@@ -3295,7 +3344,7 @@ class GlobalInterfaceController
                FROM " . DB_AIMGCSM . "." . TABLEPREFIX . "students stu
    
                LEFT JOIN " . DB_AIMGCSM . "." . TABLEPREFIX . "temp_students tmp_stu 
-                   ON stu.tmp_stu_record_id = tmp_stu.tmp_id
+                   ON stu.tmp_stu_record_id = tmp_stu.id
    
                LEFT JOIN " . DB_AIMGCSM . "." . TABLEPREFIX . "course crs 
                    ON stu.course_id = crs.id
@@ -3318,10 +3367,10 @@ class GlobalInterfaceController
       return $resultArr;
    }
 
-   public function fetch_Tmp_Single_Student($tmp_id)
+   public function fetch_Tmp_Single_Student($id)
    {
 
-      $sql = "SELECT tmp_stu.*,frn.center_name,frn.fran_email,frn.fran_phone,frn.fran_address,crs.course_title FROM " . DB_AIMGCSM . "." . TABLEPREFIX . "temp_students tmp_stu LEFT JOIN " . DB_AIMGCSM . "." . TABLEPREFIX . "franchise frn ON tmp_stu.franchise_id = frn.id LEFT JOIN " . DB_AIMGCSM . "." . TABLEPREFIX . "course crs ON tmp_stu.course_id = crs.id WHERE tmp_id = '$tmp_id'";
+      $sql = "SELECT tmp_stu.*,frn.center_name,frn.fran_email,frn.fran_phone,frn.fran_address,crs.course_title FROM " . DB_AIMGCSM . "." . TABLEPREFIX . "temp_students tmp_stu LEFT JOIN " . DB_AIMGCSM . "." . TABLEPREFIX . "franchise frn ON tmp_stu.franchise_id = frn.id LEFT JOIN " . DB_AIMGCSM . "." . TABLEPREFIX . "course crs ON tmp_stu.course_id = crs.id WHERE id = '$id'";
 
       //echo $sql;exit();
 
@@ -3465,7 +3514,7 @@ class GlobalInterfaceController
          'gallery'          => ['table' => 'gallery',           'column' => 'id'],
          'home_sliders'     => ['table' => 'home_sliders',      'column' => 'id'],
          'student'          => ['table' => 'students',          'column' => 'id'],
-         'temp_student'     => ['table' => 'temp_students',     'column' => 'tmp_id'],
+         'temp_student'     => ['table' => 'temp_students',     'column' => 'id'],
          'student_receipts' => ['table' => 'student_receipts',  'column' => 'id'],
          'exam'             => ['table' => 'exams',             'column' => 'id'],
          'parent_category'  => ['table' => 'parent_category',   'column' => 'id'],
@@ -3655,20 +3704,20 @@ class GlobalInterfaceController
       return $resultArr;
    }
 
-   public function update_Tmp_Student_Verified_Status($tmp_id, $verified_status)
+   public function update_Tmp_Student_Verified_Status($id, $verified_status)
    {
 
-      $sql = "UPDATE " . DB_AIMGCSM . "." . TABLEPREFIX . "temp_students tmp_stu SET `verified_status`='$verified_status',`updated_at` = now() WHERE tmp_stu.tmp_id = '$tmp_id'";
+      $sql = "UPDATE " . DB_AIMGCSM . "." . TABLEPREFIX . "temp_students tmp_stu SET `verified_status`='$verified_status',`updated_at` = now() WHERE tmp_stu.id = '$id'";
       //echo $sql;exit();
       $resultArr = $this->conn->global_CRUD_DB($sql);
 
       return $resultArr;
    }
 
-   public function update_Tmp_Student_Conversion_Status($tmp_id, $conversion_status)
+   public function update_Tmp_Student_Conversion_Status($id, $conversion_status)
    {
 
-      $sql = "UPDATE " . DB_AIMGCSM . "." . TABLEPREFIX . "temp_students tmp_stu SET `conversion_status`='$conversion_status',`updated_at` = now() WHERE tmp_stu.tmp_id = '$tmp_id'";
+      $sql = "UPDATE " . DB_AIMGCSM . "." . TABLEPREFIX . "temp_students tmp_stu SET `conversion_status`='$conversion_status',`updated_at` = now() WHERE tmp_stu.id = '$id'";
       //echo $sql;exit();
       $resultArr = $this->conn->global_CRUD_DB($sql);
 
@@ -3729,7 +3778,7 @@ class GlobalInterfaceController
       $sql = "UPDATE " . DB_AIMGCSM . "." . TABLEPREFIX . "temp_students tmp
             SET tmp.record_status = '$record_status',
                 tmp.updated_at = NOW()
-            WHERE tmp.tmp_id IN (
+            WHERE tmp.id IN (
                 SELECT stu.tmp_stu_record_id 
                 FROM " . DB_AIMGCSM . "." . TABLEPREFIX . "students stu
                 WHERE stu.id IN ($idsString)
@@ -3798,7 +3847,7 @@ class GlobalInterfaceController
          'gallery'          => ['table' => 'gallery',          'column' => 'id'],
          'home_sliders'     => ['table' => 'home_sliders',     'column' => 'id'],
          'student'          => ['table' => 'students',         'column' => 'id'],
-         'temp_student'     => ['table' => 'temp_students',    'column' => 'tmp_id'],
+         'temp_student'     => ['table' => 'temp_students',    'column' => 'id'],
          'student_receipts' => ['table' => 'student_receipts', 'column' => 'id'],
          'parent_category'  => ['table' => 'parent_category',  'column' => 'id'],
          'cities'           => ['table' => 'cities',           'column' => 'id'],
@@ -3806,6 +3855,9 @@ class GlobalInterfaceController
          'feedback'         => ['table' => 'feedback',         'column' => 'id'],
          'news'             => ['table' => 'news',             'column' => 'id'],
          'enquiry'          => ['table' => 'enquiry',          'column' => 'id'],
+         'student'          => ['table' => 'students',         'column' => 'id'],
+         'exam'             => ['table' => 'exams',            'column' => 'id'],
+         'exam_questions'   => ['table' => 'exam_questions',   'column' => 'id'],
       ];
 
       // -----------------------------

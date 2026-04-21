@@ -233,6 +233,8 @@ class UtilityController extends BaseController
             'email_template'   => 'delete_template',
             'news'             => 'delete_news',
             'enquiry'          => 'delete_enquiry',
+            'exam'             => 'delete_exam',
+            'exam_questions'   => 'update_exam',
         ];
 
         // -----------------------------

@@ -6,8 +6,8 @@
         $studentDetails = $pageContent['pageData']['student_data'];
         $stu_id = $studentDetails->stu_id;
       }
-      elseif(isset($_GET['tmp_id'])){
-        $tmp_id = $_GET['tmp_id']; 
+      elseif(isset($_GET['id'])){
+        $id = $_GET['id']; 
         $studentDetails = $pageContent['pageData']['student_data'];
       }else{
         $student_id = 'null';
@@ -65,7 +65,7 @@
                             <form id="manage_admission_form" class="needs-validation" method="post" onsubmit="return false;" novalidate>
                               <input type="hidden" name="action" id="action" value="manageStudentAdmission">
                               <input type="hidden" name="student_id" id="student_id" value="<?=$student_id?>">
-                              <input type="hidden" name="tmp_id" id="tmp_id" value="null">
+                              <input type="hidden" name="id" id="id" value="null">
                               <input type="hidden" name="stu_id" id="stu_id" value="<?=(!empty($stu_id)?$stu_id:'null')?>">
 
                                <div class="form-group row text-right"><label class="col-sm-2 col-form-label">Student Name <span class="cursor-pointer" data-toggle="tooltip" data-placement="bottom" title="Enter Student Name"><i class="fa fa-question-circle"></i></span></label>
@@ -235,8 +235,8 @@
              </div>
             <?php } ?> 
             
-            <?php if(!empty($tmp_id)){ ?> 
-                <div class="row <?=(!empty($tmp_id)?'':'d-none')?>" id="manage_student_form_div">
+            <?php if(!empty($id)){ ?> 
+                <div class="row <?=(!empty($id)?'':'d-none')?>" id="manage_student_form_div">
                 <div class="col-lg-12">
                     <div class="ibox ">
                         <div class="ibox-title">
@@ -261,7 +261,7 @@
                               <input type="hidden" name="action" id="action" value="manageStudentAdmission">
                               <input type="hidden" name="student_id" id="student_id" value="null">
                               <input type="hidden" name="stu_id" id="stu_id" value="null">
-                              <input type="hidden" name="tmp_id" id="tmp_id" value="<?=$tmp_id?>">
+                              <input type="hidden" name="id" id="id" value="<?=$id?>">
 
                                <div class="form-group row text-right"><label class="col-sm-2 col-form-label">Student Name <span class="cursor-pointer" data-toggle="tooltip" data-placement="bottom" title="Enter Student Name"><i class="fa fa-question-circle"></i></span></label>
                                     <div class="col-sm-10">
@@ -312,7 +312,7 @@
                                               <option></option>
                                                <?php foreach($franchiseArr as $franchise){ 
                                               ?>
-                                                <option value="<?=$franchise->id?>" <?=(!empty($_GET['tmp_id'])?($franchise->id == $studentDetails->franchise_id?'selected':''):($franchise->id == $_SESSION['user_id']?'selected':''))?>><?=$franchise->center_name?></option>
+                                                <option value="<?=$franchise->id?>" <?=(!empty($_GET['id'])?($franchise->id == $studentDetails->franchise_id?'selected':''):($franchise->id == $_SESSION['user_id']?'selected':''))?>><?=$franchise->center_name?></option>
                                               <?php } ?>
                                            </select>
                                        </div>
@@ -354,7 +354,7 @@
                                       <div class="input-group">
                                         <input type="text" class="form-control" value="<?=(!empty($studentDetails)?$studentDetails->advanced_fees:'')?>" readonly>
                                         <input type="hidden" name="advanced_fees" value="<?=(!empty($studentDetails)?$studentDetails->advanced_fees:'')?>">
-                                        <input type="hidden" name="tmp_stu_record_id" value="<?=(!empty($_GET['tmp_id'])?$_GET['tmp_id']:'')?>">
+                                        <input type="hidden" name="tmp_stu_record_id" value="<?=(!empty($_GET['id'])?$_GET['id']:'')?>">
                                       </div>   
                                      </div>
 
@@ -425,7 +425,7 @@
              </div> 
             <?php } ?> 
 
-            <div class="row <?=(!empty($student_id) || !empty($tmp_id)?'d-none':'')?>" id="admitted_student_list">
+            <div class="row <?=(!empty($student_id) || !empty($id)?'d-none':'')?>" id="admitted_student_list">
                <div class="col-lg-12">
 
                 <div class="ibox">

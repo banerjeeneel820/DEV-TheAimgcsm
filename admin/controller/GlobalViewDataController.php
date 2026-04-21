@@ -575,12 +575,12 @@ class GlobalViewDataController extends BaseController
     // SANITIZED INPUTS
     // =========================
     $student_id = $this->get('student_id');
-    $tmp_id     = $this->get('tmp_id');
+    $id     = $this->get('id');
     $actionType = $this->get('actionType');
 
     // Type safety (important)
     $student_id = !empty($student_id) ? (int)$student_id : null;
-    $tmp_id     = !empty($tmp_id) ? trim($tmp_id) : null;
+    $id     = !empty($id) ? trim($id) : null;
 
     // =========================
     // FRANCHISE RESTRICTION
@@ -616,13 +616,13 @@ class GlobalViewDataController extends BaseController
         // =====================
         // CREATE FROM TEMP
         // =====================
-        } elseif (!empty($tmp_id)) {
+        } elseif (!empty($id)) {
 
             $this->globalReturnArr['page_permission'] =
                 $this->utilityService->checkUserRolePermission('create_student');
 
             $this->globalReturnArr['student_data'] =
-                $this->interface->fetch_Tmp_Single_Student($tmp_id);
+                $this->interface->fetch_Tmp_Single_Student($id);
 
         // =====================
         // CREATE NEW
@@ -687,7 +687,7 @@ class GlobalViewDataController extends BaseController
     // =========================
     $this->lib = $this->lib;
 
-    $tmp_id        = $this->get('tmp_id');
+    $id        = $this->get('id');
     $actionType    = $this->get('actionType');
     $record_status = $this->get('record_status') ?: 'active';
 
@@ -702,7 +702,7 @@ class GlobalViewDataController extends BaseController
     $conversion_status = $this->get('conversion_status');
     $verified_status   = $this->get('verified_status');
 
-    $tmp_id = !empty($tmp_id) ? trim($tmp_id) : null;
+    $id = !empty($id) ? trim($id) : null;
 
     // =========================
     // FRANCHISE RESTRICTION
@@ -720,14 +720,14 @@ class GlobalViewDataController extends BaseController
     // =========================
     if ($actionType === "manage_student") {
 
-        if (!empty($tmp_id)) {
+        if (!empty($id)) {
 
             $this->globalReturnArr['page_permission'] =
                 $this->utilityService->checkUserRolePermission('update_student');
 
             $this->globalReturnArr['student_data'] =
                 $this->globalReturnArr['page_permission']
-                ? $this->interface->fetch_Tmp_Single_Student($tmp_id)
+                ? $this->interface->fetch_Tmp_Single_Student($id)
                 : [];
 
         } else {

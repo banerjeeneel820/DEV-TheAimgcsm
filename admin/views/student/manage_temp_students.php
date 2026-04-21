@@ -11,12 +11,12 @@
   }
   
   if($_GET['actionType'] == 'manage_student'){
-      if(isset($_GET['tmp_id'])){
-        $tmp_id = $_GET['tmp_id'];
+      if(isset($_GET['id'])){
+        $id = $_GET['id'];
         $studentDetails = $pageContent['pageData']['student_data'];
         $tmp_stu_id = $studentDetails->tmp_stu_id;
       }else{
-        $tmp_id = 'null';
+        $id = 'null';
         $tmp_stu_id = 'null';
         $studentDetails = array();
       }
@@ -117,7 +117,7 @@
                             <strong>
                             <form id="manage_temp_student_form" class="needs-validation" method="post" onsubmit="return false;" novalidate>
                               <input type="hidden" name="action" id="action" value="manageTempStudents">
-                              <input type="hidden" name="tmp_id" id="tmp_id" value="<?=$tmp_id?>">
+                              <input type="hidden" name="id" id="id" value="<?=$id?>">
                               <input type="hidden" name="tmp_stu_id" id="tmp_stu_id" value="<?=(!empty($tmp_stu_id)?$tmp_stu_id:'null')?>">
 
                                <div class="form-group row text-right"><label class="col-sm-2 col-form-label">Student Name <span class="cursor-pointer" data-toggle="tooltip" data-placement="bottom" title="Enter Student Name"><i class="fa fa-question-circle"></i></span></label>
@@ -173,7 +173,7 @@
                                               <option></option>
                                                <?php foreach($franchiseArr as $franchise){ 
                                               ?>
-                                                <option value="<?=$franchise->id?>" <?=(!empty($_GET['tmp_id'])?($franchise->id == $studentDetails->franchise_id?'selected':''):($franchise->id == $_SESSION['user_id']?'selected':''))?>><?=$franchise->center_name?></option>
+                                                <option value="<?=$franchise->id?>" <?=(!empty($_GET['id'])?($franchise->id == $studentDetails->franchise_id?'selected':''):($franchise->id == $_SESSION['user_id']?'selected':''))?>><?=$franchise->center_name?></option>
                                               <?php } ?>
                                            </select>
                                        </div>
@@ -194,7 +194,7 @@
                                     <div class="col-sm-4 col-sm-offset-2">
                                         <a href="<?=SITE_URL?>?route=manage_temp_students&conversion_status=<?=$studentDetails->conversion_status?>"><button type="button" class="btn btn-danger btn-sm" data-toggle="tooltip" data-placement="right" title="Close Create Student Form" title="Save"><i class="fa fa-reply"></i></button></a>
                                         
-                                        <button class="btn btn-primary btn-sm" id="manage" type="submit" data-toggle="tooltip" title="<?=(!empty($_GET['tmp_id'])?'Update Student':'Create Student')?>" class="btn btn-success" title="Save"><i class="fa fa-save"></i> <?=(!empty($_GET['tmp_id'])?'Update Student':'Create Student')?></button>
+                                        <button class="btn btn-primary btn-sm" id="manage" type="submit" data-toggle="tooltip" title="<?=(!empty($_GET['id'])?'Update Student':'Create Student')?>" class="btn btn-success" title="Save"><i class="fa fa-save"></i> <?=(!empty($_GET['id'])?'Update Student':'Create Student')?></button>
                                     </div>
                                 </div>
                             </form>
@@ -205,7 +205,7 @@
              </div>
             <?php } ?> 
             
-            <?php if(!isset($tmp_id)){ ?>
+            <?php if(!isset($id)){ ?>
 
               <div class="row">
                 <div class="col-lg-12">
@@ -330,7 +330,7 @@
 
             <?php } ?>     
 
-            <?php if(!isset($tmp_id)){ ?>  
+            <?php if(!isset($id)){ ?>  
 
                 <div class="row" id="admitted_student_list">
                    <div class="col-lg-12">
@@ -415,20 +415,20 @@
                                             
                                             $total_collection = (int)$total_collection + (int)$student->advanced_fees;
                                       ?> 
-                                          <tr id="tmp_tr_<?=$student->tmp_id?>" style="background-color:<?=(($_SESSION['user_type']!= 'franchise' && $student->verified_status == 'n') ? '#f1d0d0;':'')?>">
+                                          <tr id="tmp_tr_<?=$student->id?>" style="background-color:<?=(($_SESSION['user_type']!= 'franchise' && $student->verified_status == 'n') ? '#f1d0d0;':'')?>">
                                             
                                             <td style="width: 6%;">
                                               <div class="pretty p-image p-plain selectAllItem ml-2">
-                                                   <input type="checkbox" class="singleCheck" id="<?=$student->tmp_id?>" value="<?=$student->tmp_id?>"/>
+                                                   <input type="checkbox" class="singleCheck" id="<?=$student->id?>" value="<?=$student->id?>"/>
                                                    <div class="state">
                                                       <img class="image" src="<?=RESOURCE_URL?>images/checkbox.png">
-                                                      <label class="cursor-pointer selectAllItem" for="<?=$student->tmp_id?>"></label>
+                                                      <label class="cursor-pointer selectAllItem" for="<?=$student->id?>"></label>
                                                    </div>
                                                 </div> 
                                             </td>
 
                                             <td class="project-title">
-                                                <a href="<?=SITE_URL?>?route=manage_temp_students&actionType=manage_student&tmp_id=<?=$student->tmp_id?>" data-toggle="tooltip" data-placement="bottom" title="Student Name:  <?=$student->stu_name?>">
+                                                <a href="<?=SITE_URL?>?route=manage_temp_students&actionType=manage_student&id=<?=$student->id?>" data-toggle="tooltip" data-placement="bottom" title="Student Name:  <?=$student->stu_name?>">
                                                     <?=$student->stu_name?></a>
                                                 <br/>
                                                 <small>Created <?=date('jS F, Y',strtotime($student->created_at))?></small><br>
@@ -461,12 +461,12 @@
                                                  <ul class="dropdown-menu">
                                                    <?php if($updatePermission){ ?>  
                                                        <li>
-                                                         <a href="<?=SITE_URL?>?route=manage_temp_students&actionType=manage_student&tmp_id=<?=$student->tmp_id?>" class="#" data-toggle="tooltip" data-placement="bottom" title="Edit this Student"><i class="fa fa-pencil"></i> Edit Student</a>
+                                                         <a href="<?=SITE_URL?>?route=manage_temp_students&actionType=manage_student&id=<?=$student->id?>" class="#" data-toggle="tooltip" data-placement="bottom" title="Edit this Student"><i class="fa fa-pencil"></i> Edit Student</a>
                                                        </li>
                                                        
                                                        <?php if($updatePermission && $student->conversion_status == 'n'){ ?>
                                                            <li>
-                                                             <a href="<?=SITE_URL?>?route=student_admission&actionType=manage_student&tmp_id=<?=$student->tmp_id?>" class="#" data-toggle="tooltip" data-placement="bottom" title="Convert to Parmanent Student"><i class="fa fa-exchange"></i> Convert to Main</a>
+                                                             <a href="<?=SITE_URL?>?route=student_admission&actionType=manage_student&id=<?=$student->id?>" class="#" data-toggle="tooltip" data-placement="bottom" title="Convert to Parmanent Student"><i class="fa fa-exchange"></i> Convert to Main</a>
                                                            </li>
                                                         <?php }?>   
                                                     <?php } ?>
@@ -474,20 +474,20 @@
                                                     <?php if($updatePermission && ($_SESSION['user_type'] == "admin" || $_SESSION['user_type'] == "developer")){ ?> 
 
                                                         <li>
-                                                            <a href="javascript:void(0)" id="item_<?=$student->tmp_id?>" class="changeVerifiedStatus" data-type="student" data-ptype="Student" data-vstatus="<?=($student->verified_status=='y'?'n':'y')?>" data-tid="<?=$student->tmp_id?>" data-toggle="tooltip" data-placement="bottom" title="Make this student's status <?=($student->verified_status=='y'?'not verified':'verified')?>"><i class="<?=($student->verified_status=='y'?'fa fa-check-circle':'fa fa-info-circle')?>"></i> <?=($student->verified_status=='y'?'Verified':'Not-Verified')?> 
+                                                            <a href="javascript:void(0)" id="item_<?=$student->id?>" class="changeVerifiedStatus" data-type="student" data-ptype="Student" data-vstatus="<?=($student->verified_status=='y'?'n':'y')?>" data-tid="<?=$student->id?>" data-toggle="tooltip" data-placement="bottom" title="Make this student's status <?=($student->verified_status=='y'?'not verified':'verified')?>"><i class="<?=($student->verified_status=='y'?'fa fa-check-circle':'fa fa-info-circle')?>"></i> <?=($student->verified_status=='y'?'Verified':'Not-Verified')?> 
                                                             </a>
                                                         </li>
                                                         
                                                     <?php } ?>
 
                                                     <li>
-                                                      <a href="javascript:void(0);" class="exportTempReceiptData" data-toggle="tooltip" data-placement="bottom" title="Print PDF file for this receipt" data-rid="<?=$student->tmp_id?>" data-extype="print">
+                                                      <a href="javascript:void(0);" class="exportTempReceiptData" data-toggle="tooltip" data-placement="bottom" title="Print PDF file for this receipt" data-rid="<?=$student->id?>" data-extype="print">
                                                           <i class="fa fa-print"></i> Print Receipt
                                                       </a>
                                                     </li>
 
                                                     <li>
-                                                       <a href="javascript:void(0);" class="exportTempReceiptData" data-toggle="tooltip" data-placement="bottom" title="Download PDF file for this receipt" data-rid="<?=$student->tmp_id?>" data-extype="download">
+                                                       <a href="javascript:void(0);" class="exportTempReceiptData" data-toggle="tooltip" data-placement="bottom" title="Download PDF file for this receipt" data-rid="<?=$student->id?>" data-extype="download">
                                                             <i class="fa fa-download"></i> Download
                                                         </a> 
                                                     </li>
@@ -495,18 +495,18 @@
                                                     <?php if($student->record_status == 'active'){?>
 
                                                          <li>
-                                                           <a href="javascript:void(0)" class="changeRecordStatus" data-rid = "<?=$student->tmp_id ?>" data-type="temp_student" data-ptype="Temporary Student" data-rstatus="blocked" data-toggle="tooltip" data-placement="bottom" title="Block this Student"><i class="fa fa-trash"></i> Block Student</a>
+                                                           <a href="javascript:void(0)" class="changeRecordStatus" data-rid = "<?=$student->id ?>" data-type="temp_student" data-ptype="Temporary Student" data-rstatus="blocked" data-toggle="tooltip" data-placement="bottom" title="Block this Student"><i class="fa fa-trash"></i> Block Student</a>
                                                         </li>
 
                                                     <?php }else{ ?>
 
                                                         <li>
-                                                         <a href="javascript:void(0)" class="changeRecordStatus" data-rid = "<?=$student->tmp_id ?>" data-type="temp_student" data-ptype="Temporary Student" data-rstatus="active" data-toggle="tooltip" data-placement="bottom" title="Restore this Student"><i class="fa fa-refresh"></i> Restore Student</a>
+                                                         <a href="javascript:void(0)" class="changeRecordStatus" data-rid = "<?=$student->id ?>" data-type="temp_student" data-ptype="Temporary Student" data-rstatus="active" data-toggle="tooltip" data-placement="bottom" title="Restore this Student"><i class="fa fa-refresh"></i> Restore Student</a>
                                                        </li> 
 
                                                         <?php if($deletePermission){ ?>
                                                            <li>
-                                                             <a href="javascript:void(0)" class="changeRecordStatus" data-rid = "<?=$student->tmp_id ?>" data-type="temp_student" data-ptype="Temporary Student" data-rstatus="delete" data-toggle="tooltip" data-placement="bottom" title="Delete this Student"><i class="fa fa-times"></i> Delete Student</a>
+                                                             <a href="javascript:void(0)" class="changeRecordStatus" data-rid = "<?=$student->id ?>" data-type="temp_student" data-ptype="Temporary Student" data-rstatus="delete" data-toggle="tooltip" data-placement="bottom" title="Delete this Student"><i class="fa fa-times"></i> Delete Student</a>
                                                            </li>
                                                         <?php } ?> 
 
@@ -685,7 +685,7 @@
             //Handling student admission form
             $(document).on('submit', '#manage_temp_student_form', function(event){
                event.preventDefault();
-               var tmp_id = $('#tmp_id').val();
+               var id = $('#id').val();
 
                //Populating course name input value
                var courseData = $('#course_id').select2('data');
@@ -723,7 +723,7 @@
                         $('.content_div_loader').removeClass('sk-loading');
                         //show sweetalert success
 
-                        //var redirect_url = SITE_URL+"?route=manage_temp_students&actionType=manage_student&tmp_id=";
+                        //var redirect_url = SITE_URL+"?route=manage_temp_students&actionType=manage_student&id=";
 
                         if(data.last_insert_id>0){
                           var successText = "<b>Student has been successfully created!<br> Your student id is :- "+data.tmp_stu_id+
@@ -733,7 +733,7 @@
                         }else{
                           var successText = "<b>Student has been successfully updated!<br> Your student id is :- "+data.tmp_stu_id+
                                             "<br> Student course is :- "+data.course+'</b>';
-                          //redirect_url += tmp_id;
+                          //redirect_url += id;
                           var redirect_url = SITE_URL+"?route=manage_temp_students";                  
                         } 
                         
@@ -850,10 +850,10 @@
             $(document).on('click', '.exportTempReceiptData', function(event){
                 event.preventDefault();
                 
-                var tmp_id = $(this).data('rid');
+                var id = $(this).data('rid');
                 var export_type = $(this).data('extype');
 
-                var formData = {action:"exportTempStudentReceipt",tmp_id:tmp_id};
+                var formData = {action:"exportTempStudentReceipt",id:id};
 
                 $.ajax({
                   url:ajaxControllerHandler,
@@ -895,7 +895,7 @@
             /*Status change handler*/
             $(document).on('click','.verified_action',function(){
               var action = "updateTempStudentVerifiedStatus";  
-              var tmp_id = $(this).data('tid'); 
+              var id = $(this).data('tid'); 
               var verified_status = $(this).data('vstatus');
 
               var thisItem = $(this);
@@ -913,7 +913,7 @@
                  timeOut: 2000,
               };
 
-              var formData = {action:action,tmp_id:tmp_id,verified_status:verified_status};
+              var formData = {action:action,id:id,verified_status:verified_status};
               
               $.ajax({
                   url:ajaxControllerHandler,
@@ -936,7 +936,7 @@
                             $(thisItem).html('<i class="fa fa-check-circle"></i> Verified');
 
                             //Chnage table tr background color
-                            $("#tmp_tr_"+tmp_id).css({'background-color':''});
+                            $("#tmp_tr_"+id).css({'background-color':''});
                             //Show success toast
                             toastr.success(toastrText, 'Success!');
 
@@ -945,7 +945,7 @@
                             $(thisItem).attr('title',"Make this student's status verified!");
                             $(thisItem).html('<i class="fa fa-info-circle"></i> Not Verified');
                             //Chnage table tr background color
-                            $("#tmp_tr_"+tmp_id).css({'background-color':'#f1d0d0'});
+                            $("#tmp_tr_"+id).css({'background-color':'#f1d0d0'});
                             //Show warning toast
                             toastr.warning(toastrText, 'Success!');
                           }  
