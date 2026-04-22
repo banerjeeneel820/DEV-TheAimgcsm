@@ -107,4 +107,9 @@ class GlobalInterfaceModel {
             return ["check" => "failure"];
         }
     }
+
+    public function escape($value)
+    {
+       return mysqli_real_escape_string(DB::$WRITELINK, trim($value));
+    }
 }

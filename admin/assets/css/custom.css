@@ -692,3 +692,11 @@ label.error {
   opacity: 0.7;
   cursor: not-allowed;
 }
+
+.badge-success {
+  background-color: #28a745;
+}
+
+.badge-info {
+  background-color: #17a2b8;
+}

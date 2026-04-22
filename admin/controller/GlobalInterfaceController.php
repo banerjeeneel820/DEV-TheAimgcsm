@@ -33,11 +33,6 @@ class GlobalInterfaceController
       exit; // stop execution after debug
    }
 
-   private function escape($value)
-   {
-      return mysqli_real_escape_string(DB::$WRITELINK, trim($value));
-   }
-
    public function check_User_Login($paramArr = array())
    {
       $user_type = $paramArr['user_type'];
@@ -212,7 +207,7 @@ class GlobalInterfaceController
 
    public function check_User_Email_Availability(array $data)
    {
-      $email   = $this->escape($data['user_email'] ?? '');
+      $email   = $this->conn->escape($data['user_email'] ?? '');
       $type    = $data['user_type'] ?? '';
       $userId  = (int) ($data['user_id'] ?? 0);
 
@@ -2638,14 +2633,14 @@ class GlobalInterfaceController
 
       $exam_id = $questionData['exam_id'];
 
-      $ques = mysqli_real_escape_string(DB::$WRITELINK, trim($questionData['ques']));
-      $opt1 = mysqli_real_escape_string(DB::$WRITELINK, trim($questionData['opt1']));
-      $opt2 = mysqli_real_escape_string(DB::$WRITELINK, trim($questionData['opt2']));
-      $opt3 = mysqli_real_escape_string(DB::$WRITELINK, trim($questionData['opt3']));
-      $opt4 = mysqli_real_escape_string(DB::$WRITELINK, trim($questionData['opt4']));
-      $cor_ans = mysqli_real_escape_string(DB::$WRITELINK, trim($questionData['cor_ans']));
-      $marks = mysqli_real_escape_string(DB::$WRITELINK, trim($questionData['marks']));
-      $ordering = mysqli_real_escape_string(DB::$WRITELINK, trim($questionData['ordering']));
+      $ques = $this->conn->escape($questionData['ques'] ?? '');
+      $opt1 = $this->conn->escape($questionData['opt1'] ?? '');
+      $opt2 = $this->conn->escape($questionData['opt2'] ?? '');
+      $opt3 = $this->conn->escape($questionData['opt3'] ?? '');
+      $opt4 = $this->conn->escape($questionData['opt4'] ?? '');
+      $cor_ans = (int)$questionData['cor_ans'];
+      $marks = (int)$questionData['marks'];
+      $ordering = (int)$questionData['ordering'];
 
       $record_status = $questionData['record_status'];
 
@@ -2657,46 +2652,134 @@ class GlobalInterfaceController
       $this->conn->global_CRUD_DB($sql_insert_question);
    }
 
-   public function update_Exam_Questions($postData)
+   public function update_Exam_Questions($data)
    {
+      $exam_id = (int)$data['exam_id'];
+      $createList = $data['create'] ?? [];
+      $updateList = $data['update'] ?? [];
 
-      $exam_id = $postData['exam_id'];
-      $questions = $postData['questions'];
+      $conn = DB::$WRITELINK;
 
-      $sql_delete_question = "DELETE FROM " . DB_AIMGCSM . "." . TABLEPREFIX . "exam_questions WHERE `exam_id` = '$exam_id'";
+      mysqli_begin_transaction($conn);
 
-      //echo $sql_delete_question;exit;
+      try {
 
-      $this->conn->global_CRUD_DB($sql_delete_question);
+         // =============================
+         // 1. BULK INSERT (CREATE)
+         // =============================
+         if (!empty($createList)) {
 
-      //print_r($questions);exit;
+            $values = [];
+            $createdQuestions = [];
+            $updatedQuestions = [];
 
-      foreach ($questions as $index => $question) {
+            foreach ($createList as $q) {
 
-         $ques = mysqli_real_escape_string(DB::$WRITELINK, trim($question['ques']));
-         $opt1 = mysqli_real_escape_string(DB::$WRITELINK, trim($question['opt1']));
-         $opt2 = mysqli_real_escape_string(DB::$WRITELINK, trim($question['opt2']));
-         $opt3 = mysqli_real_escape_string(DB::$WRITELINK, trim($question['opt3']));
-         $opt4 = mysqli_real_escape_string(DB::$WRITELINK, trim($question['opt4']));
-         $cor_ans = mysqli_real_escape_string(DB::$WRITELINK, trim($question['cor_ans']));
-         $marks = mysqli_real_escape_string(DB::$WRITELINK, trim($question['marks'])) ?? 1;
-         $ordering = $this->fetch_Last_Question_Ordering($exam_id)->ordering + 1;
+               $ques = $this->conn->escape($q['ques'] ?? '');
+               $opt1 = $this->conn->escape($q['opt1'] ?? '');
+               $opt2 = $this->conn->escape($q['opt2'] ?? '');
+               $opt3 = $this->conn->escape($q['opt3'] ?? '');
+               $opt4 = $this->conn->escape($q['opt4'] ?? '');
+               $cor_ans = (int)$q['cor_ans'];
+               $marks = (int)$q['marks'];
+               $ordering = (int)$q['ordering'];
+               $record_status = $this->conn->escape($q['record_status'] ?? '');
 
-         if (!empty($question['record_status'])) {
-            $record_status = $question['record_status'];
-         } else {
-            $record_status = 'active';
+               $values[] = "(
+                    '$exam_id',
+                    '$ques',
+                    '$opt1',
+                    '$opt2',
+                    '$opt3',
+                    '$opt4',
+                    '$cor_ans',
+                    '$marks',
+                    '$ordering',
+                    '$record_status',
+                    NOW()
+                )";
+            }
+
+            $sqlInsert = "
+                INSERT INTO " . DB_AIMGCSM . "." . TABLEPREFIX . "exam_questions
+                (exam_id, ques, opt1, opt2, opt3, opt4, cor_ans, marks, ordering, record_status, updated_at)
+                VALUES " . implode(',', $values);
+
+            $returnArr = $this->conn->global_CRUD_DB($sqlInsert);
+
+            $q['id'] = $returnArr['last_insert_id'];
+
+            if($returnArr['check'] == 'success'){
+               $createdQuestions[] = $q;
+            }
+           
          }
 
-         $sql_insert_question = "INSERT INTO " . DB_AIMGCSM . "." . TABLEPREFIX . "exam_questions SET `exam_id` = '$exam_id',`ques` = '$ques',`opt1`='$opt1',`opt2`='$opt2',`opt3`='$opt3',`opt4`='$opt4',`cor_ans`='$cor_ans',`marks`='$marks',`ordering`='$ordering',`record_status`='$record_status',`updated_at` = now()";
+         // =============================
+         // 2. UPDATE EXISTING
+         // =============================
+         if (!empty($updateList)) {
 
-         //echo $sql_insert_question;exit();
+            foreach ($updateList as $q) {
 
-         //Call save exam questions
-         $resultArr = $this->conn->global_CRUD_DB($sql_insert_question);
+               $id = (int)$q['id'];
+
+               $ques = $this->conn->escape($q['ques'] ?? '');
+               $opt1 = $this->conn->escape($q['opt1'] ?? '');
+               $opt2 = $this->conn->escape($q['opt2'] ?? '');
+               $opt3 = $this->conn->escape($q['opt3'] ?? '');
+               $opt4 = $this->conn->escape($q['opt4'] ?? '');
+               $cor_ans = (int)$q['cor_ans'];
+               $marks = (int)$q['marks'];
+               $ordering = (int)$q['ordering'];
+               $record_status = $this->conn->escape($q['record_status'] ?? '');
+
+               $sqlUpdate = "
+                    UPDATE " . DB_AIMGCSM . "." . TABLEPREFIX . "exam_questions
+                    SET 
+                        ques = '$ques',
+                        opt1 = '$opt1',
+                        opt2 = '$opt2',
+                        opt3 = '$opt3',
+                        opt4 = '$opt4',
+                        cor_ans = '$cor_ans',
+                        marks = '$marks',
+                        ordering = '$ordering',
+                        record_status = '$record_status',
+                        updated_at = NOW()
+                    WHERE id = '$id' AND exam_id = '$exam_id'
+                ";
+
+               $returnArr = $this->conn->global_CRUD_DB($sqlUpdate);
+
+               if($returnArr['check'] == 'success'){
+                  $updatedQuestions[] =  $q;
+               }   
+            }
+         }
+
+         // =============================
+         // COMMIT
+         // =============================
+         mysqli_commit($conn);
+
+         return [
+            'check' => 'success',
+            'message' => 'Questions updated successfully',
+            'data' => [
+               'created' => $createdQuestions,
+               'updated' => $updatedQuestions
+            ]
+         ];
+      } catch (Exception $e) {
+
+         mysqli_rollback($conn);
+
+         return [
+            'check' => 'failure',
+            'message' => 'Transaction failed: ' . $e->getMessage()
+         ];
       }
-
-      return $resultArr;
    }
 
    public function delete_All_Questions($exam_id)
@@ -3198,7 +3281,7 @@ class GlobalInterfaceController
       if (count($categoryArr) > 0) {
          foreach ($categoryArr as $index => $category_id) {
 
-            $category_data = mysqli_real_escape_string(DB::$WRITELINK, trim($category['category_id']));
+            $category_data = $this->conn->escape($category['category_id'] ?? '');
 
             $sql_insert_category = "INSERT INTO " . DB_AIMGCSM . "." . TABLEPREFIX . "post_category SET `post_type` = '$post_type',`post_id` = '$post_id',`category_id`='$category_id',`updated_at` = now()";
 
@@ -4116,7 +4199,7 @@ class GlobalInterfaceController
          if ($value === null) {
             $setParts[] = "`$column` = NULL";
          } else {
-            $value = $this->escape($value);
+            $value = $this->conn->escape($value);
             $setParts[] = "`$column` = '$value'";
          }
       }
@@ -4208,7 +4291,7 @@ class GlobalInterfaceController
       // -----------------------------
       if ($action === "create") {
 
-         $jobType = $this->escape($data['job_type'] ?? '');
+         $jobType = $this->conn->escape($data['job_type'] ?? '');
 
          if (empty($jobType)) {
             return ['check' => 'failure', 'message' => 'Job type required'];
@@ -4225,8 +4308,8 @@ class GlobalInterfaceController
       if ($action === "update") {
 
          $task_id  = (int) ($data['task_id'] ?? 0);
-         $status   = $this->escape($data['status'] ?? '');
-         $response = $this->escape($data['response'] ?? '');
+         $status   = $this->conn->escape($data['status'] ?? '');
+         $response = $this->conn->escape($data['response'] ?? '');
 
          if (empty($status)) {
             return ['check' => 'failure', 'message' => 'Status required'];

@@ -215,13 +215,21 @@ $question_div_collapse = $_COOKIE['question_div_collapse'] == "true" ? "collapse
           </div>
 
           <div class="text-right">
-            <button class="btn btn-success" id="add_more">
+            <a href="javascript:void(0);" class="btn btn-primary d-none" id="show_question_list">
+              <i class="fa fa-list"></i> Show Question List
+            </a>
+            <button type="submit" class="btn btn-success" id="add_more">
               <i class="fa fa-plus-circle"></i> Add a New Question
             </button>
           </div>
         </div>
 
         <div id="main_question_container"></div>
+
+        <div id="latest_changes_container" class="mt-4 d-none">
+          <h4>Latest Changes</h4>
+          <div id="latest_changes_container"></div>
+        </div>
 
       </form>
 
@@ -301,7 +309,7 @@ $question_div_collapse = $_COOKIE['question_div_collapse'] == "true" ? "collapse
   }
 
   function arrangeQuestionList() {
-    let questionCount = $('.question_div').length;
+    let questionCount = $("#main_question_container .question_div").length;
     let html = '';
 
     for (let i = 1; i <= questionCount; i++) {
@@ -319,82 +327,171 @@ $question_div_collapse = $_COOKIE['question_div_collapse'] == "true" ? "collapse
     $("#question_child_list").html(html);
   }
 
-  function buildQuestionHTML(question, index, collapsed = 'open') {
+  function arrangeQLatestuestionList() {
+    let questionCount = $("#latest_changes_container .question_div").length;
+    let html = '';
+
+    for (let i = 1; i <= questionCount; i++) {
+      html += `
+            <li>
+                <a href="javascript:void(0);" 
+                   id="question_no_${i}"
+                   class="browse-question attempted"
+                   data-did="${i}">
+                    <text>${i}</text>
+                </a>
+            </li>`;
+    }
+
+    $("#question_child_list").html(html);
+  }
+
+  function buildQuestionHTML(question = {}, index = 0, collapsed = 'open', type = null) {
 
     const divIndex = index + 1;
 
-    const rstatus_active_selected = question.record_status === "active" ? "selected" : "";
-    const rstatus_inactive_selected = question.record_status === "blocked" ? "selected" : "";
+    // Basic escape (important for safety)
+    const esc = (str) => String(str || '').replace(/[&<>"']/g, m => ({
+      '&': '&amp;',
+      '<': '&lt;',
+      '>': '&gt;',
+      '"': '&quot;',
+      "'": '&#39;'
+    } [m]));
+
+    // Status selection
+    const isActive = question.record_status === "active";
+    const isBlocked = question.record_status === "blocked";
+
+    // Badge
+    const badgeMap = {
+      created: `<span class="badge badge-success ml-2">New</span>`,
+      updated: `<span class="badge badge-info ml-2">Updated</span>`
+    };
+    const badge = badgeMap[type] || '';
+
+    // Actions (hide for created/updated preview)
+    const showActions = !['created', 'updated'].includes(type);
+
+    const actionButtons = showActions ? `
+      <a href="javascript:void(0);" data-divid="${divIndex}" class="clone-question dynamicQuestion">
+        <span class="badge badge-primary p-2"><i class="fa fa-clone"></i></span>
+      </a>
+      <a href="javascript:void(0);" data-divid="${divIndex}" data-rid="${question.id || ''}" class="remove-question dynamicQuestion">
+        <span class="badge badge-danger p-2"><i class="fa fa-trash"></i></span>
+      </a>
+    ` : '';
+
+    // Options generator
+    const optionsHTML = ['opt1', 'opt2', 'opt3', 'opt4'].map((opt, i) => {
+      const required = i < 4 ? 'required' : '';
+      const star = i < 4 ? '<span class="text-danger">*</span>' : '';
+
+      return `
+      <div class="form-group row">
+        <label class="col-sm-2 col-form-label text-right">
+          Option ${i + 1} ${star}
+        </label>
+        <div class="col-sm-10">
+          <input type="text"
+            class="form-control ${opt}"
+            name="questions[${index}][${opt}]"
+            placeholder="Enter option ${i + 1}..."
+            value="${esc(question[opt])}"
+            ${required}>
+        </div>
+      </div>
+      <div class="hr-line-dashed"></div>
+    `;
+    }).join('');
 
     return `
       <div id="questions-${question.id || ''}">
-        <div class="ibox question_div ${collapsed}" id="question_div_${divIndex}" data-dirty="false" data-rid="${question.id}">
-            <div class="ibox-title">
-                <div id="question_header_${divIndex}" class="question-header">
-                    <h5>Question No ${divIndex}</h5>
-                </div>
-                <div class="ibox-tools">
-                    <a href="javascript:void(0);" data-divid="${divIndex}" class="clone-question dynamicQuestion">
-                        <span class="badge badge-primary p-1"><i class="fa fa-clone"></i> Clone This Question</span>
-                    </a>
-                    <a href="javascript:void(0);" data-divid="${divIndex}" data-rid="${question.id}" class="remove-question dynamicQuestion">
-                        <span class="badge badge-danger p-1"><i class="fa fa-minus-circle"></i> Remove Question</span>
-                    </a>
-                    <a class="collapse-question-div" data-cstatus="${collapsed}">
-                        <span class="badge badge-warning p-1"><i class="fa fa-chevron-up"></i> Toggle Question</span>
-                    </a>
-                </div>
+        <div class="ibox question_div ${collapsed} mt-3 shadow-sm rounded"
+          id="question_div_${divIndex}"
+          data-dirty="false"
+          data-rid="${question.id || ''}">
+
+          <!-- HEADER -->
+          <div class="ibox-title d-flex justify-content-between align-items-center">
+            
+            <div id="question_header_${divIndex}" class="question-header">
+              <h5 class="mb-0">
+                Question No ${divIndex}: ${esc(question.ques)} ${badge}
+              </h5>
             </div>
 
-            <div class="ibox-content content_div_loader">
+            <div class="ibox-tools d-flex gap-2">
+              ${actionButtons}
+              <a class="collapse-question-div" data-cstatus="${collapsed}">
+                <span class="badge badge-warning p-2">
+                  <i class="fa fa-chevron-up"></i>
+                </span>
+              </a>
+            </div>
+          </div>
 
-                <div class="form-group row">
-                    <label class="col-sm-2 col-form-label text-right">Question</label>
-                    <div class="col-sm-10">
-                        <textarea class="form-control ques" name="questions[${index}][ques]" required>${question.ques || ''}</textarea>
-                    </div>
-                </div>
+          <!-- BODY -->
+          <div class="ibox-content content_div_loader">
 
-                <div class="hr-line-dashed"></div>
+            <!-- QUESTION -->
+            <div class="form-group row">
+              <label class="col-sm-2 col-form-label text-right font-weight-bold">Question</label>
+              <div class="col-sm-10">
+                <textarea class="form-control ques"
+                  name="questions[${index}][ques]"
+                  rows="2"
+                  placeholder="Enter question..."
+                  required>${esc(question.ques)}</textarea>
+              </div>
+            </div>
 
-                ${['opt1','opt2','opt3','opt4'].map((opt, i) => `
-                    <div class="form-group row">
-                        <label class="col-sm-2 col-form-label text-right">Option ${i+1}</label>
-                        <div class="col-sm-10">
-                            <input type="text" class="form-control ${opt}" 
-                                name="questions[${index}][${opt}]" 
-                                value="${question[opt] || ''}" ${i < 2 ? 'required' : ''}>
-                        </div>
-                    </div>
-                    <div class="hr-line-dashed"></div>
-                `).join('')}
+            <div class="hr-line-dashed"></div>
 
-                <div class="form-group row">
-                    <label class="col-sm-2 col-form-label text-right">Question Status</label>
-                    <div class="col-sm-10">
-                        <select class="form-control record_status" name="questions[${index}][record_status]">
-                            <option disabled>Select question status</option>
-                            <option value="active" ${rstatus_active_selected}>Active</option>
-                            <option value="blocked" ${rstatus_inactive_selected}>Inactive</option>
-                        </select>
-                    </div>
-                </div>
+            <!-- OPTIONS -->
+            ${optionsHTML}
 
-                <div class="form-group row">
-                    <label class="col-sm-2 col-form-label text-right">Correct Answer</label>
-                    <div class="col-sm-4">
-                        <input type="number" class="form-control cor_ans" name="questions[${index}][cor_ans]" value="${question.cor_ans || ''}" required>
-                    </div>
+            <!-- STATUS -->
+            <div class="form-group row">
+              <label class="col-sm-2 col-form-label text-right">Status</label>
+              <div class="col-sm-10">
+                <select class="form-control record_status" name="questions[${index}][record_status]">
+                  <option disabled>Select question status</option>
+                  <option value="active" ${isActive ? 'selected' : ''}>Active</option>
+                  <option value="blocked" ${isBlocked ? 'selected' : ''}>Inactive</option>
+                </select>
+              </div>
+            </div>
 
-                    <label class="col-sm-2 col-form-label text-right">Question Marks</label>
-                    <div class="col-sm-4">
-                        <input type="number" class="form-control marks" name="questions[${index}][marks]" value="${question.marks || ''}" required>
-                    </div>
-                </div>
+            <!-- ANSWER + MARKS -->
+            <div class="form-group row">
+              
+              <label class="col-sm-2 col-form-label text-right">Correct</label>
+              <div class="col-sm-4">
+                <input type="number"
+                  class="form-control cor_ans"
+                  name="questions[${index}][cor_ans]"
+                  placeholder="1-4"
+                  value="${question.cor_ans || ''}"
+                  required>
+              </div>
+
+              <label class="col-sm-2 col-form-label text-right">Marks</label>
+              <div class="col-sm-4">
+                <input type="number"
+                  class="form-control marks"
+                  name="questions[${index}][marks]"
+                  placeholder="Marks"
+                  value="${question.marks || ''}"
+                  required>
+              </div>
 
             </div>
+
+          </div>
         </div>
-    </div>`;
+      </div>
+    `;
   }
 
   function reindexQuestions() {
@@ -599,6 +696,66 @@ $question_div_collapse = $_COOKIE['question_div_collapse'] == "true" ? "collapse
     };
   }
 
+  function renderLatestChanges(data) {
+    const $section = $("#latest_changes_container");
+    const $container = $("#latest_changes_container");
+
+    $container.empty();
+
+    let index = 0;
+
+    const nPayload = buildPayload();
+    console.log(nPayload);
+
+    // Created
+    if (data.created?.length) {
+      data.created.forEach(q => {
+        const html = buildQuestionHTML(q, index++, 'collapsed', 'created');
+        $container.append(html);
+      });
+    }
+
+    // Updated
+    if (data.updated?.length) {
+      data.updated.forEach(q => {
+        const html = buildQuestionHTML(q, index++, 'collapsed', 'updated');
+        $container.append(html);
+      });
+    }
+
+    if (index > 0) {
+      $section.removeClass("d-none");
+
+      $("#show_question_list").removeClass("d-none");
+
+      $("#main_question_container").addClass("d-none");
+      $("#add_more").addClass("d-none");
+      $("#load_more_btn").addClass("d-none");
+
+      // Scroll into view
+      document.getElementById("latest_changes_container")?.scrollIntoView({
+        behavior: "smooth"
+      });
+    }
+  }
+
+  function resetDirtyState() {
+    $(".question_div").each(function() {
+      $(this).attr("data-dirty", "false");
+    });
+  }
+
+  function removeTemporaryQuestions() {
+    $(".question_div").each(function() {
+      const rid = $(this).data("rid");
+
+      // If no DB id → it was a newly created temp question
+      if (!rid || rid === 0) {
+        $(this).remove();
+      }
+    });
+  }
+
   $(window).on('scroll', function() {
     $('.form-action-btns').toggleClass(
       'sticky',
@@ -671,12 +828,16 @@ $question_div_collapse = $_COOKIE['question_div_collapse'] == "true" ? "collapse
       // Append once
       $("#main_question_container").append($clone);
 
+      $("#saveQuestions").addClass("btn-warning");
+      $("#load_more_btn").prop("disabled", false);
+
       // Scroll
       document.getElementById(targetDiv)?.scrollIntoView({
         behavior: "smooth"
       });
 
       arrangeQuestionList();
+
     });
 
     $(document).on('click', '#add_more, #add_first_question', function(e) {
@@ -808,6 +969,9 @@ $question_div_collapse = $_COOKIE['question_div_collapse'] == "true" ? "collapse
           $("#question_list_div").toggleClass("d-none", questionCount === 0);
           $("#add_first_question").toggleClass("d-none", questionCount !== 0);
 
+          $("#saveQuestions").addClass("btn-warning");
+          $("#load_more_btn").prop("disabled", false);
+
           if (questionCount > 0) {
             reindexQuestions();
             arrangeQuestionList();
@@ -835,6 +999,30 @@ $question_div_collapse = $_COOKIE['question_div_collapse'] == "true" ? "collapse
         $("#saveQuestions").removeClass("btn-warning");
         $("#load_more_btn").prop("disabled", false);
       }
+    });
+
+    $(document).on('click', '#show_question_list', function(e) {
+
+      swal({
+          title: "Are you sure?",
+          text: "This latest changes section will be removed until your next update",
+          type: "warning",
+          showCancelButton: true,
+          confirmButtonColor: "#DD6B55",
+          confirmButtonText: "Yes, Go ahead!",
+          closeOnConfirm: true
+        },
+        function() {
+          $(this).addClass("d-none");
+          $("#latest_changes_container").empty();
+          $("#latest_changes_container").addClass("d-none");
+
+          $("#main_question_container").removeClass("d-none");
+          $("#add_more").removeClass("d-none");
+          $("#load_more_btn").removeClass("d-none");
+        });  
+
+      return;
     });
 
     $(document).on('click', '#browse_question_list', function(e) {
@@ -972,57 +1160,52 @@ $question_div_collapse = $_COOKIE['question_div_collapse'] == "true" ? "collapse
       const payload = buildPayload();
       // add extra required data
       payload.exam_id = exam_id;
+      payload.action = "manageExamQuestions";
 
-      console.log(payload);return;
+      $("#saveQuestions").addClass("btn-warning");
+      $("#load_more_btn").prop("disabled", true);
 
-      $.ajax({
-        url: ajaxControllerHandler,
-        method: 'POST',
-        data: new FormData(this),
-        contentType: false,
-        processData: false,
-        beforeSend: function() {
-          $('.content_div_loader').addClass('sk-loading');
-          $('.overlayer').fadeIn();
-          $('#saveQuestions').attr('disabled', true);
-        },
-        success: function(responseData) {
-          var data = JSON.parse(responseData);
-          $('#saveQuestions').attr('disabled', false);
-          $('body>.tooltip').remove();
-          //console.log(responseData);
-          if (data.check == 'success') {
-            //Disabling loader
-            $('.content_div_loader').removeClass('sk-loading');
-            $('.overlayer').fadeOut();
+      ajaxRequest(payload, ajaxControllerHandler, function(data) {
+        //console.log(data);return;
+        $("#saveQuestions").removeClass("btn-warning");
+        $("#load_more_btn").prop("disabled", false);
 
-            swal({
-              title: "Great!",
-              text: "Questions are successfully saved",
-              type: "success"
-            }, function() {
-              loadQuestions();
-              createSnapshot();
-            });
-            return true;
+        $('body>.tooltip').remove();
+
+        if (data.check === 'success') {
+          //show sweetalert success
+          swal({
+            title: "Great!",
+            text: "Questions are successfully saved",
+            type: "success"
+          }, function() {
+
+            resetDirtyState();
+
+            removeTemporaryQuestions();
+
+            renderLatestChanges(data);
+
+            arrangeQLatestuestionList();
+            //createSnapshot();
+          });
+        } else {
+          //show sweetalert error
+          if (data.message.length > 0) {
+            var message = data.message;
           } else {
-            //Disabling loader
-            $('.content_div_loader').removeClass('sk-loading');
-            //show sweetalert success
-            if (data.message.length > 0) {
-              var message = data.message;
-            } else {
-              var message = "Something went wrong";
-            }
-            swal({
-              title: "Oops!",
-              text: message,
-              type: "error"
-            });
-            return false;
+            var message = "Something went wrong";
           }
+          swal({
+            title: "Oops!",
+            text: message,
+            type: "error"
+          });
         }
+
+        return;
       });
+
     });
 
 

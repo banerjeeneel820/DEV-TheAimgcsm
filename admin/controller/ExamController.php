@@ -187,37 +187,105 @@ class ExamController extends BaseController
 
     public function manage_exam_questions($data)
     {
-        //Declaring necessary variables
-        $returnArr = [];
-
-        // helper
-        $post = fn ($key) => $this->lib->postDataSanitize($key);
-
         // -----------------------------
         // Permission Check
         // -----------------------------
         $user_role_slug = 'update_exam';
 
         if (!$this->utilityService->checkUserRolePermission($user_role_slug, "hard")) {
-            return ['check' => 'failure', 'message' => "You don't have the permission to perform this action!"];
+            return [
+                'check' => 'failure',
+                'message' => "You don't have the permission to perform this action!"
+            ];
         }
 
         // -----------------------------
-        // Collect Data
+        // Raw Input
         // -----------------------------
-        $postData = $_POST; // keeping as-is (array structure required)
+        $postData = $_POST;
 
-        // optional (kept for compatibility, even if unused)
-        $question_count = isset($postData['questions']) ? count($postData['questions']) : 0;
+        // -----------------------------
+        // Validate Exam ID
+        // -----------------------------
+        $exam_id = $postData['exam_id'];
+
+        if (empty($exam_id) || !is_numeric($exam_id)) {
+            return [
+                'check' => 'failure',
+                'message' => "Invalid exam ID"
+            ];
+        }
+
+        $createList = $postData['create'] ?? [];
+        $updateList = $postData['update'] ?? [];
+
+        // -----------------------------
+        // Sanitization Function
+        // -----------------------------
+        $sanitizeQuestion = function ($q, $isUpdate = false) {
+            return [
+                'id'            => $isUpdate ? (int)($q['id'] ?? 0) : null,
+                'ordering'      => (int)($q['ordering'] ?? 0),
+                'ques'          => trim($q['ques'] ?? ''),
+                'opt1'          => trim($q['opt1'] ?? ''),
+                'opt2'          => trim($q['opt2'] ?? ''),
+                'opt3'          => trim($q['opt3'] ?? ''),
+                'opt4'          => trim($q['opt4'] ?? ''),
+                'cor_ans'       => (int)($q['cor_ans'] ?? 0),
+                'marks'         => (int)($q['marks'] ?? 0),
+                'record_status' => $q['record_status'] ?? 'active',
+            ];
+        };
+
+        // -----------------------------
+        // Process Create
+        // -----------------------------
+        $cleanCreate = [];
+
+        foreach ($createList as $q) {
+            $cleanCreate[] = $sanitizeQuestion($q, false);
+        }
+
+        // -----------------------------
+        // Process Update
+        // -----------------------------
+        $cleanUpdate = [];
+
+        foreach ($updateList as $q) {
+            if (empty($q['id'])) continue; // safety
+
+            $cleanUpdate[] = $sanitizeQuestion($q, true);
+        }
+
+        // -----------------------------
+        // Final Payload
+        // -----------------------------
+        $payload = [
+            'exam_id' => (int)$exam_id,
+            'create'  => $cleanCreate,
+            'update'  => $cleanUpdate
+        ];
 
         // -----------------------------
         // DB Operation
         // -----------------------------
-        $returnArr = $this->interface->update_Exam_Questions($postData);
+        $result = $this->interface->update_Exam_Questions($payload);
 
-        // -----------------------------
-        // Response
-        // -----------------------------
+        if ($result['check'] === 'success') {
+
+            $returnArr = [
+                'check' => 'success',
+                'message' => $result['message'] ?? 'Questions saved successfully',
+                'created' => $result['data']['created'] ?? [],
+                'updated' => $result['data']['updated'] ?? []
+            ];
+        }else{
+            $returnArr = [
+                'check' => 'failure',
+                'message' => $result['message'] ?? 'Something went wrong'
+            ];
+        }
+
         return $returnArr;
     }
 
