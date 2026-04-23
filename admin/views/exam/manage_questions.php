@@ -233,19 +233,15 @@ $question_div_collapse = $_COOKIE['question_div_collapse'] == "true" ? "collapse
 
       </form>
 
-      <div class="text-center my-3">
-        <button id="load_more_btn" class="btn btn-primary px-4">
-          <span class="btn-text">Load More Questions</span>
-          <span class="spinner-border spinner-border-sm ms-2 d-none" role="status"></span>
-        </button>
-      </div>
+      <div id="pagination_container" class="text-center my-3"></div>
+
     </div>
   </div>
 </div>
 
 <!-- Custom JS -->
 <script>
-  let questionOffset = 0;
+  let currentPage = 1;
   const questionLimit = 10;
 
   let isLoadingQuestions = false;
@@ -255,6 +251,12 @@ $question_div_collapse = $_COOKIE['question_div_collapse'] == "true" ? "collapse
 
   var exam_id = $("#exam_id").val();
   var div_top = $('.form-action-btns').offset().top;
+
+  const badgeMap = {
+    created: `<span class="badge badge-success ml-2 q-badge" data-type="created">New</span>`,
+    updated: `<span class="badge badge-info ml-2 q-badge" data-type="updated">Updated</span>`,
+    cloned: `<span class="badge badge-primary ml-2 q-badge" data-type="cloned">Cloned</span>`
+  };
 
   window.addEventListener("beforeunload", function(e) {
 
@@ -274,8 +276,34 @@ $question_div_collapse = $_COOKIE['question_div_collapse'] == "true" ? "collapse
 
   var question_div_collapse = getCookie('question_div_collapse');
 
+  function applyBadge($questionDiv, type) {
+
+    const $header = $questionDiv.find(".question-header");
+
+    // Remove conflicting badges (optional logic)
+    if (type === 'updated') {
+      $header.find('.q-badge[data-type="created"]').remove();
+    }
+
+    // Avoid duplicate same badge
+    if ($header.find(`.q-badge[data-type="${type}"]`).length) {
+      return;
+    }
+
+    // Append badge
+    $header.find("h5").append(badgeMap[type]);
+  }
+
   function getQuestionCount() {
     return $("#main_question_container .question_div").length;
+  }
+
+  function getSnapshotArray() {
+    try {
+      return JSON.parse(initialSnapshot || "[]");
+    } catch (e) {
+      return [];
+    }
   }
 
   function createSnapshot() {
@@ -306,6 +334,34 @@ $question_div_collapse = $_COOKIE['question_div_collapse'] == "true" ? "collapse
   function hasUnsavedChanges() {
     const current = JSON.stringify(serializeQuestions());
     return current !== initialSnapshot;
+  }
+
+  function getQuestionData($questionDiv) {
+    return {
+      ques: $questionDiv.find(".ques").val()?.trim() || "",
+      opt1: $questionDiv.find(".opt1").val()?.trim() || "",
+      opt2: $questionDiv.find(".opt2").val()?.trim() || "",
+      opt3: $questionDiv.find(".opt3").val()?.trim() || "",
+      opt4: $questionDiv.find(".opt4").val()?.trim() || "",
+      cor_ans: $questionDiv.find(".cor_ans").val() || "",
+      marks: $questionDiv.find(".marks").val() || "",
+      record_status: $questionDiv.find(".record_status").val() || ""
+    };
+  }
+
+  function isQuestionChanged($questionDiv) {
+
+    const currentData = getQuestionData($questionDiv);
+
+    const index = $questionDiv.index(); // matches serialize order
+    const snapshot = getSnapshotArray();
+
+    const originalData = snapshot[index];
+
+    // If no original → it's new (handled later for "added")
+    if (!originalData) return true;
+
+    return JSON.stringify(currentData) !== JSON.stringify(originalData);
   }
 
   function arrangeQuestionList() {
@@ -589,25 +645,43 @@ $question_div_collapse = $_COOKIE['question_div_collapse'] == "true" ? "collapse
 
   }
 
+  function updatePaginationUI(totalCount) {
+
+    const totalPages = Math.ceil(totalCount / questionLimit);
+
+    let html = '';
+
+    for (let i = 1; i <= totalPages; i++) {
+      html += `
+    <button class="btn btn-sm ${i === currentPage ? 'btn-primary' : 'btn-light'} page-btn"
+      data-page="${i}">
+      ${i}
+    </button>
+  `;
+    }
+
+    $("#pagination_container").html(html);
+  }
+
   function loadQuestions({
-    reset = false
+    page = 1,
+    append = false
   } = {}) {
 
-    if (isLoadingQuestions || !hasMoreQuestions) return;
+    console.log(page);
+
+    if (isLoadingQuestions) return;
 
     isLoadingQuestions = true;
 
-    if (reset) {
-      questionOffset = 0;
-      hasMoreQuestions = true;
+    if (!append) {
       $("#main_question_container").html('');
-      $("#load_more_btn").removeClass('d-none');
     }
 
     ajaxRequest({
       action: "fetchQuestions",
       exam_id: exam_id,
-      offset: questionOffset,
+      page: page,
       limit: questionLimit
     }, ajaxControllerHandler, function(data) {
 
@@ -621,38 +695,20 @@ $question_div_collapse = $_COOKIE['question_div_collapse'] == "true" ? "collapse
       const questions = data.questions || [];
       const collapsed = question_div_collapse === 'true' ? 'collapsed' : 'open';
 
-      // No more data
-      if (questions.length < questionLimit) {
-        hasMoreQuestions = false;
-        //$("#load_more_btn").addClass('d-none');
-      }
-
-      // Render questions
-      questions.forEach((question) => {
-
-        const index = getQuestionCount();
-
+      // Render
+      questions.forEach((question, i) => {
+        const index = append ? getQuestionCount() : i;
         const html = buildQuestionHTML(question, index, collapsed);
-
         $("#main_question_container").append(html);
       });
 
-      questionOffset = getQuestionCount();
+      currentPage = page;
 
       arrangeQuestionList();
+      reindexQuestions();
+      updatePaginationUI(data.total_count);
+
       createSnapshot();
-
-      // UI updates
-      const total = getQuestionCount();
-
-      if (total > 0) {
-        $(".form-action-btns").removeClass("d-none");
-        $("#question_list_div").removeClass("d-none");
-        $("#add_first_question").addClass("d-none");
-      } else {
-        $("#add_first_question").removeClass("d-none");
-      }
-
     });
   }
 
@@ -728,9 +784,8 @@ $question_div_collapse = $_COOKIE['question_div_collapse'] == "true" ? "collapse
 
       $("#show_question_list").removeClass("d-none");
 
-      $("#main_question_container").addClass("d-none");
+      $("#main_question_container").empty();
       $("#add_more").addClass("d-none");
-      $("#load_more_btn").addClass("d-none");
 
       // Scroll into view
       document.getElementById("latest_changes_container")?.scrollIntoView({
@@ -766,24 +821,13 @@ $question_div_collapse = $_COOKIE['question_div_collapse'] == "true" ? "collapse
   $(document).ready(function() {
 
     loadQuestions({
-      reset: true
+      page: currentPage,
+      append: false
     });
 
     //Bind tooltip on dynamic meta elements
     $('body').tooltip({
       selector: '.dynamicQuestion'
-    });
-
-    $(document).on('click', '#load_more_btn', function(e) {
-
-      if (hasUnsavedChanges()) {
-        toastr.warning("Please save changes before loading more.");
-        return;
-      }
-
-      loadQuestions({
-        reset: false
-      });
     });
 
     $(document).on('click', '.clone-question', function(e) {
@@ -796,6 +840,9 @@ $question_div_collapse = $_COOKIE['question_div_collapse'] == "true" ? "collapse
 
       const $source = $("#question_div_" + divId);
       const $clone = $source.clone(true);
+
+      // Hiden pagination div until clone is done
+      $("#pagination_container").addClass("d-none");
 
       // Update main container ID
       $clone.attr('id', "question_div_" + divIndex).addClass("mt-3");
@@ -829,12 +876,15 @@ $question_div_collapse = $_COOKIE['question_div_collapse'] == "true" ? "collapse
       $("#main_question_container").append($clone);
 
       $("#saveQuestions").addClass("btn-warning");
-      $("#load_more_btn").prop("disabled", false);
+      $("#pagination_container").removeClass("d-none");
 
       // Scroll
       document.getElementById(targetDiv)?.scrollIntoView({
         behavior: "smooth"
       });
+
+      // Apply CLONED badge
+      applyBadge($clone, "cloned");
 
       arrangeQuestionList();
 
@@ -842,8 +892,6 @@ $question_div_collapse = $_COOKIE['question_div_collapse'] == "true" ? "collapse
 
     $(document).on('click', '#add_more, #add_first_question', function(e) {
       e.preventDefault();
-
-      console.log(index);
 
       const qIndex = getQuestionCount();
       const divIndex = qIndex + 1;
@@ -858,7 +906,7 @@ $question_div_collapse = $_COOKIE['question_div_collapse'] == "true" ? "collapse
       const collapsed = question_div_collapse === 'true' ? 'collapsed' : 'open';
       const targetDiv = 'question_header_' + divIndex;
 
-      // Empty question object (important)
+      // Empty question object
       const emptyQuestion = {
         id: '',
         ques: '',
@@ -871,13 +919,27 @@ $question_div_collapse = $_COOKIE['question_div_collapse'] == "true" ? "collapse
         record_status: ''
       };
 
-      // Reuse builder function from fetchAllQuestions
+      // Build HTML
       const html = buildQuestionHTML(emptyQuestion, qIndex, collapsed);
 
+      // Append
       $("#main_question_container").append(html);
 
+      const $newQuestion = $("#question_div_" + divIndex);
+
+      // Mark as dirty (important)
+      $newQuestion.attr('data-dirty', 'true');
+
+      // Apply ADDED badge
+      applyBadge($newQuestion, "created");
+
+      // Trigger save state
+      $("#saveQuestions").addClass("btn-warning");
+
+      // Update list
       arrangeQuestionList();
 
+      // Scroll
       document.getElementById(targetDiv)?.scrollIntoView({
         behavior: "smooth"
       });
@@ -930,6 +992,9 @@ $question_div_collapse = $_COOKIE['question_div_collapse'] == "true" ? "collapse
         // Prevent double click
         $btn.prop("disabled", true);
 
+        // Hiden pagination div until clone is done
+        $("#pagination_container").addClass("d-none");
+
         // CASE 1: Existing DB record → DB delete
         if (rid) {
 
@@ -970,9 +1035,13 @@ $question_div_collapse = $_COOKIE['question_div_collapse'] == "true" ? "collapse
           $("#add_first_question").toggleClass("d-none", questionCount !== 0);
 
           $("#saveQuestions").addClass("btn-warning");
-          $("#load_more_btn").prop("disabled", false);
+          // Show pagination div until clone is done
+          $("#pagination_container").removeClass("d-none");
 
           if (questionCount > 0) {
+            // Show pagination div until clone is done
+            $("#pagination_container").removeClass("d-none");
+
             reindexQuestions();
             arrangeQuestionList();
 
@@ -990,18 +1059,44 @@ $question_div_collapse = $_COOKIE['question_div_collapse'] == "true" ? "collapse
     });
 
     $(document).on('input change', '.question_div input, .question_div textarea, .question_div select', function() {
+
+      const $questionDiv = $(this).closest('.question_div');
+
+      const changed = isQuestionChanged($questionDiv);
+
+      // ---- DIRTY STATE ----
+      $questionDiv.attr('data-dirty', changed ? 'true' : 'false');
+
+      // ---- GLOBAL SAVE BUTTON ----
       if (hasUnsavedChanges()) {
-        $(this).closest('.question_div').attr('data-dirty', 'true');
         $("#saveQuestions").addClass("btn-warning");
-        $("#load_more_btn").prop("disabled", false);
       } else {
-        $(this).closest('.question_div').attr('data-dirty', 'false');
         $("#saveQuestions").removeClass("btn-warning");
-        $("#load_more_btn").prop("disabled", false);
       }
+
+      // ---- BADGE LOGIC ----
+
+      // Reverted → remove updated badge
+      if (!changed) {
+        $questionDiv.find('.q-badge[data-type="updated"]').remove();
+        return;
+      }
+
+      // Skip cloned
+      if ($questionDiv.find('.q-badge[data-type="cloned"]').length) {
+        return;
+      }
+
+      // Add updated badge if not exists
+      if (!$questionDiv.find('.q-badge[data-type="updated"]').length) {
+        applyBadge($questionDiv, "updated");
+      }
+
     });
 
     $(document).on('click', '#show_question_list', function(e) {
+
+      const $btn = $(this); // store reference
 
       swal({
           title: "Are you sure?",
@@ -1013,16 +1108,36 @@ $question_div_collapse = $_COOKIE['question_div_collapse'] == "true" ? "collapse
           closeOnConfirm: true
         },
         function() {
-          $(this).addClass("d-none");
-          $("#latest_changes_container").empty();
-          $("#latest_changes_container").addClass("d-none");
+
+          $btn.addClass("d-none"); // correct reference
+
+          $("#latest_changes_container").empty().addClass("d-none");
+
+          // Load current page
+          loadQuestions({
+            page: currentPage,
+            append: false
+          });
 
           $("#main_question_container").removeClass("d-none");
           $("#add_more").removeClass("d-none");
-          $("#load_more_btn").removeClass("d-none");
-        });  
+          $("#pagination_container").removeClass("d-none");
+        });
 
-      return;
+    });
+
+    $(document).on("click", ".page-btn", function() {
+      const page = $(this).data("page");
+
+      if (hasUnsavedChanges()) {
+        toastr.warning("Please save changes before loading more.");
+        return;
+      }
+
+      loadQuestions({
+        page,
+        append: false
+      });
     });
 
     $(document).on('click', '#browse_question_list', function(e) {
@@ -1163,12 +1278,11 @@ $question_div_collapse = $_COOKIE['question_div_collapse'] == "true" ? "collapse
       payload.action = "manageExamQuestions";
 
       $("#saveQuestions").addClass("btn-warning");
-      $("#load_more_btn").prop("disabled", true);
+      $("#pagination_container").addClass("d-none");
 
       ajaxRequest(payload, ajaxControllerHandler, function(data) {
         //console.log(data);return;
         $("#saveQuestions").removeClass("btn-warning");
-        $("#load_more_btn").prop("disabled", false);
 
         $('body>.tooltip').remove();
 
@@ -1207,7 +1321,6 @@ $question_div_collapse = $_COOKIE['question_div_collapse'] == "true" ? "collapse
       });
 
     });
-
 
     $(document).on('click', '#delete_all_questions', function(event) {
       event.preventDefault();

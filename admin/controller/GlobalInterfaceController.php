@@ -1947,6 +1947,16 @@ class GlobalInterfaceController
 
    public function fetch_Exam_Questions_Limit($dataArr)
    {
+      // =========================
+      // PAGINATION
+      // =========================
+      $limit  = (int)($dataArr['limit'] ?? 10);
+      $pageNo = (int)($dataArr['pageNo'] ?? 1);
+      $offset = ($pageNo - 1) * $limit;
+
+      // =========================
+      // WHERE BUILDER
+      // =========================
       $where = [];
       $params = [];
 
@@ -1954,17 +1964,20 @@ class GlobalInterfaceController
       $where[] = "eqs.exam_id = ?";
       $params[] = $dataArr['exam_id'];
 
-      $whereSql = "WHERE " . implode(" AND ", $where);
+      $where_sql = "WHERE " . implode(" AND ", $where);
 
-      // Pagination (important for Load More)
-      $limitSql = "";
-      if (isset($dataArr['offset']) && isset($dataArr['limit'])) {
-         $limitSql = " LIMIT ?, ?";
-         $params[] = (int)$dataArr['offset'];
-         $params[] = (int)$dataArr['limit'];
-      }
+      // =========================
+      // BASE QUERY (REUSABLE)
+      // =========================
+      $base_query = "
+        FROM " . DB_AIMGCSM . "." . TABLEPREFIX . "exam_questions eqs
+        $where_sql
+    ";
 
-      $sql = "
+      // =========================
+      // MAIN DATA QUERY
+      // =========================
+      $sql_fetch = "
         SELECT 
             eqs.id,
             eqs.exam_id,
@@ -1978,20 +1991,44 @@ class GlobalInterfaceController
             eqs.record_status,
             eqs.ordering,
             eqs.created_at
-
-        FROM " . DB_AIMGCSM . "." . TABLEPREFIX . "exam_questions eqs
-
-        $whereSql
-
+        $base_query
         ORDER BY eqs.ordering ASC
-
-        $limitSql
     ";
 
-      // Debug if needed
-      // $this->debugQuery($sql, $params);
+      // Apply pagination
+      $sql_fetch .= " LIMIT ? OFFSET ?";
+      $params[] = $limit;
+      $params[] = $offset;
 
-      return $this->conn->global_Fetch_All_DB($sql, $params);
+      // =========================
+      // COUNT QUERY
+      // =========================
+      $sql_count = "SELECT COUNT(*) as total $base_query";
+
+      // =========================
+      // EXECUTION
+      // =========================
+      $resultArr = [];
+
+      // Fetch data
+      $resultArr['data'] = $this->conn->global_Fetch_All_DB($sql_fetch, $params);
+
+      // Optional debug
+      //$this->debugQuery($sql_fetch, $params);
+
+      // Prepare count params (remove limit + offset)
+      $count_params = $params;
+      array_pop($count_params); // offset
+      array_pop($count_params); // limit
+
+      // Fetch total count
+      $resultArr['row_count'] = $this->conn->global_Aggregate_Value_DB($sql_count, $count_params);
+
+      // Extra info
+      $resultArr['pageNo'] = $pageNo;
+      $resultArr['limit'] = $limit;
+
+      return $resultArr;
    }
 
    public function fetch_User_Exam_Answers($answerParamArr)
@@ -2709,10 +2746,9 @@ class GlobalInterfaceController
 
             $q['id'] = $returnArr['last_insert_id'];
 
-            if($returnArr['check'] == 'success'){
+            if ($returnArr['check'] == 'success') {
                $createdQuestions[] = $q;
             }
-           
          }
 
          // =============================
@@ -2752,9 +2788,9 @@ class GlobalInterfaceController
 
                $returnArr = $this->conn->global_CRUD_DB($sqlUpdate);
 
-               if($returnArr['check'] == 'success'){
+               if ($returnArr['check'] == 'success') {
                   $updatedQuestions[] =  $q;
-               }   
+               }
             }
          }
 

@@ -168,20 +168,23 @@ class ExamController extends BaseController
         // -----------------------------
         // Pagination Data
         // -----------------------------
-        $paramArr['offset'] = $post('offset') ?? 0;
+        $paramArr['page']   = $post('page ') ?? 1;
         $paramArr['limit']  = $post('limit') ?? 10;
+
+        $paramArr['offset'] = ($paramArr['page'] - 1) * $paramArr['limit'];
 
         // -----------------------------
         // Fetch Questions
         // -----------------------------
-        $questions = $this->interface->fetch_Exam_Questions_Limit($paramArr);
+        $returnArr = $this->interface->fetch_Exam_Questions_Limit($paramArr);
 
         // -----------------------------
         // Response
         // -----------------------------
         return [
             'check'     => 'success',
-            'questions' => $questions
+            'questions' => $returnArr['data'],
+            'total_count' => $returnArr['row_count']
         ];
     }
 
