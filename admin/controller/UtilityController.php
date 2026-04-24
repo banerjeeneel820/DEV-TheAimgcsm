@@ -4,18 +4,18 @@ defined('ROOTPATH') or exit('No direct script access allowed');
 class UtilityController extends BaseController
 {
     private $utilityService;
-    
+
     public function __construct()
     {
         parent::__construct();
-        $this->utilityService = new UtilityService($this->interface,$this->lib);
+        $this->utilityService = new UtilityService($this->interface, $this->lib);
     }
 
     public function update_global_status_status($data)
     {
         $post = fn ($key) => $this->lib->postDataSanitize($key);
 
-        $idData       = $post('row_id');
+        $idData       = $_POST['row_id'] ?? [];
         $type         = $post('type');
         $recordStatus = $post('record_status');
 
@@ -56,8 +56,19 @@ class UtilityController extends BaseController
             return ['check' => 'failure', 'message' => "No data selected!"];
         }
 
-        $rowIds = array_map('trim', explode(',', $idData));
-        $rowIds = array_filter(array_map('intval', (array)$rowIds));
+         // Normalize to array
+         if (!is_array($idData)) {
+            // Handle comma-separated string OR single value
+            $idData = explode(',', $idData);
+        }
+
+        // Clean + sanitize
+        $rowIds = array_values(array_filter(
+            array_map('intval', $idData),
+            function ($id) {
+                return $id > 0;
+            }
+        ));
 
         if (empty($rowIds)) {
             return ['check' => 'failure', 'message' => "Invalid IDs!"];
@@ -86,7 +97,7 @@ class UtilityController extends BaseController
         // helper
         $post = fn ($key) => $this->lib->postDataSanitize($key);
 
-        $idData          = $post('row_id');
+        $idData          = $_POST['row_id'] ?? [];
         $type            = $post('type');
         $featured_status = $post('featured_status');
 
@@ -118,8 +129,19 @@ class UtilityController extends BaseController
             return ['check' => 'failure', 'message' => "No data selected!"];
         }
 
-        $rowIds = array_map('trim', explode(',', $idData));
-        $rowIds = array_filter(array_map('intval', (array)$rowIds));
+        // Normalize to array
+        if (!is_array($idData)) {
+            // Handle comma-separated string OR single value
+            $idData = explode(',', $idData);
+        }
+
+        // Clean + sanitize
+        $rowIds = array_values(array_filter(
+            array_map('intval', $idData),
+            function ($id) {
+                return $id > 0;
+            }
+        ));
 
         if (empty($rowIds)) {
             return ['check' => 'failure', 'message' => "Invalid IDs!"];
@@ -151,7 +173,7 @@ class UtilityController extends BaseController
         // helper
         $post = fn ($key) => $this->lib->postDataSanitize($key);
 
-        $idData          = $post('row_id');
+        $idData          = $_POST['row_id'] ?? [];
         $type            = $post('type');
         $verified_status = $post('verified_status');
 
@@ -182,8 +204,19 @@ class UtilityController extends BaseController
             return ['check' => 'failure', 'message' => "No data selected!"];
         }
 
-        $rowIds = array_map('trim', explode(',', $idData));
-        $rowIds = array_filter(array_map('intval', (array)$rowIds));
+        // Normalize to array
+        if (!is_array($idData)) {
+            // Handle comma-separated string OR single value
+            $idData = explode(',', $idData);
+        }
+
+        // Clean + sanitize
+        $rowIds = array_values(array_filter(
+            array_map('intval', $idData),
+            function ($id) {
+                return $id > 0;
+            }
+        ));
 
         if (empty($rowIds)) {
             return ['check' => 'failure', 'message' => "Invalid IDs!"];
@@ -214,7 +247,7 @@ class UtilityController extends BaseController
     {
         $post = fn ($key) => $this->lib->postDataSanitize($key);
 
-        $idData = $post('row_id');   // "1,2,3" or "5"
+        $idData = $_POST['row_id'] ?? [];
         $type   = $post('type');
 
         // -----------------------------
@@ -258,8 +291,19 @@ class UtilityController extends BaseController
             return ['check' => 'failure', 'message' => "No data selected!"];
         }
 
-        $rowIds = array_map('trim', explode(',', $idData));
-        $rowIds = array_filter(array_map('intval', $rowIds));
+        // Normalize to array
+        if (!is_array($idData)) {
+            // Handle comma-separated string OR single value
+            $idData = explode(',', $idData);
+        }
+
+        // Clean + sanitize
+        $rowIds = array_values(array_filter(
+            array_map('intval', $idData),
+            function ($id) {
+                return $id > 0;
+            }
+        ));
 
         if (empty($rowIds)) {
             return ['check' => 'failure', 'message' => "Invalid IDs!"];
@@ -620,5 +664,4 @@ class UtilityController extends BaseController
 
         return $returnArr;
     }
-
 }

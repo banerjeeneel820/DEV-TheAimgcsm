@@ -538,23 +538,124 @@ label.error {
   visibility: visible;
 }
 /*End here*/
-.form-action-btns{
+/* =========================
+   MAIN ACTION BAR
+========================= */
+/* wrapper keeps original space */
+.fab-outer {
+  position: relative;
+  height: 70px; /* adjust based on your bar height */
+}
+
+/* default state */
+.form-action-btns {
   width: 100%;
-  margin-bottom: 20px;
-  padding: 10px;
+  padding: 12px 15px;
+
   display: flex;
+  align-items: center;
   justify-content: space-between;
-  border-radius: 5px;
-  position: static;
-  z-index: 99;
+  flex-wrap: wrap;
+  gap: 10px;
+
+  border-radius: 6px;
   background: #fff;
   box-shadow: rgb(17 17 26 / 10%) 0px 0px 16px;
 }
 
-.form-action-btns.sticky{
-  width: 80%;
+/* when sticky activates */
+.form-action-btns.fixed-active {
   position: fixed;
-  top: 0px;
+  top: 0;
+  width: 100%;
+  z-index: 9999;
+}
+/* =========================
+   GROUPS (LEFT / CENTER / RIGHT)
+========================= */
+.fab-group {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+/* alignment */
+.fab-left {
+  justify-content: flex-start;
+}
+
+.fab-center {
+  justify-content: center;
+  flex: 1;
+}
+
+.fab-right {
+  justify-content: flex-end;
+}
+
+/* =========================
+   BUTTONS FIX
+========================= */
+.form-action-btns .btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  flex-shrink: 0; /* prevent shrinking issue */
+}
+
+/* prevent anchor shrink */
+.form-action-btns a {
+  flex-shrink: 0;
+}
+
+/* =========================
+   CHECKBOX
+========================= */
+.fab-checkbox {
+  width: 20px;
+  height: 20px;
+  cursor: pointer;
+  margin: 0;
+}
+
+/* optional label style */
+.fab-checkbox-label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 0;
+  cursor: pointer;
+}
+
+/* =========================
+   RESPONSIVE
+========================= */
+@media (max-width: 768px) {
+
+  .form-action-btns {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  
+  .form-action-btns.fixed-active {
+    left: 0;
+    right: 0;
+    max-width: 100%;
+    border-radius: 0; /* optional: full width look */
+  }
+
+  .fab-outer {
+    min-height: 110px; /* more space when wrapped */
+  }
+
+  .fab-group {
+    justify-content: center;
+  }
+
+  .fab-center {
+    order: -1; /* move center to top */
+  }
 }
 
 .sticky-bottom {
@@ -682,17 +783,6 @@ label.error {
     position: relative;
 }
 /*End here*/
-
-#load_more_btn {
-  min-width: 220px;
-  font-weight: 500;
-}
-
-#load_more_btn:disabled {
-  opacity: 0.7;
-  cursor: not-allowed;
-}
-
 .badge-success {
   background-color: #28a745;
 }

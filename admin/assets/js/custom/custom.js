@@ -538,22 +538,16 @@ $(document).on("click", ".featured_action", function () {
 $(document).on("click", ".changeRecordStatus", function (e) {
   e.preventDefault();
 
-  var ids = "";
+  var ids = [];
   var row_id = $(this).data("rid");
-  var type = $(this).data("type");
-  var record_status = $(this).data("rstatus");
-  var page_type = $(this).data("ptype");
 
   if (row_id == "all") {
-    $(".singleCheck").each(function (index, element) {
-      if ($(this).prop("checked") == true) {
-        ids += $(this).val() + ",";
-      }
+    $(".singleCheck:checked").each(function () {
+      ids.push($(this).val());
     });
-    ids = ids.replace(/,\s*$/, "");
     var singular_text = "These";
   } else {
-    ids = row_id;
+    ids.push(row_id);
     var singular_text = "This";
   }
 
