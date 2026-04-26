@@ -24,7 +24,7 @@ class AuthProfileController extends BaseController
         $paramArr['user_type'] = $post('user_type');
         $paramArr['user_signin_method'] = $post('user_signin_method');
         //Validating captch & collecting response 
-        $recaptcha_response = $data('g-recaptcha-response');
+        $recaptcha_response = $post('g-recaptcha-response');
 
         $validate_captcha = true; //$this->lib->checkCaptchaResponse($recaptcha_response);
 

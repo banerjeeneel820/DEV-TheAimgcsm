@@ -790,3 +790,12 @@ label.error {
 .badge-info {
   background-color: #17a2b8;
 }
+
+/* Question Pagination UI */
+#pagination_container .pagination {
+  margin: 10px 0;
+}
+
+#pagination_container .page-link {
+  cursor: pointer;
+}

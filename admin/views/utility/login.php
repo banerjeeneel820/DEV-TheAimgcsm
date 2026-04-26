@@ -129,7 +129,7 @@
 
     <script>
         var adminUrl = '<?= SITE_URL ?>';
-        var ajaxControllerHandler = "<?= SITE_URL ?>controller/callAjaxController.php";
+        var ajaxControllerHandler = "<?= SITE_URL ?>index.php";
 
         //Google recaptcha variables
         var loginCaptchaWidget;
