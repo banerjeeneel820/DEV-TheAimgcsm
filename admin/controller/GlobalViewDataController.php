@@ -4,7 +4,6 @@ defined('ROOTPATH') or exit('No direct script access allowed');
 class GlobalViewDataController extends BaseController
 {
   
-  private $utilityService;
   private $globalReturnArr;  
   private $memObj;
 
@@ -12,7 +11,6 @@ class GlobalViewDataController extends BaseController
   { 
     parent::__construct();
     $this->globalReturnArr = [];
-    $this->utilityService = new UtilityService($this->interface,$this->lib);
   }
 
   private function getDashboardData($type, $fetchType, $params, $franchise_id = null)
@@ -42,9 +40,9 @@ class GlobalViewDataController extends BaseController
   {
     $this->globalReturnArr['page_type'] = 'dashboard';
 
-    $page_permission = $this->utilityService->checkUserRolePermission('view_dashboard');
+    $page_permission = $this->checkUserRolePermission('view_dashboard');
 
-    $site_backup_permission = $this->utilityService->checkUserRolePermission('manage_site_backup');
+    $site_backup_permission = $this->checkUserRolePermission('manage_site_backup');
 
     if (!$page_permission) {
         $this->globalReturnArr['data'] = ['page' => 'dashboard'];
@@ -182,7 +180,7 @@ class GlobalViewDataController extends BaseController
     $this->globalReturnArr['page_title'] = "View Franchise";
     $this->globalReturnArr['page_type'] = $type;
     //Check user permission for this section
-    $this->globalReturnArr['page_permission'] = $this->utilityService->checkUserRolePermission($user_role_slug);
+    $this->globalReturnArr['page_permission'] = $this->checkUserRolePermission($user_role_slug);
 
     if ($this->globalReturnArr['page_permission']) {
       if (isset($_GET['record_status'])) {
@@ -221,7 +219,7 @@ class GlobalViewDataController extends BaseController
 
     $user_role_slug = 'manage_profile';
     //Check user permission for this section
-    $this->globalReturnArr['page_permission'] = $this->utilityService->checkUserRolePermission($user_role_slug);
+    $this->globalReturnArr['page_permission'] = $this->checkUserRolePermission($user_role_slug);
 
     if ($this->globalReturnArr['page_permission']) {
       //Fetching franchise detail
@@ -247,7 +245,7 @@ class GlobalViewDataController extends BaseController
     if (isset($_GET['id'])) {
       $user_role_slug = 'update_franchise';
       //Check user permission for this section
-      $this->globalReturnArr['page_permission'] = $this->utilityService->checkUserRolePermission($user_role_slug);
+      $this->globalReturnArr['page_permission'] = $this->checkUserRolePermission($user_role_slug);
 
       if ($this->globalReturnArr['page_permission']) {
         //Fetching franchise detail
@@ -258,7 +256,7 @@ class GlobalViewDataController extends BaseController
     } else {
       $user_role_slug = 'create_franchise';
       //Check user permission for this section
-      $this->globalReturnArr['page_permission'] = $this->utilityService->checkUserRolePermission($user_role_slug);
+      $this->globalReturnArr['page_permission'] = $this->checkUserRolePermission($user_role_slug);
       $this->globalReturnArr['frnachise_data'] = array();
     }
 
@@ -270,7 +268,7 @@ class GlobalViewDataController extends BaseController
   public function view_Course_Required_Data()
   {
     //Check user permission for this section
-    $this->globalReturnArr['page_permission'] = $this->utilityService->checkUserRolePermission('view_course');
+    $this->globalReturnArr['page_permission'] = $this->checkUserRolePermission('view_course');
     $type = 'course';
     if (isset($_GET['record_status'])) {
       $record_status = $_GET['record_status'];
@@ -311,7 +309,7 @@ class GlobalViewDataController extends BaseController
     if (isset($_GET['id'])) {
       $user_role_slug = 'update_course';
       //Check user permission for this section
-      $this->globalReturnArr['page_permission'] = $this->utilityService->checkUserRolePermission($user_role_slug);
+      $this->globalReturnArr['page_permission'] = $this->checkUserRolePermission($user_role_slug);
 
       if ($this->globalReturnArr['page_permission']) {
         //Fetching course detail
@@ -322,7 +320,7 @@ class GlobalViewDataController extends BaseController
     } else {
       $user_role_slug = 'create_course';
       //Check user permission for this section
-      $this->globalReturnArr['page_permission'] = $this->utilityService->checkUserRolePermission($user_role_slug);
+      $this->globalReturnArr['page_permission'] = $this->checkUserRolePermission($user_role_slug);
       $this->globalReturnArr['course_data'] = array();
     }
 
@@ -405,7 +403,7 @@ class GlobalViewDataController extends BaseController
     // =========================
     // PERMISSION
     // =========================
-    $hasPermission = $this->utilityService->checkUserRolePermission('view_student');
+    $hasPermission = $this->checkUserRolePermission('view_student');
 
     $this->globalReturnArr['page_permission'] = $hasPermission;
     $this->globalReturnArr['page_type'] = $type;
@@ -521,7 +519,7 @@ class GlobalViewDataController extends BaseController
   
           // UPDATE
           $this->globalReturnArr['page_permission'] =
-              $this->utilityService->checkUserRolePermission('update_student');
+              $this->checkUserRolePermission('update_student');
   
           if ($this->globalReturnArr['page_permission']) {
   
@@ -545,7 +543,7 @@ class GlobalViewDataController extends BaseController
   
           // CREATE
           $this->globalReturnArr['page_permission'] =
-              $this->utilityService->checkUserRolePermission('create_student');
+              $this->checkUserRolePermission('create_student');
   
           $this->globalReturnArr['student_data'] = [];
       }
@@ -604,7 +602,7 @@ class GlobalViewDataController extends BaseController
         if (!empty($student_id)) {
 
             $this->globalReturnArr['page_permission'] =
-                $this->utilityService->checkUserRolePermission('update_student');
+                $this->checkUserRolePermission('update_student');
 
             if ($this->globalReturnArr['page_permission']) {
                 $this->globalReturnArr['student_data'] =
@@ -619,7 +617,7 @@ class GlobalViewDataController extends BaseController
         } elseif (!empty($id)) {
 
             $this->globalReturnArr['page_permission'] =
-                $this->utilityService->checkUserRolePermission('create_student');
+                $this->checkUserRolePermission('create_student');
 
             $this->globalReturnArr['student_data'] =
                 $this->interface->fetch_Tmp_Single_Student($id);
@@ -630,7 +628,7 @@ class GlobalViewDataController extends BaseController
         } else {
 
             $this->globalReturnArr['page_permission'] =
-                $this->utilityService->checkUserRolePermission('create_student');
+                $this->checkUserRolePermission('create_student');
 
             $this->globalReturnArr['student_data'] = [];
         }
@@ -653,7 +651,7 @@ class GlobalViewDataController extends BaseController
     else {
 
         $this->globalReturnArr['page_permission'] =
-            $this->utilityService->checkUserRolePermission('view_student');
+            $this->checkUserRolePermission('view_student');
 
         if ($this->globalReturnArr['page_permission']) {
 
@@ -723,7 +721,7 @@ class GlobalViewDataController extends BaseController
         if (!empty($id)) {
 
             $this->globalReturnArr['page_permission'] =
-                $this->utilityService->checkUserRolePermission('update_student');
+                $this->checkUserRolePermission('update_student');
 
             $this->globalReturnArr['student_data'] =
                 $this->globalReturnArr['page_permission']
@@ -733,7 +731,7 @@ class GlobalViewDataController extends BaseController
         } else {
 
             $this->globalReturnArr['page_permission'] =
-                $this->utilityService->checkUserRolePermission('create_student');
+                $this->checkUserRolePermission('create_student');
 
             $this->globalReturnArr['student_data'] = [];
         }
@@ -750,7 +748,7 @@ class GlobalViewDataController extends BaseController
     else {
 
         $this->globalReturnArr['page_permission'] =
-            $this->utilityService->checkUserRolePermission('view_student');
+            $this->checkUserRolePermission('view_student');
 
         if ($this->globalReturnArr['page_permission']) {
 
@@ -874,7 +872,7 @@ class GlobalViewDataController extends BaseController
 
             // CREATE
             $this->globalReturnArr['page_permission'] =
-                $this->utilityService->checkUserRolePermission('create_receipt');
+                $this->checkUserRolePermission('create_receipt');
 
             if ($this->globalReturnArr['page_permission']) {
                 $this->globalReturnArr['receipt_data'] = [];
@@ -889,7 +887,7 @@ class GlobalViewDataController extends BaseController
 
             // UPDATE
             $this->globalReturnArr['page_permission'] =
-                $this->utilityService->checkUserRolePermission('update_receipt');
+                $this->checkUserRolePermission('update_receipt');
 
             if ($this->globalReturnArr['page_permission']) {
 
@@ -916,7 +914,7 @@ class GlobalViewDataController extends BaseController
     // LIST VIEW
     // =========================
     $this->globalReturnArr['page_permission'] =
-        $this->utilityService->checkUserRolePermission('view_receipt');
+        $this->checkUserRolePermission('view_receipt');
 
     // Base filters
     $dataArr = [
@@ -992,7 +990,7 @@ class GlobalViewDataController extends BaseController
     // PERMISSION
     // =========================
     $this->globalReturnArr['page_permission'] =
-        $this->utilityService->checkUserRolePermission('view_due_students');
+        $this->checkUserRolePermission('view_due_students');
 
     $this->globalReturnArr['page_type'] = $type;
 
@@ -1079,7 +1077,7 @@ class GlobalViewDataController extends BaseController
     if (empty($_GET['type'])) {
       $user_role_slug = 'view_gallery';
       //Check user permission for this section
-      $this->globalReturnArr['page_permission'] = $this->utilityService->checkUserRolePermission($user_role_slug);
+      $this->globalReturnArr['page_permission'] = $this->checkUserRolePermission($user_role_slug);
 
       if ($this->globalReturnArr['page_permission']) {
         //Fetch gallery item
@@ -1090,7 +1088,7 @@ class GlobalViewDataController extends BaseController
     } else if ($_GET['type'] == 'add') {
       $user_role_slug = 'create_gallery';
       //Check user permission for this section
-      $this->globalReturnArr['page_permission'] = $this->utilityService->checkUserRolePermission($user_role_slug);
+      $this->globalReturnArr['page_permission'] = $this->checkUserRolePermission($user_role_slug);
 
       if ($this->globalReturnArr['page_permission']) {
         //Fetch all category list
@@ -1101,7 +1099,7 @@ class GlobalViewDataController extends BaseController
     } else {
       $user_role_slug = 'update_gallery';
       //Check user permission for this section
-      $this->globalReturnArr['page_permission'] = $this->utilityService->checkUserRolePermission($user_role_slug);
+      $this->globalReturnArr['page_permission'] = $this->checkUserRolePermission($user_role_slug);
 
       if ($this->globalReturnArr['page_permission']) {
         $media_id = $_GET['id'];
@@ -1121,7 +1119,7 @@ class GlobalViewDataController extends BaseController
   {
 
     //Check user permission for this section
-    $this->globalReturnArr['page_permission'] = $this->utilityService->checkUserRolePermission('view_category');
+    $this->globalReturnArr['page_permission'] = $this->checkUserRolePermission('view_category');
 
     $type = 'parent_category';
 
@@ -1147,7 +1145,7 @@ class GlobalViewDataController extends BaseController
   {
 
     //Check user permission for this section
-    $this->globalReturnArr['page_permission'] = $this->utilityService->checkUserRolePermission('manage_city_db');
+    $this->globalReturnArr['page_permission'] = $this->checkUserRolePermission('manage_city_db');
 
     $type = 'cities';
 
@@ -1173,7 +1171,7 @@ class GlobalViewDataController extends BaseController
   {
 
     //Check user permission for this section
-    $this->globalReturnArr['page_permission'] = $this->utilityService->checkUserRolePermission('view_enquiry');
+    $this->globalReturnArr['page_permission'] = $this->checkUserRolePermission('view_enquiry');
 
     $type = 'enquiry';
 
@@ -1225,7 +1223,7 @@ class GlobalViewDataController extends BaseController
   public function view_Email_Templates_Required_Data()
   {
     //Check user permission for this section
-    $this->globalReturnArr['page_permission'] = $this->utilityService->checkUserRolePermission('view_template');
+    $this->globalReturnArr['page_permission'] = $this->checkUserRolePermission('view_template');
 
     $type = 'email_template';
     //Fetching record status
@@ -1256,7 +1254,7 @@ class GlobalViewDataController extends BaseController
     if ($template_id > 0) {
       $user_role_slug = 'update_template';
       //Check user permission for this section
-      $this->globalReturnArr['page_permission'] = $this->utilityService->checkUserRolePermission($user_role_slug);
+      $this->globalReturnArr['page_permission'] = $this->checkUserRolePermission($user_role_slug);
 
       if ($this->globalReturnArr['page_permission']) {
         //Fetch email template detail
@@ -1267,7 +1265,7 @@ class GlobalViewDataController extends BaseController
     } else {
       $user_role_slug = 'create_template';
       //Check user permission for this section
-      $this->globalReturnArr['page_permission'] = $this->utilityService->checkUserRolePermission($user_role_slug);
+      $this->globalReturnArr['page_permission'] = $this->checkUserRolePermission($user_role_slug);
       $this->globalReturnArr['email_template_details'] = array();
     }
     return $this->globalReturnArr;
@@ -1276,7 +1274,7 @@ class GlobalViewDataController extends BaseController
   public function view_News_Required_Data()
   {
     //Check user permission for this section
-    $this->globalReturnArr['page_permission'] = $this->utilityService->checkUserRolePermission('view_news');
+    $this->globalReturnArr['page_permission'] = $this->checkUserRolePermission('view_news');
 
     $type = 'news';
     //Fetching record status
@@ -1308,7 +1306,7 @@ class GlobalViewDataController extends BaseController
     if ($news_id > 0) {
       $user_role_slug = 'update_news';
       //Check user permission for this section
-      $this->globalReturnArr['page_permission'] = $this->utilityService->checkUserRolePermission($user_role_slug);
+      $this->globalReturnArr['page_permission'] = $this->checkUserRolePermission($user_role_slug);
 
       if ($this->globalReturnArr['page_permission']) {
         //Fetch news detail
@@ -1319,7 +1317,7 @@ class GlobalViewDataController extends BaseController
     } else {
       $user_role_slug = 'create_news';
       //Check user permission for this section
-      $this->globalReturnArr['page_permission'] = $this->utilityService->checkUserRolePermission($user_role_slug);
+      $this->globalReturnArr['page_permission'] = $this->checkUserRolePermission($user_role_slug);
       $this->globalReturnArr['news_details'] = array();
     }
     return $this->globalReturnArr;
@@ -1351,7 +1349,7 @@ class GlobalViewDataController extends BaseController
       $paramArr['slider_type'] = $slider_type;
 
       //Check user permission for this section
-      $this->globalReturnArr['page_permission'] = $this->utilityService->checkUserRolePermission($user_role_slug);
+      $this->globalReturnArr['page_permission'] = $this->checkUserRolePermission($user_role_slug);
 
       if ($this->globalReturnArr['page_permission']) {
         //Fetch gallery item
@@ -1362,11 +1360,11 @@ class GlobalViewDataController extends BaseController
     } else if ($_GET['type'] == 'add') {
       $user_role_slug = 'manage_home_slider';
       //Check user permission for this section
-      $this->globalReturnArr['page_permission'] = $this->utilityService->checkUserRolePermission($user_role_slug);
+      $this->globalReturnArr['page_permission'] = $this->checkUserRolePermission($user_role_slug);
     } else {
       $user_role_slug = 'manage_home_slider';
       //Check user permission for this section
-      $this->globalReturnArr['page_permission'] = $this->utilityService->checkUserRolePermission($user_role_slug);
+      $this->globalReturnArr['page_permission'] = $this->checkUserRolePermission($user_role_slug);
 
       if ($this->globalReturnArr['page_permission']) {
         $slider_id = $_GET['id'];
@@ -1383,7 +1381,7 @@ class GlobalViewDataController extends BaseController
   public function view_Exam_Required_Data()
   {
     //Check user permission for this section
-    $this->globalReturnArr['page_permission'] = $this->utilityService->checkUserRolePermission('view_exam');
+    $this->globalReturnArr['page_permission'] = $this->checkUserRolePermission('view_exam');
 
     $type = 'exams';
     //Fetching record status
@@ -1418,7 +1416,7 @@ class GlobalViewDataController extends BaseController
     if ($exam_id > 0) {
       $user_role_slug = 'update_exam';
       //Check user permission for this section
-      $this->globalReturnArr['page_permission'] = $this->utilityService->checkUserRolePermission($user_role_slug);
+      $this->globalReturnArr['page_permission'] = $this->checkUserRolePermission($user_role_slug);
 
       if ($this->globalReturnArr['page_permission']) {
         //Fetch news detail
@@ -1435,7 +1433,7 @@ class GlobalViewDataController extends BaseController
     } else {
       $user_role_slug = 'create_exam';
       //Check user permission for this section
-      $this->globalReturnArr['page_permission'] = $this->utilityService->checkUserRolePermission($user_role_slug);
+      $this->globalReturnArr['page_permission'] = $this->checkUserRolePermission($user_role_slug);
       $this->globalReturnArr['exam_details'] = array();
 
       //Fetch all active course & franchise list
@@ -1460,7 +1458,7 @@ class GlobalViewDataController extends BaseController
     if ($exam_id > 0) {
       $user_role_slug = 'update_exam';
       //Check user permission for this section
-      $this->globalReturnArr['page_permission'] = $this->utilityService->checkUserRolePermission($user_role_slug);
+      $this->globalReturnArr['page_permission'] = $this->checkUserRolePermission($user_role_slug);
 
       if ($this->globalReturnArr['page_permission']) {
         //Fetch news detail
@@ -1521,7 +1519,7 @@ class GlobalViewDataController extends BaseController
 
     $user_role_slug = 'manage_profile';
     //Check user permission for this section
-    $this->globalReturnArr['page_permission'] = $this->utilityService->checkUserRolePermission($user_role_slug);
+    $this->globalReturnArr['page_permission'] = $this->checkUserRolePermission($user_role_slug);
 
     if ($this->globalReturnArr['page_permission']) {
 
@@ -1548,7 +1546,7 @@ class GlobalViewDataController extends BaseController
 
     $user_role_slug = 'manage_profile';
     //Check user permission for this section
-    $this->globalReturnArr['page_permission'] = $this->utilityService->checkUserRolePermission($user_role_slug);
+    $this->globalReturnArr['page_permission'] = $this->checkUserRolePermission($user_role_slug);
 
     if ($this->globalReturnArr['page_permission']) {
 
@@ -1573,7 +1571,7 @@ class GlobalViewDataController extends BaseController
 
     $user_role_slug = 'update_site_setting';
     //Check user permission for this section
-    $this->globalReturnArr['page_permission'] = $this->utilityService->checkUserRolePermission($user_role_slug);
+    $this->globalReturnArr['page_permission'] = $this->checkUserRolePermission($user_role_slug);
 
     if ($this->globalReturnArr['page_permission']) {
       //Fetch site setting detail

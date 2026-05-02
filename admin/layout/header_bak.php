@@ -89,7 +89,7 @@
                             </div>
                         </li>
 
-                        <?php if($this->utilityService->checkUserRolePermission("view_dashboard") || $_SESSION['user_type'] == 'student'){ ?>  
+                        <?php if($this->checkUserRolePermission("view_dashboard") || $_SESSION['user_type'] == 'student'){ ?>  
                             <li <?php if(!$_GET['route']||$_GET['route'] == "home") echo "class='active'"; ?>>
                                 <a href="<?=SITE_URL?>"><i class="fa fa-desktop"></i> <span class="nav-label">Dashboard</span></a>
                             </li> 
@@ -97,13 +97,13 @@
 
                         
                         
-                        <?php if($this->utilityService->checkUserRolePermission("view_franchise")){ ?>
+                        <?php if($this->checkUserRolePermission("view_franchise")){ ?>
                             <li <?php if(in_array($_GET['route'], array('view_franchises','add_franchise','edit_franchise'))){echo "class='active'"; } ?>>
                              
                               <a href="javascript:void(0)"><i class="fa fa-university"></i> <span class="nav-label">Franchises </span> <span class="fa arrow"></span></a>
                                  <ul class="nav nav-second-level">
 
-                                    <?php if($this->utilityService->checkUserRolePermission("view_franchise")){ ?>
+                                    <?php if($this->checkUserRolePermission("view_franchise")){ ?>
 
                                          <li <?php if($_GET['route'] == "view_franchises") echo "class='active'"; ?>>
                                             <a href="<?=SITE_URL?>?route=view_franchises"> <i class="fa fa-list"></i> Franchise List</a>
@@ -111,7 +111,7 @@
 
                                     <?php } ?>   
                                     
-                                    <?php if($this->utilityService->checkUserRolePermission("create_franchise")){ ?>     
+                                    <?php if($this->checkUserRolePermission("create_franchise")){ ?>     
 
                                          <li <?php if($_GET['route'] == "add_franchise") echo "class='active'"; ?>>
                                             <a href="<?=SITE_URL?>?route=add_franchise"> <i class="fa fa-plus-circle"></i> Add New Franchise</a>
@@ -122,14 +122,14 @@
                             </li>
                         <?php } ?>    
 
-                        <?php if($this->utilityService->checkUserRolePermission("view_course")){ ?> 
+                        <?php if($this->checkUserRolePermission("view_course")){ ?> 
 
                             <li <?php if($_GET['route'] == "view_courses" || $_GET['route'] == "add_course" || $_GET['route'] == "edit_course") echo "class='active'"; ?>>
                              
                               <a href="javascript:void(0)"><i class="fa fa-laptop"></i> <span class="nav-label">Courses </span> <span class="fa arrow"></span></a>
                                  <ul class="nav nav-second-level">
 
-                                    <?php if($this->utilityService->checkUserRolePermission("view_course")){ ?>
+                                    <?php if($this->checkUserRolePermission("view_course")){ ?>
 
                                          <li <?php if($_GET['route'] == "view_courses") echo "class='active'"; ?>>
                                             <a href="<?=SITE_URL?>?route=view_courses"> <i class="fa fa-list"></i> Course List</a>
@@ -137,7 +137,7 @@
 
                                     <?php } ?>
                                     
-                                    <?php if($this->utilityService->checkUserRolePermission("create_course")){ ?>     
+                                    <?php if($this->checkUserRolePermission("create_course")){ ?>     
 
                                          <li <?php if($_GET['route'] == "add_course") echo "class='active'"; ?>>
                                             <a href="<?=SITE_URL?>?route=add_course"> <i class="fa fa-plus-circle"></i> Add New Course</a>
@@ -149,14 +149,14 @@
                         <?php } ?>
 
                         
-                        <?php if($this->utilityService->checkUserRolePermission("view_student")){ ?>    
+                        <?php if($this->checkUserRolePermission("view_student")){ ?>    
 
                             <li <?php if($_GET['route'] == "view_students" || $_GET['route'] == "add_student" || $_GET['route'] == "edit_student" || $_GET['route'] == "student_admission") echo "class='active'"; ?>>
                              
                               <a href="javascript:void(0)"><i class="fa fa-mortar-board"></i> <span class="nav-label">Students </span> <span class="fa arrow"></span></a>
                                  <ul class="nav nav-second-level">
 
-                                    <?php if($this->utilityService->checkUserRolePermission("view_student")){ ?>
+                                    <?php if($this->checkUserRolePermission("view_student")){ ?>
 
                                          <li <?php if($_GET['route'] == "view_students") echo "class='active'"; ?>>
                                             <a href="<?=SITE_URL?>?route=view_students"> <i class="fa fa-list"></i> Student List</a>
@@ -164,7 +164,7 @@
 
                                     <?php } ?>
                                     
-                                    <?php if($this->utilityService->checkUserRolePermission("create_student")){ ?>     
+                                    <?php if($this->checkUserRolePermission("create_student")){ ?>     
 
                                          <li <?php if($_GET['route'] == "add_student") echo "class='active'"; ?>>
                                             <a href="<?=SITE_URL?>?route=add_student"> <i class="fa fa-plus-circle"></i> Add New Student</a>
@@ -175,28 +175,28 @@
                             </li>
                          <?php } ?>
                          
-                         <?php if($this->utilityService->checkUserRolePermission("view_receipt")){ ?>
+                         <?php if($this->checkUserRolePermission("view_receipt")){ ?>
 
                              <li <?php if($_GET['route'] == "view_receipts" || $_GET['route'] == "manage_receipt") echo "class='active'"; ?>>
                                 <a href="<?=SITE_URL?>?route=view_receipts"><i class="fa fa-money"></i> <span class="nav-label">Receipts</span></a>
                              </li>
                          <?php } ?>   
 
-                         <?php if($this->utilityService->checkUserRolePermission("view_gallery")){ ?> 
+                         <?php if($this->checkUserRolePermission("view_gallery")){ ?> 
 
                              <li <?php if($_GET['route'] == "gallery") echo "class='active'"; ?>>
                                 <a href="<?=SITE_URL?>?route=gallery"><i class="fa fa-picture-o"></i> <span class="nav-label">Gallery</span></a>
                              </li>
                          <?php } ?>  
 
-                        <?php if($this->utilityService->checkUserRolePermission("manage_home_slider") || $this->utilityService->checkUserRolePermission("manage_city_db")){ ?>    
+                        <?php if($this->checkUserRolePermission("manage_home_slider") || $this->checkUserRolePermission("manage_city_db")){ ?>    
 
                             <li <?php if($_GET['route'] == "home_sliders" || $_GET['route'] == "manage_cities") echo "class='active'"; ?>>
                              
                               <a href="javascript:void(0)"><i class="fa fa-pencil-square-o"></i> <span class="nav-label">CMS Management </span> <span class="fa arrow"></span></a>
                                  <ul class="nav nav-second-level">
 
-                                    <?php if($this->utilityService->checkUserRolePermission("manage_home_slider")){ ?>
+                                    <?php if($this->checkUserRolePermission("manage_home_slider")){ ?>
 
                                          <li <?php if($_GET['route'] == "home_sliders") echo "class='active'"; ?>>
                                             <a href="<?=SITE_URL?>?route=home_sliders"> <i class="fa fa-picture-o"></i> Home Slider</a>
@@ -204,7 +204,7 @@
 
                                     <?php } ?>
                                     
-                                    <?php if($this->utilityService->checkUserRolePermission("manage_city_db")){ ?>     
+                                    <?php if($this->checkUserRolePermission("manage_city_db")){ ?>     
 
                                          <li <?php if($_GET['route'] == "manage_cities") echo "class='active'"; ?>>
                                             <a href="<?=SITE_URL?>?route=manage_cities"> <i class="fa fa-building-o"></i> Manage City DB</a>
@@ -216,27 +216,27 @@
                          <?php } ?>
 
                     
-                        <?php if($this->utilityService->checkUserRolePermission("view_category")){ ?>   
+                        <?php if($this->checkUserRolePermission("view_category")){ ?>   
 
                             <li <?php if($_GET['route'] == "view_category") echo "class='active'"; ?>>
                                 <a href="<?=SITE_URL?>?route=view_category"><i class="fa fa-sitemap"></i> <span class="nav-label">Category</span></a>
                             </li>
                         <?php } ?>   
 
-                        <?php if($this->utilityService->checkUserRolePermission("view_template")){ ?>  
+                        <?php if($this->checkUserRolePermission("view_template")){ ?>  
 
                             <li <?php if($_GET['route'] == "view_email_templates" || $_GET['route'] == "add_email_template" || $_GET['route'] == "edit_email_template") echo "class='active'";?>>
                                <a href="javascript:void(0)"><i class="fa fa-inbox"></i> <span class="nav-label">Email Templates </span> <span class="fa arrow"></span></a>
                                  <ul class="nav nav-second-level">
 
-                                    <?php if($this->utilityService->checkUserRolePermission("view_template")){ ?>
+                                    <?php if($this->checkUserRolePermission("view_template")){ ?>
                                          <li <?php if($_GET['route'] == "view_email_templates") echo "class='active'"; ?>>
                                             <a href="<?=SITE_URL?>?route=view_email_templates"> <i class="fa fa-list"></i>Email Template List</a>
                                          </li>
 
                                     <?php } ?>     
                                     
-                                    <?php if($this->utilityService->checkUserRolePermission("create_template")){ ?>
+                                    <?php if($this->checkUserRolePermission("create_template")){ ?>
                                          <li <?php if($_GET['route'] == "add_email_template") echo "class='active'"; ?>>
                                             <a href="<?=SITE_URL?>?route=add_email_template"> <i class="fa fa-plus-circle"></i>Add New Template</a>
                                          </li>
@@ -246,13 +246,13 @@
                              </li>
                         <?php } ?> 
 
-                        <?php if($this->utilityService->checkUserRolePermission("view_news")){ ?>  
+                        <?php if($this->checkUserRolePermission("view_news")){ ?>  
 
                             <li <?php if($_GET['route'] == "view_news" || $_GET['route'] == "add_news" || $_GET['route'] == "edit_news") echo "class='active'";?>>
                                <a href="javascript:void(0)"><i class="fa fa-question-circle"></i> <span class="nav-label">News </span> <span class="fa arrow"></span></a>
                                  <ul class="nav nav-second-level">
 
-                                    <?php if($this->utilityService->checkUserRolePermission("view_news")){ ?>
+                                    <?php if($this->checkUserRolePermission("view_news")){ ?>
 
                                          <li <?php if($_GET['route'] == "view_news") echo "class='active'"; ?>>
                                             <a href="<?=SITE_URL?>?route=view_news"> <i class="fa fa-list"></i>News List</a>
@@ -260,7 +260,7 @@
 
                                     <?php } ?>   
 
-                                    <?php if($this->utilityService->checkUserRolePermission("create_news")){ ?>  
+                                    <?php if($this->checkUserRolePermission("create_news")){ ?>  
                                   
                                          <li <?php if($_GET['route'] == "add_news") echo "class='active'"; ?>>
                                             <a href="<?=SITE_URL?>?route=add_news"> <i class="fa fa-plus-circle"></i>Add New News</a>
@@ -272,21 +272,21 @@
                         <?php } ?>   
                         
 
-                        <?php if($this->utilityService->checkUserRolePermission("view_enquiry")){ ?>  
+                        <?php if($this->checkUserRolePermission("view_enquiry")){ ?>  
                             <li <?php if($_GET['route'] == "view_enquiry") echo "class='active'"; ?>>
                                 <a href="<?=SITE_URL?>?route=view_enquiry"><i class="fa fa-envelope-o"></i> <span class="nav-label">Enquiry</span></a>
                             </li>
                         <?php } ?> 
 
 
-                        <?php if($this->utilityService->checkUserRolePermission("update_site_setting") || $this->utilityService->checkUserRolePermission("manage_profile") && $_SESSION['user_type']!='student'){ ?>
+                        <?php if($this->checkUserRolePermission("update_site_setting") || $this->checkUserRolePermission("manage_profile") && $_SESSION['user_type']!='student'){ ?>
 
                             <li <?php if($_GET['route'] == "edit_profile" || $_GET['route'] == "edit_admin_profile" || $_GET['route'] == "edit_site_setting") echo "class='active'"; ?>>
                                
                                <a href="javascript:void(0)"><i class="fa fa-cogs"></i> <span class="nav-label">Settings </span> <span class="fa arrow"></span></a>
                                  <ul class="nav nav-second-level">
 
-                                    <?php if($this->utilityService->checkUserRolePermission("manage_profile")){ ?>  
+                                    <?php if($this->checkUserRolePermission("manage_profile")){ ?>  
                                       
                                          <li <?php if($_GET['route'] == "edit_profile") echo "class='active'"; ?>>
                                             <a href="<?=SITE_URL?>?route=edit_profile"> <i class="fa fa-user-circle"></i>Manage Profile</a>
@@ -299,7 +299,7 @@
                                          <?php } ?>
                                      <?php } ?>
                                      
-                                     <?php if($this->utilityService->checkUserRolePermission("update_site_setting")){ ?>                              
+                                     <?php if($this->checkUserRolePermission("update_site_setting")){ ?>                              
                                          <li <?php if($_GET['route'] == "edit_site_setting") echo "class='active'"; ?>>
                                             <a href="<?=SITE_URL?>?route=edit_site_setting"> <i class="fa fa-cog"></i>Site Settings</a>
                                          </li>
@@ -308,7 +308,7 @@
                              </li>
                          <?php } ?>    
 
-                          <?php if($_SESSION['user_type'] == 'student' && $this->utilityService->checkUserRolePermission("manage_profile")){ ?> 
+                          <?php if($_SESSION['user_type'] == 'student' && $this->checkUserRolePermission("manage_profile")){ ?> 
 
                             <li <?php if($_GET['route'] == "edit_profile") echo "class='active'"; ?>>
                                 <a href="<?=SITE_URL?>?route=edit_profile"><i class="fa fa-cog"></i> <span class="nav-label">Profile Settings</span></a>
@@ -374,7 +374,7 @@
                             </a>  
                         <?php } ?>       
 
-                         <?php if($this->utilityService->checkUserRolePermission("update_site_setting","soft")){ ?>    
+                         <?php if($this->checkUserRolePermission("update_site_setting","soft")){ ?>    
                             <button type="button" class="btn btn-primary cleanRuntimeUpload" data-toggle="tooltip" data-placement="bottom" title="Clean Runtime Garbage Files From Server"><i class="fa fa-recycle"></i></button>
                          <?php } ?>
                        

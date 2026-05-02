@@ -12,9 +12,9 @@
   }
 
   //Fetching page action permission
-  $createPermission = $this->utilityService->checkUserRolePermission("create_template"); 
-  $updatePermission = $this->utilityService->checkUserRolePermission("update_template"); 
-  $deletePermission = $this->utilityService->checkUserRolePermission("delete_template"); 
+  $createPermission = $this->checkUserRolePermission("create_template"); 
+  $updatePermission = $this->checkUserRolePermission("update_template"); 
+  $deletePermission = $this->checkUserRolePermission("delete_template"); 
   /*print"<pre>";
   print_r($templateArr); 
   print"</pre>";*/ 

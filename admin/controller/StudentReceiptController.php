@@ -4,14 +4,12 @@ defined('ROOTPATH') or exit('No direct script access allowed');
 class StudentReceiptController extends BaseController
 {
 
-    private $utilityService;
     private $studentReceiptService;
 
     public function __construct()
     {
         parent::__construct();
 
-        $this->utilityService = new UtilityService($this->interface, $this->lib);
         $this->studentReceiptService = new StudentReceiptService($this->interface, $this->lib);
     }
 
@@ -50,14 +48,14 @@ class StudentReceiptController extends BaseController
         } else {
             $user_role_slug = 'create_receipt';
             $formDataArr['receipt_row_id'] = null;
-            $formDataArr['receipt_id'] = $this->utilityService->create_Receipt_ID();
+            $formDataArr['receipt_id'] = $this->studentReceiptService->create_Receipt_ID();
         }
 
         $formDataArr['category_id'] = $post('category_id');
         $send_mail = $post('send_mail');
 
         // ===== PERMISSION =====
-        if (!$this->utilityService->checkUserRolePermission($user_role_slug, "hard")) {
+        if (!$this->checkUserRolePermission($user_role_slug, "hard")) {
             return ['check' => 'failure', 'message' => "You don't have the permission to perform this action!"];
         }
 
@@ -209,7 +207,7 @@ class StudentReceiptController extends BaseController
         // ---------------------------------
         // PERMISSION FOR RECEIPT CREATION
         // ---------------------------------
-        if (!$this->utilityService->checkUserRolePermission('create_receipt', "hard")) {
+        if (!$this->checkUserRolePermission('create_receipt', "hard")) {
             return ['check' => 'failure', 'message' => "You don't have permission!"];
         }
 
@@ -258,7 +256,7 @@ class StudentReceiptController extends BaseController
         // -----------------------------
         $user_role_slug = "view_receipt";
 
-        if (!$this->utilityService->checkUserRolePermission($user_role_slug, "hard")) {
+        if (!$this->checkUserRolePermission($user_role_slug, "hard")) {
             return ['check' => 'failure', 'message' => "You don't have the permission to perform this action!"];
         }
 
@@ -329,7 +327,7 @@ class StudentReceiptController extends BaseController
         // -----------------------------
         // PERMISSION CHECK
         // -----------------------------
-        if (!$this->utilityService->checkUserRolePermission('create_receipt', "hard")) {
+        if (!$this->checkUserRolePermission('create_receipt', "hard")) {
             return ['check' => 'failure', 'message' => "You don't have permission!"];
         }
 
@@ -361,7 +359,7 @@ class StudentReceiptController extends BaseController
         $id = $post('id');
 
         // PERMISSION
-        if (!$this->utilityService->checkUserRolePermission('create_receipt', "hard")) {
+        if (!$this->checkUserRolePermission('create_receipt', "hard")) {
             return ['check' => 'failure', 'message' => "You don't have the permission to perform this action!"];
         }
 

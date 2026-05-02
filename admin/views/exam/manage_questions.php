@@ -39,9 +39,13 @@ $question_div_collapse = $_COOKIE['question_div_collapse'] == "true" ? "collapse
         <div class="ibox-title">
           <h5>Exam Details </h5>
           <div class="ibox-tools">
-            <button type="button" class="btn btn-primary btn-xs" onclick="fetchAllQuestions()"><i class="fa fa-refresh"> </i> Referesh Questions</button>
+            <button type="button" class="btn btn-primary btn-xs" onclick=" loadQuestions({ page: currentPage,append: false });">
+              <i class="fa fa-refresh"> </i> Referesh Questions
+            </button>
 
-            <button type="button" class="btn btn-xs btn-danger handle_import_div" data-htype="show"><i class="fa fa-file-excel-o"> </i> Import Data in CSV Format</button>
+            <button type="button" class="btn btn-xs btn-danger handle_import_div" data-htype="show">
+              <i class="fa fa-file-excel-o"> </i> Import Data in CSV Format
+            </button>
 
             <div class="btn-group">
               <button type="button" class="btn btn-xs btn-white <?= ($_COOKIE['question_div_collapse'] == "true" ? "active" : "") ?>" id="collapse_question_divs">Collapse Question's Section</button>
@@ -100,7 +104,7 @@ $question_div_collapse = $_COOKIE['question_div_collapse'] == "true" ? "collapse
                   <span class="label label-<?= ($examDetails->record_status == 'active' ? 'primary' : 'danger') ?> cursor-pointer" data-toggle="tooltip" data-placement="bottom" title="Exam Status: <?= ucfirst($examDetails->record_status) ?>"><?= ucfirst($examDetails->record_status) ?></span>
                 </td>
                 <td class="project-status vertical-align-middle">
-                  <button class="btn btn-danger btn-sm" id="delete_all_questions" data-toggle="tooltip" data-placement="bottom" title="Delete all Question">Delete</button>
+                  <button class="btn btn-danger btn-sm" id="delete_all_questions" disabled="<?= (!empty($questions) ? 'false' : 'true') ?>" data-toggle="tooltip" data-placement="bottom" title="Delete all Question">Delete</button>
                 </td>
               </tr>
             </tbody>
@@ -149,13 +153,6 @@ $question_div_collapse = $_COOKIE['question_div_collapse'] == "true" ? "collapse
           </div>
         </div>
       </div>
-
-      <div class="alert alert-warning <?= (!empty($questions) ? 'd-none' : '') ?>" role="alert" id="add_first_question">
-        <div class="d-flex justify-content-between">
-          <span><strong>Warning!</strong> No question is added yet for this exam, please add questions by clicking on the add your first question button besides.</span>
-          <button class="btn btn-success btn-sm"><i class="fa fa-plus-circle"> Add Your First Question</i></button>
-        </div>
-      </div>
     </div>
   </div>
 
@@ -186,6 +183,37 @@ $question_div_collapse = $_COOKIE['question_div_collapse'] == "true" ? "collapse
     </div>
   </div>
 
+  <div class="row" id="search_question_div" <?= (!empty($questions) ? '' : 'd-none') ?>>
+    <div class="col-lg-12">
+      <div class="ibox">
+        <div class="ibox-title">
+          <h5>Search Question</h5>
+          <div class="ibox-tools">
+            <a class="collapse-link">
+              <i class="fa fa-chevron-up"></i>
+            </a>
+          </div>
+        </div>
+        <div class="ibox-content">
+          <form id="search_question_form" onsubmit="return false;">
+            <div class="row">
+              <div class="col-lg-9 col-md-9 col-sm-12 m-b-xs">
+                <input type="text" class="form-control" name="search_string" id="search_string" placeholder="Search question by text...">
+              </div>
+
+              <div class="col-lg-3 col-md-3 col-sm-12">
+                <button class="btn btn-primary p-2" type="submit"><i class="fa fa-search"></i>&nbsp;Search Question</button>
+                <button class="btn btn-danger p-2 d-none" type="button" id="remove_question_filter" data-toggle="tooltip" title="Remove current search filter">
+                  <i class="fa fa-times"></i>&nbsp;Remove
+                </button>
+              </div>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <div class="row">
     <div class="col-lg-12">
       <form id="manage_exam_questions_form" class="needs-validation" method="post" onsubmit="return false;">
@@ -197,8 +225,8 @@ $question_div_collapse = $_COOKIE['question_div_collapse'] == "true" ? "collapse
         <input type="hidden" name="action" id="action" value="manageExamQuestions">
         <input type="hidden" name="exam_id" id="exam_id" value="<?= $exam_id ?>">
 
-        <div class="fab-outer">
-          <div class="form-action-btns <?= (!empty($questions) ? '' : 'd-none') ?>">
+        <div class="fab-outer" id="question_action_div">
+          <div class="form-action-btns">
 
             <!-- LEFT -->
             <div class="fab-group fab-left">
@@ -251,6 +279,28 @@ $question_div_collapse = $_COOKIE['question_div_collapse'] == "true" ? "collapse
         <div id="latest_changes_container" class="mt-4 d-none">
           <h4>Latest Changes</h4>
           <div id="latest_changes_container"></div>
+        </div>
+
+        <div class="ibox <?= (!empty($questions) ? '' : 'd-none') ?>" id="empty_question_container">
+
+          <div class="ibox-title">
+            <h5>Empty Question Action</h5>
+          </div>
+
+          <div class="ibox-content">
+
+            <div class="alert alert-danger text-center font-weight-bold mt-4 d-none" role="alert" id="empty_question_msg">
+              <span><strong>Note!</strong>&nbsp;No question was found for your search criteria</span>
+            </div>
+
+            <div class="alert alert-warning mt-4 <?= (!empty($questions) ? 'd-none' : '') ?>" role="alert" id="add_first_question">
+              <div class="d-flex justify-content-between">
+                <span><strong>Warning!</strong>&nbsp;No question is added yet for this exam, please add questions by clicking on the add your first question button besides.</span>
+                <button class="btn btn-success btn-sm"><i class="fa fa-plus-circle"> Add Your First Question</i></button>
+              </div>
+            </div>
+
+          </div>
         </div>
 
       </form>
@@ -821,7 +871,6 @@ $question_div_collapse = $_COOKIE['question_div_collapse'] == "true" ? "collapse
   }
 
   function updatePaginationUI(totalCount) {
-
     const totalPages = Math.ceil(totalCount / questionLimit);
 
     if (totalPages <= 1) {
@@ -836,12 +885,11 @@ $question_div_collapse = $_COOKIE['question_div_collapse'] == "true" ? "collapse
     // PREVIOUS
     // =========================
     html += `
-  <li class="page-item ${currentPage === 1 ? 'disabled' : ''}">
-    <a class="page-link page-btn" href="javascript:void(0);" data-page="${currentPage - 1}">
-      &laquo; Prev
-    </a>
-  </li>
-`;
+    <li class="page-item ${currentPage === 1 ? 'disabled' : ''}">
+      <a class="page-link page-btn" href="javascript:void(0);" data-page="${currentPage - 1}">
+        &laquo; Prev
+      </a>
+    </li>`;
 
     const visibleRange = 2;
     let start = Math.max(1, currentPage - visibleRange);
@@ -881,12 +929,11 @@ $question_div_collapse = $_COOKIE['question_div_collapse'] == "true" ? "collapse
     // NEXT
     // =========================
     html += `
-  <li class="page-item ${currentPage === totalPages ? 'disabled' : ''}">
-    <a class="page-link page-btn" href="javascript:void(0);" data-page="${currentPage + 1}">
-      Next &raquo;
-    </a>
-  </li>
-`;
+      <li class="page-item ${currentPage === totalPages ? 'disabled' : ''}">
+        <a class="page-link page-btn" href="javascript:void(0);" data-page="${currentPage + 1}">
+          Next &raquo;
+        </a>
+      </li>`;
 
     html += `</ul></nav>`;
 
@@ -914,8 +961,42 @@ $question_div_collapse = $_COOKIE['question_div_collapse'] == "true" ? "collapse
     /*------- Ends Here ---------*/
   }
 
+  function handleQuestionLengthUI(count, search_string = null) {
+    const emptyMsg = search_string ?
+      "No results found for your search" :
+      "No questions available";
+
+    if (count === 0) {
+      $("#delete_all_questions").attr('disabled', true);
+      $("#question_list_div").addClass('d-none');
+      $("#pagination_container").addClass('d-none');
+      $("#empty_question_container").removeClass('d-none');
+
+      if (search_string !== null) {
+        $("#add_first_question").addClass('d-none');
+        $("#empty_question_msg").removeClass('d-none');
+      } else {
+        $("#empty_question_msg").addClass('d-none');
+        $("#search_question_div").addClass('d-none');
+        //$("#question_action_div").addClass('d-none');
+        $("#add_first_question").removeClass('d-none');
+      }
+    } else {
+      $("#delete_all_questions").attr('disabled', false);
+      $("#question_list_div").removeClass('d-none');
+      $("#search_question_div").removeClass('d-none');
+      //$("#question_action_div").removeClass('d-none');
+      $("#pagination_container").removeClass('d-none');
+
+      $("#empty_question_container").addClass('d-none');
+      $("#empty_question_msg").addClass('d-none');
+      $("#add_first_question").addClass('d-none');
+    }
+  }
+
   function loadQuestions({
     page = 1,
+    search_string = null,
     append = false
   } = {}) {
 
@@ -929,8 +1010,9 @@ $question_div_collapse = $_COOKIE['question_div_collapse'] == "true" ? "collapse
 
     ajaxRequest({
       action: "fetchQuestions",
-      exam_id: exam_id,
-      page: page,
+      exam_id,
+      search_string,
+      page,
       limit: questionLimit
     }, ajaxControllerHandler, function(data) {
 
@@ -944,6 +1026,9 @@ $question_div_collapse = $_COOKIE['question_div_collapse'] == "true" ? "collapse
       const questions = data.questions || [];
       totalQuestionCount = data.total_count;
       const collapsed = question_div_collapse === 'true' ? 'collapsed' : 'open';
+
+      // Handle ui based on question count
+      handleQuestionLengthUI(questions.length, search_string);
 
       // Render
       questions.forEach((question, i) => {
@@ -1071,13 +1156,20 @@ $question_div_collapse = $_COOKIE['question_div_collapse'] == "true" ? "collapse
 
     const questionCount = getQuestionCount();
 
-    $(".form-action-btns").toggleClass("d-none", totalQuestionCount === 0);
+    //$(".form-action-btns").toggleClass("d-none", totalQuestionCount === 0);
     $("#question_list_div").toggleClass("d-none", totalQuestionCount === 0);
     $("#add_first_question").toggleClass("d-none", totalQuestionCount !== 0);
 
     $("#pagination_container").removeClass("d-none");
 
     $("#select_all_questions").prop("checked", $(this).is(":checked")).trigger("change");
+
+    // ---- GLOBAL SAVE BUTTON ----
+    if (hasUnsavedChanges()) {
+      $("#saveQuestions").addClass("btn-warning");
+    } else {
+      $("#saveQuestions").removeClass("btn-warning");
+    }
 
     if (questionCount > 0) {
 
@@ -1086,13 +1178,6 @@ $question_div_collapse = $_COOKIE['question_div_collapse'] == "true" ? "collapse
       // only if deleted from db
       if (dbDelete) {
         createSnapshot();
-      }
-
-      // ---- GLOBAL SAVE BUTTON ----
-      if (hasUnsavedChanges()) {
-        $("#saveQuestions").addClass("btn-warning");
-      } else {
-        $("#saveQuestions").removeClass("btn-warning");
       }
 
       const targetId = questionCount > 1 ?
@@ -1279,6 +1364,9 @@ $question_div_collapse = $_COOKIE['question_div_collapse'] == "true" ? "collapse
 
       // Update list
       arrangeQuestionList();
+
+      // Handle ui based on question count
+      handleQuestionLengthUI(divIndex);
 
       // Scroll
       document.getElementById(targetDiv)?.scrollIntoView({
@@ -1725,6 +1813,39 @@ $question_div_collapse = $_COOKIE['question_div_collapse'] == "true" ? "collapse
         }
 
         return;
+      });
+
+    });
+
+    $(document).on('submit', '#search_question_form', function(event) {
+      event.preventDefault();
+
+      const search_string = $("#search_string").val();
+
+      if (hasUnsavedChanges()) {
+        toastr.warning("Please save changes before navigating.");
+        return;
+      }
+
+      loadQuestions({
+        page: 1,
+        search_string,
+        append: false
+      });
+
+      // Handling UI state
+      $("#remove_question_filter").removeClass('d-none');
+
+    });
+
+    $(document).on('click', '#remove_question_filter', function(event) {
+      // Handling UI state
+      $(this).addClass('d-none');
+      $("#search_string").val('');
+
+      loadQuestions({
+        page: currentPage,
+        append: false
       });
 
     });

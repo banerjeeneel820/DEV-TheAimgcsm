@@ -2,13 +2,10 @@
 defined('ROOTPATH') or exit('No direct script access allowed');
 
 class CourseFranchiseController extends BaseController
-{
-    private $utilityService;
-    
+{    
     public function __construct()
     {
         parent::__construct();
-        $this->utilityService = new UtilityService($this->interface,$this->lib);    
     }
 
     protected function create_Frnachise_ID()
@@ -45,7 +42,7 @@ class CourseFranchiseController extends BaseController
 
         $role = $isUpdate ? 'update_franchise' : 'create_franchise';
 
-        if (!$this->utilityService->checkUserRolePermission($role, "hard")) {
+        if (!$this->checkUserRolePermission($role, "hard")) {
             return ['check' => 'failure', 'message' => "You don't have permission!"];
         }
 
@@ -174,7 +171,7 @@ class CourseFranchiseController extends BaseController
 
         $role = $isUpdate ? 'update_course' : 'create_course';
 
-        if (!$this->utilityService->checkUserRolePermission($role, "hard")) {
+        if (!$this->checkUserRolePermission($role, "hard")) {
             return ['check' => 'failure', 'message' => "You don't have permission!"];
         }
 

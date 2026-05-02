@@ -29,7 +29,7 @@
   }
   
   //Fetching page action permission
-  $pagePermission = $this->utilityService->checkUserRolePermission("manage_home_slider"); 
+  $pagePermission = $this->checkUserRolePermission("manage_home_slider"); 
 
   /*print"<pre>";
   print_r($sliderArr);

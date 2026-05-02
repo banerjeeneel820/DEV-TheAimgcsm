@@ -3,12 +3,10 @@ defined('ROOTPATH') or exit('No direct script access allowed');
 
 class ExamController extends BaseController
 {
-    private $utilityService;
 
     public function __construct()
     {
         parent::__construct();
-        $this->utilityService = new UtilityService($this->interface, $this->lib);
     }
 
     public function manage_exam($data)
@@ -32,7 +30,7 @@ class ExamController extends BaseController
         // -----------------------------
         // Permission Check
         // -----------------------------
-        if (!$this->utilityService->checkUserRolePermission($user_role_slug, "hard")) {
+        if (!$this->checkUserRolePermission($user_role_slug, "hard")) {
             return ['check' => 'failure', 'message' => "You don't have the permission to perform this action!"];
         }
 
@@ -124,7 +122,7 @@ class ExamController extends BaseController
         // -----------------------------
         $user_role_slug = 'update_exam';
 
-        if (!$this->utilityService->checkUserRolePermission($user_role_slug, "hard")) {
+        if (!$this->checkUserRolePermission($user_role_slug, "hard")) {
             return ['check' => 'failure', 'message' => "You don't have the permission to perform this action!"];
         }
 
@@ -156,22 +154,21 @@ class ExamController extends BaseController
         // -----------------------------
         $user_role_slug = 'update_exam';
 
-        if (!$this->utilityService->checkUserRolePermission($user_role_slug, "hard")) {
+        if (!$this->checkUserRolePermission($user_role_slug, "hard")) {
             return ['check' => 'failure', 'message' => "You don't have the permission to perform this action!"];
         }
 
         // -----------------------------
         // Basic Data
         // -----------------------------
-        $paramArr['exam_id'] = $post('exam_id');
-
+        $paramArr['exam_id'] = $post('exam_id') ?? NULL;
+        $paramArr['search_string'] = $post('search_string');
+        
         // -----------------------------
         // Pagination Data
         // -----------------------------
-        $paramArr['page']   = $post('page ') ?? 1;
+        $paramArr['page']   = $post('page') ?? 1;
         $paramArr['limit']  = $post('limit') ?? 10;
-
-        $paramArr['offset'] = ($paramArr['page'] - 1) * $paramArr['limit'];
 
         // -----------------------------
         // Fetch Questions
@@ -195,7 +192,7 @@ class ExamController extends BaseController
         // -----------------------------
         $user_role_slug = 'update_exam';
 
-        if (!$this->utilityService->checkUserRolePermission($user_role_slug, "hard")) {
+        if (!$this->checkUserRolePermission($user_role_slug, "hard")) {
             return [
                 'check' => 'failure',
                 'message' => "You don't have the permission to perform this action!"
@@ -313,7 +310,7 @@ class ExamController extends BaseController
         // -----------------------------
         $user_role_slug = 'update_exam';
 
-        if (!$this->utilityService->checkUserRolePermission($user_role_slug, "hard")) {
+        if (!$this->checkUserRolePermission($user_role_slug, "hard")) {
             return ['check' => 'failure', 'message' => "You don't have the permission to perform this action!"];
         }
 
@@ -369,7 +366,7 @@ class ExamController extends BaseController
         // -----------------------------
         $user_role_slug = 'update_exam';
 
-        if (!$this->utilityService->checkUserRolePermission($user_role_slug, "hard")) {
+        if (!$this->checkUserRolePermission($user_role_slug, "hard")) {
             return ['check' => 'failure', 'message' => "You don't have the permission to perform this action!"];
         }
 

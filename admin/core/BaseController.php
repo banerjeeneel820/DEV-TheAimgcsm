@@ -12,11 +12,36 @@ class BaseController
     {
         $this->lib = new GlobalLibraryHandler();
         $this->cache = new CacheService();
-        $this->validator = new GlobalValidationController();
+        $this->validator = new GlobalValidationController($this->lib);
         $this->interface = new GlobalInterfaceController();
 
         // moved from ajax controller
         $this->lib->checkRunTimeFolderExistance();
+    }
+
+    public function checkUserRolePermission($user_role_slug, $fetch_type = "hard")
+    {
+        $paramArr['user_id'] = $_SESSION['user_id'];
+        $paramArr['user_type'] = $_SESSION['user_type'];
+
+        // Fetch roles
+        if ($fetch_type === "hard") {
+            $userRoleArr = $this->interface->fetch_Current_User_Role($paramArr);
+        } else {
+            $userRoleArr = $_SESSION['user_role'] ?? [];
+        }
+
+        if (!is_array($userRoleArr)) {
+            return false;
+        }
+
+        // If single role → same behavior (no change)
+        if (!is_array($user_role_slug)) {
+            return in_array($user_role_slug, $userRoleArr);
+        }
+
+        // If multiple roles → ALL must exist
+        return count(array_intersect($user_role_slug, $userRoleArr)) === count($user_role_slug);
     }
 
     protected function json($data, $statusCode = 200)

@@ -18,7 +18,7 @@
   //Course data
   $courseArr = $pageContent['pageData']['course_data']; 
 
-  $updatePermission = $this->utilityService->checkUserRolePermission("update_student"); 
+  $updatePermission = $this->checkUserRolePermission("update_student"); 
 
   if($_SESSION['user_type'] == 'admin' || $_SESSION['user_type'] == 'developer' && $updatePermission == true){
      $statusUpdatePermission = true;

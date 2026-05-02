@@ -11,6 +11,25 @@ class StudentReceiptService
         $this->interface = $interface;
         $this->lib = $lib;
     }
+
+    public function create_Receipt_ID()
+    {
+        //Creating new Franchise id method
+        $receiptDetail = $this->interface->fetch_Last_Receipt_Detail();
+        $last_rcpt_id = $receiptDetail[0]->receipt_id;
+
+        if ($last_rcpt_id != null) {
+            $last_rcpt_id_pt_2 = substr($last_rcpt_id, 17);
+            $last_rcpt_id_pt_2++;
+        } else {
+            $last_rcpt_id_pt_2 = 1;
+        }
+
+        $current_rcpt_id = "WBTAIMGCSMRECEIPT" . $last_rcpt_id_pt_2;
+
+        return $current_rcpt_id;
+    }
+
     public function createStudentReceiptPdf($receipt_id)
     {
         // -----------------------------

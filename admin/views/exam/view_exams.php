@@ -12,9 +12,9 @@
   }
 
   //Fetching page action permission
-  $createPermission = $this->utilityService->checkUserRolePermission("create_exam"); 
-  $updatePermission = $this->utilityService->checkUserRolePermission("update_exam"); 
-  $deletePermission = $this->utilityService->checkUserRolePermission("delete_exam"); 
+  $createPermission = $this->checkUserRolePermission("create_exam"); 
+  $updatePermission = $this->checkUserRolePermission("update_exam"); 
+  $deletePermission = $this->checkUserRolePermission("delete_exam"); 
   
   /*print"<pre>";
   print_r($examDataArr); 

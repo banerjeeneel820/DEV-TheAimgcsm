@@ -12,9 +12,9 @@ if (isset($_GET['record_status'])) {
 $franchiseListArr = $pageContent['pageData']['data'];
 
 //Fetching page action permission
-$createPermission = $this->utilityService->checkUserRolePermission("create_franchise");
-$updatePermission = $this->utilityService->checkUserRolePermission("update_franchise");
-$deletePermission = $this->utilityService->checkUserRolePermission("delete_franchise");
+$createPermission = $this->checkUserRolePermission("create_franchise");
+$updatePermission = $this->checkUserRolePermission("update_franchise");
+$deletePermission = $this->checkUserRolePermission("delete_franchise");
 
 ?>
 

@@ -3,12 +3,9 @@ defined('ROOTPATH') or exit('No direct script access allowed');
 
 class UtilityController extends BaseController
 {
-    private $utilityService;
-
     public function __construct()
     {
         parent::__construct();
-        $this->utilityService = new UtilityService($this->interface, $this->lib);
     }
 
     public function update_global_status_status($data)
@@ -45,7 +42,7 @@ class UtilityController extends BaseController
         // -----------------------------
         // PERMISSION
         // -----------------------------
-        if (!$this->utilityService->checkUserRolePermission($roleMap[$type], "hard")) {
+        if (!$this->checkUserRolePermission($roleMap[$type], "hard")) {
             return ['check' => 'failure', 'message' => "You don't have permission!"];
         }
 
@@ -112,8 +109,7 @@ class UtilityController extends BaseController
         $user_role_slug = $roleMap[$type];
 
         // Check permission
-        $checkActionPermission = $this->utilityService
-            ->checkUserRolePermission($user_role_slug, "hard");
+        $checkActionPermission = $this->checkUserRolePermission($user_role_slug, "hard");
 
         if (!$checkActionPermission) {
             return [
@@ -187,8 +183,7 @@ class UtilityController extends BaseController
         $user_role_slug = $roleMap[$type];
 
         // Check permission
-        $checkActionPermission = $this->utilityService
-            ->checkUserRolePermission($user_role_slug, "hard");
+        $checkActionPermission = $this->checkUserRolePermission($user_role_slug, "hard");
 
         if (!$checkActionPermission) {
             return [
@@ -280,7 +275,7 @@ class UtilityController extends BaseController
         // -----------------------------
         // PERMISSION CHECK
         // -----------------------------
-        if (!$this->utilityService->checkUserRolePermission($roleMap[$type], "hard")) {
+        if (!$this->checkUserRolePermission($roleMap[$type], "hard")) {
             return ['check' => 'failure', 'message' => "You don't have permission!"];
         }
 
@@ -347,8 +342,7 @@ class UtilityController extends BaseController
         // -----------------------------
         // PERMISSION CHECK
         // -----------------------------
-        $hasPermission = $this->utilityService
-            ->checkUserRolePermission("update_site_setting", "hard");
+        $hasPermission = $this->checkUserRolePermission("update_site_setting", "hard");
 
         // allow franchise override
         if (!$hasPermission && ($_SESSION['user_type'] ?? '') === "franchise") {
@@ -415,7 +409,7 @@ class UtilityController extends BaseController
         // -----------------------------
         // PERMISSION CHECK
         // -----------------------------
-        if (!$this->utilityService->checkUserRolePermission('update_site_setting', "hard")) {
+        if (!$this->checkUserRolePermission('update_site_setting', "hard")) {
             return [
                 'check' => 'failure',
                 'message' => "You don't have the permission to perform this action!"
@@ -493,7 +487,7 @@ class UtilityController extends BaseController
         // -----------------------------
         // PERMISSION CHECK
         // -----------------------------
-        if (!$this->utilityService->checkUserRolePermission("manage_site_backup")) {
+        if (!$this->checkUserRolePermission("manage_site_backup")) {
             return [
                 'check' => 'failure',
                 'message' => "You don't have the permission to perform this action!"
@@ -570,7 +564,7 @@ class UtilityController extends BaseController
         // -----------------------------
         // PERMISSION CHECK
         // -----------------------------
-        if (!$this->utilityService->checkUserRolePermission("update_site_setting", "hard")) {
+        if (!$this->checkUserRolePermission("update_site_setting", "hard")) {
             return ['check' => 'failure', 'message' => "You don't have the permission to perform this action!"];
         }
 

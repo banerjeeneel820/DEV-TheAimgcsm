@@ -29,9 +29,9 @@ $totalPageNo = ceil($rowCount / $limit);
   echo $totalPageNo."<br>";*/
 
 //Fetching page action permission
-$createPermission = $this->utilityService->checkUserRolePermission("create_student");
-$updatePermission = $this->utilityService->checkUserRolePermission("update_student");
-$createReceiptPermission = $this->utilityService->checkUserRolePermission("create_receipt");
+$createPermission = $this->checkUserRolePermission("create_student");
+$updatePermission = $this->checkUserRolePermission("update_student");
+$createReceiptPermission = $this->checkUserRolePermission("create_receipt");
 
 $queries = array();
 parse_str($_SERVER['QUERY_STRING'], $queries);

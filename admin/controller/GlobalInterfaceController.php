@@ -1951,7 +1951,7 @@ class GlobalInterfaceController
       // PAGINATION
       // =========================
       $limit  = (int)($dataArr['limit'] ?? 10);
-      $pageNo = (int)($dataArr['pageNo'] ?? 1);
+      $pageNo = (int)($dataArr['page'] ?? 1);
       $offset = ($pageNo - 1) * $limit;
 
       // =========================
@@ -1963,6 +1963,11 @@ class GlobalInterfaceController
       // Mandatory filter
       $where[] = "eqs.exam_id = ?";
       $params[] = $dataArr['exam_id'];
+
+      if (!empty($dataArr['search_string'])) {
+         $where[] = "(eqs.ques LIKE ?)";
+         $params[] = '%' . $dataArr['search_string'] . '%';
+      }
 
       $where_sql = "WHERE " . implode(" AND ", $where);
 

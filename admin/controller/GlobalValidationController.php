@@ -4,12 +4,12 @@ defined('ROOTPATH') or exit('No direct script access allowed');
 class GlobalValidationController
 {   
     private $globalErrorArr; 
-    private $GlobalLibraryHandlerObj;
+    private $lib;
 
-    public function __construct()
+    public function __construct($lib)
     {
         $this->globalErrorArr = [];
-        $this->lib = new GlobalLibraryHandler();
+        $this->lib = $lib;
     }
 
     public function validateGlobalStudentData($data)

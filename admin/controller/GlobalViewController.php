@@ -11,8 +11,6 @@
     	private $site_setting_data;
 		private $GlobalViewDataControllerObj;
 
-		private $utilityService;
-
     	public function __construct($route,$_dataArr){
 			parent::__construct();
     		
@@ -26,8 +24,6 @@
     		//Creating object for global view data class
 			$this->GlobalViewDataControllerObj = new GlobalViewDataController();
 
-			//Creating object for utility service class
-			$this->utilityService = new UtilityService($this->interface,$this->lib);
     	}
 
     	public function render(){

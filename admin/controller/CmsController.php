@@ -3,12 +3,9 @@ defined('ROOTPATH') or exit('No direct script access allowed');
 
 class CmsController extends BaseController
 {
-    private $utilityService;
-    
     public function __construct()
     {
         parent::__construct();
-        $this->utilityService = new UtilityService($this->interface,$this->lib);
     }
 
     public function manage_gallery($data)
@@ -28,7 +25,7 @@ class CmsController extends BaseController
 
         $user_role_slug = $isUpdate ? 'update_gallery' : 'create_gallery';
 
-        if (!$this->utilityService->checkUserRolePermission($user_role_slug, "hard")) {
+        if (!$this->checkUserRolePermission($user_role_slug, "hard")) {
             return ['check' => 'failure', 'message' => "You don't have the permission to perform this action!"];
         }
 
@@ -183,7 +180,7 @@ class CmsController extends BaseController
         // -----------------------------
         $user_role_slug = 'create_gallery';
 
-        if (!$this->utilityService->checkUserRolePermission($user_role_slug, "hard")) {
+        if (!$this->checkUserRolePermission($user_role_slug, "hard")) {
             return ['check' => 'failure', 'message' => "You don't have the permission to perform this action!"];
         }
 
@@ -284,7 +281,7 @@ class CmsController extends BaseController
         $user_role_slug = $isUpdate ? 'update_category' : 'create_category';
 
         // permission check (early return)
-        if (!$this->utilityService->checkUserRolePermission($user_role_slug, "hard")) {
+        if (!$this->checkUserRolePermission($user_role_slug, "hard")) {
             return ['check' => 'failure', 'message' => "You don't have the permission to perform this action!"];
         }
 
@@ -305,7 +302,7 @@ class CmsController extends BaseController
         $formDataArr = [];
 
         // permission check (early return)
-        if (!$this->utilityService->checkUserRolePermission('manage_city_db', "hard")) {
+        if (!$this->checkUserRolePermission('manage_city_db', "hard")) {
             return ['check' => 'failure', 'message' => "You don't have the permission to perform this action!"];
         }
 
@@ -336,7 +333,7 @@ class CmsController extends BaseController
         // -----------------------------
         // Permission Check
         // -----------------------------
-        if (!$this->utilityService->checkUserRolePermission($user_role_slug, "hard")) {
+        if (!$this->checkUserRolePermission($user_role_slug, "hard")) {
             return ['check' => 'failure', 'message' => "You don't have the permission to perform this action!"];
         }
 
@@ -390,7 +387,7 @@ class CmsController extends BaseController
         // -----------------------------
         $user_role_slug = 'manage_home_slider';
 
-        if (!$this->utilityService->checkUserRolePermission($user_role_slug, "hard")) {
+        if (!$this->checkUserRolePermission($user_role_slug, "hard")) {
             return ['check' => 'failure', 'message' => "You don't have the permission to perform this action!"];
         }
 
@@ -492,7 +489,7 @@ class CmsController extends BaseController
         // -----------------------------
         // Permission Check
         // -----------------------------
-        if (!$this->utilityService->checkUserRolePermission($user_role_slug, "hard")) {
+        if (!$this->checkUserRolePermission($user_role_slug, "hard")) {
             return ['check' => 'failure', 'message' => "You don't have the permission to perform this action!"];
         }
 
