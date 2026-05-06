@@ -96,11 +96,11 @@ if (!empty($studentDetails->stu_course_fees)) {
   $course_due_fees = $course_fees - (int)$studentDetails->stu_course_discount - (int)$studentDetails->course_fees_paid - (int)$studentDetails->advanced_fees - (int)$studentDetails->fees_paid_before_dr;
 }
 
-$createPermission = $this->checkUserRolePermission("create_receipt");
-$updatePermission = $this->checkUserRolePermission("update_receipt");
-$deletePermission = $this->checkUserRolePermission("delete_receipt");
+$createPermission = $this->permissionService->checkUserRolePermission("create_receipt");
+$updatePermission = $this->permissionService->checkUserRolePermission("update_receipt");
+$deletePermission = $this->permissionService->checkUserRolePermission("delete_receipt");
 
-$updateStuPermission = $this->checkUserRolePermission("update_student");
+$updateStuPermission = $this->permissionService->checkUserRolePermission("update_student");
 
 if (!empty($_GET['rcpt_id'])) {
   $modifyPermission = $updatePermission;

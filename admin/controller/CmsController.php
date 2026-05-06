@@ -2,10 +2,13 @@
 defined('ROOTPATH') or exit('No direct script access allowed');
 
 class CmsController extends BaseController
-{
+{   
+    private $permissionService;
+    
     public function __construct()
     {
         parent::__construct();
+        $this->permissionService = new PermissionService($this->model, $this->lib);
     }
 
     public function manage_gallery($data)
@@ -25,7 +28,7 @@ class CmsController extends BaseController
 
         $user_role_slug = $isUpdate ? 'update_gallery' : 'create_gallery';
 
-        if (!$this->checkUserRolePermission($user_role_slug, "hard")) {
+        if (!$this->permissionService->checkUserRolePermission($user_role_slug, "hard")) {
             return ['check' => 'failure', 'message' => "You don't have the permission to perform this action!"];
         }
 
@@ -101,7 +104,7 @@ class CmsController extends BaseController
         // -----------------------------
         // Save
         // -----------------------------
-        $returnArr = $this->interface
+        $returnArr = $this->model
             ->manage_Global_Media($formDataArr);
 
         if ($returnArr['check'] !== 'success') {
@@ -160,7 +163,7 @@ class CmsController extends BaseController
             'category_id' => $post(['category_id'])
         ];
 
-        $this->interface
+        $this->model
             ->edit_Post_Category($updateCategoryArr);
 
         return $returnArr;
@@ -180,7 +183,7 @@ class CmsController extends BaseController
         // -----------------------------
         $user_role_slug = 'create_gallery';
 
-        if (!$this->checkUserRolePermission($user_role_slug, "hard")) {
+        if (!$this->permissionService->checkUserRolePermission($user_role_slug, "hard")) {
             return ['check' => 'failure', 'message' => "You don't have the permission to perform this action!"];
         }
 
@@ -208,7 +211,7 @@ class CmsController extends BaseController
         // -----------------------------
         $categoryListArr = json_decode(
             json_encode(
-                $this->interface->fetch_Single_Parent_Category($dir)
+                $this->model->fetch_Single_Parent_Category($dir)
             ),
             true
         );
@@ -236,7 +239,7 @@ class CmsController extends BaseController
         // -----------------------------
         // Save
         // -----------------------------
-        $returnArr = $this->interface
+        $returnArr = $this->model
             ->manage_Global_Media($formDataArr);
 
         if ($returnArr['check'] !== 'success') {
@@ -252,7 +255,7 @@ class CmsController extends BaseController
         // -----------------------------
         // Category Mapping
         // -----------------------------
-        $this->interface->edit_Post_Category([
+        $this->model->edit_Post_Category([
             'post_type'   => "gallery",
             'post_id'     => $returnArr['last_insert_id'],
             'category_id' => $categoryIdArr
@@ -281,7 +284,7 @@ class CmsController extends BaseController
         $user_role_slug = $isUpdate ? 'update_category' : 'create_category';
 
         // permission check (early return)
-        if (!$this->checkUserRolePermission($user_role_slug, "hard")) {
+        if (!$this->permissionService->checkUserRolePermission($user_role_slug, "hard")) {
             return ['check' => 'failure', 'message' => "You don't have the permission to perform this action!"];
         }
 
@@ -291,7 +294,7 @@ class CmsController extends BaseController
         $formDataArr['record_status'] = $post('record_status');
 
         // call interface
-        return $this->interface->manage_Parent_Category($formDataArr);
+        return $this->model->manage_Parent_Category($formDataArr);
     }
 
     public function manage_global_city($data)
@@ -302,7 +305,7 @@ class CmsController extends BaseController
         $formDataArr = [];
 
         // permission check (early return)
-        if (!$this->checkUserRolePermission('manage_city_db', "hard")) {
+        if (!$this->permissionService->checkUserRolePermission('manage_city_db', "hard")) {
             return ['check' => 'failure', 'message' => "You don't have the permission to perform this action!"];
         }
 
@@ -312,7 +315,7 @@ class CmsController extends BaseController
         $formDataArr['record_status'] = $post('record_status');
 
         // call interface
-        return $this->interface->manage_Global_City($formDataArr);
+        return $this->model->manage_Global_City($formDataArr);
     }
 
     public function manage_email_template($data)
@@ -333,7 +336,7 @@ class CmsController extends BaseController
         // -----------------------------
         // Permission Check
         // -----------------------------
-        if (!$this->checkUserRolePermission($user_role_slug, "hard")) {
+        if (!$this->permissionService->checkUserRolePermission($user_role_slug, "hard")) {
             return ['check' => 'failure', 'message' => "You don't have the permission to perform this action!"];
         }
 
@@ -353,7 +356,7 @@ class CmsController extends BaseController
         // -----------------------------
         // Slug (Code) Validation
         // -----------------------------
-        $existingId = $this->interface
+        $existingId = $this->model
             ->check_Slug_Availibility('email_template', 'code', $formDataArr['code'])
             ->id ?? null;
 
@@ -370,7 +373,7 @@ class CmsController extends BaseController
         // -----------------------------
         // DB Operation
         // -----------------------------
-        return $this->interface
+        return $this->model
             ->manage_Global_Email_Template($formDataArr);
     }
 
@@ -387,7 +390,7 @@ class CmsController extends BaseController
         // -----------------------------
         $user_role_slug = 'manage_home_slider';
 
-        if (!$this->checkUserRolePermission($user_role_slug, "hard")) {
+        if (!$this->permissionService->checkUserRolePermission($user_role_slug, "hard")) {
             return ['check' => 'failure', 'message' => "You don't have the permission to perform this action!"];
         }
 
@@ -436,7 +439,7 @@ class CmsController extends BaseController
         // -----------------------------
         // DB Operation
         // -----------------------------
-        $returnArr = $this->interface->manage_Home_Slider($formDataArr);
+        $returnArr = $this->model->manage_Home_Slider($formDataArr);
 
         // -----------------------------
         // Post Operation (File Cleanup)
@@ -489,7 +492,7 @@ class CmsController extends BaseController
         // -----------------------------
         // Permission Check
         // -----------------------------
-        if (!$this->checkUserRolePermission($user_role_slug, "hard")) {
+        if (!$this->permissionService->checkUserRolePermission($user_role_slug, "hard")) {
             return ['check' => 'failure', 'message' => "You don't have the permission to perform this action!"];
         }
 
@@ -533,7 +536,7 @@ class CmsController extends BaseController
         // -----------------------------
         // DB Operation
         // -----------------------------
-        $returnArr = $this->interface
+        $returnArr = $this->model
             ->manage_Global_News($formDataArr);
 
         // -----------------------------

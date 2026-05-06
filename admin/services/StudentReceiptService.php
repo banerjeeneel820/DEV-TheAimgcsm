@@ -3,19 +3,19 @@ defined('ROOTPATH') or exit('No direct script access allowed');
 
 class StudentReceiptService
 {
-    private $interface;
+    private $model;
     private $lib;
 
-    public function __construct($interface, $lib)
+    public function __construct($model, $lib)
     {
-        $this->interface = $interface;
+        $this->model = $model;
         $this->lib = $lib;
     }
 
     public function create_Receipt_ID()
     {
         //Creating new Franchise id method
-        $receiptDetail = $this->interface->fetch_Last_Receipt_Detail();
+        $receiptDetail = $this->model->fetch_Last_Receipt_Detail();
         $last_rcpt_id = $receiptDetail[0]->receipt_id;
 
         if ($last_rcpt_id != null) {
@@ -35,14 +35,14 @@ class StudentReceiptService
         // -----------------------------
         // FETCH DATA
         // -----------------------------
-        $receipt = $this->interface
+        $receipt = $this->model
             ->fetch_Single_Receipt_Data($receipt_id);
 
         if (empty($receipt)) {
             return ['check' => 'failure', 'message' => 'Invalid receipt data'];
         }
 
-        $student = $this->interface
+        $student = $this->model
             ->fetch_Global_Single_Student($receipt->stu_id, $receipt->created_at);
 
         // -----------------------------
@@ -58,8 +58,8 @@ class StudentReceiptService
         // -----------------------------
         $email_code = $this->getStuReceiptEmailCode($receipt->category);
 
-        $site = $this->interface->fetch_Global_Site_Setting_Detail();
-        $template = $this->interface->fetch_Email_Template_Detail($email_code);
+        $site = $this->model->fetch_Global_Site_Setting_Detail();
+        $template = $this->model->fetch_Email_Template_Detail($email_code);
 
         // -----------------------------
         // CALCULATIONS
@@ -188,7 +188,7 @@ class StudentReceiptService
         // -----------------------------
         // FETCH DATA
         // -----------------------------
-        $tmpStudent = $this->interface->fetch_Tmp_Single_Student($id);
+        $tmpStudent = $this->model->fetch_Tmp_Single_Student($id);
 
         if (empty($tmpStudent)) {
             return ['check' => 'failure', 'message' => 'Student not found'];
@@ -216,8 +216,8 @@ class StudentReceiptService
         // -----------------------------
         // PREPARE DATA
         // -----------------------------
-        $site = $this->interface->fetch_Global_Site_Setting_Detail();
-        $template = $this->interface
+        $site = $this->model->fetch_Global_Site_Setting_Detail();
+        $template = $this->model
             ->fetch_Email_Template_Detail('student-temp-receipt-invoice')->template;
 
         $swap = $this->buildTempReceiptTemplateVars($tmpStudent, $site);

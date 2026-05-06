@@ -2,13 +2,13 @@
 
 class ImportService
 {   
-    private $interface;
+    private $model;
     private $lib;
     private $excelService;
 
-    public function __construct($interface, $lib)
+    public function __construct($model, $lib)
     {
-        $this->interface = $interface;
+        $this->model = $model;
         $this->lib = $lib;
 
         $this->excelService = new ExcelService();
@@ -32,7 +32,7 @@ class ImportService
 
             $exam_id = $line[0];
 
-            $order = $this->interface
+            $order = $this->model
                 ->fetch_Last_Question_Ordering($exam_id);
 
             $params = [
@@ -47,7 +47,7 @@ class ImportService
                 'record_status' => 'active'
             ];
 
-            $this->interface->import_Exam_Questions($params);
+            $this->model->import_Exam_Questions($params);
         }
 
         return $this->lib->success('Data import completed successfully!');
@@ -65,7 +65,7 @@ class ImportService
 
             if (empty($line[0])) continue;
 
-            $this->interface->import_Global_City([
+            $this->model->import_Global_City([
                 'name' => $line[0],
                 'record_status' => 'blocked'
             ]);
@@ -93,7 +93,7 @@ class ImportService
             $fees   = trim($line[1]);
 
             $student = json_decode(json_encode(
-                $this->interface
+                $this->model
                     ->fetch_Global_Single_Student($stu_id)
             ), true);
 
@@ -104,7 +104,7 @@ class ImportService
                 continue;
             }
 
-            $this->interface
+            $this->model
                 ->update_student_monthly_course_fees([
                     'stu_id' => $stu_id,
                     'monthly_course_fees' => $fees

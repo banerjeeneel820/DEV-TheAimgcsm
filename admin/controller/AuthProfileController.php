@@ -2,11 +2,16 @@
 defined('ROOTPATH') or exit('No direct script access allowed');
 
 class AuthProfileController extends BaseController
-{
+{   
+    private $globalViewObj;
+    private $globalReturnArr;
+    private $permissionService;
 
     public function __construct()
     {
         parent::__construct();
+        $this->globalViewObj = new GlobalViewDataController();
+        $this->permissionService = new PermissionService($this->model, $this->lib);
     }
 
     public function check_user_login($data)
@@ -26,7 +31,7 @@ class AuthProfileController extends BaseController
         $validate_captcha = true; //$this->lib->checkCaptchaResponse($recaptcha_response);
 
         if ($validate_captcha) {
-            $returnArr = $this->interface->check_User_Login($paramArr);
+            $returnArr = $this->model->check_User_Login($paramArr);
 
             if ($returnArr['check'] == 'success') {
                 //Setting cookies for browser
@@ -45,6 +50,28 @@ class AuthProfileController extends BaseController
         return $returnArr;
     }
 
+    public function manage_profile_data()
+    {
+        if ($_SESSION['user_type'] == 'developer') {
+            $this->globalReturnArr['pageData'] = $this->globalViewObj->edit_Developer_Profile_Required_Data();
+       } elseif ($_SESSION['user_type'] == 'admin') {
+            $this->globalReturnArr['pageData'] = $this->globalViewObj->edit_Admin_Profile_Required_Data();
+       } elseif ($_SESSION['user_type'] == 'franchise') {
+            $fetch_type = 'edit_profile';
+            $this->globalReturnArr['pageData'] = $this->globalViewObj->edit_Franchise_Profile_Data($fetch_type);
+       }
+
+       $this->globalReturnArr['pageData']['page_title'] = "Manage My Profile";
+
+       $this->globalReturnArr['pageData']['tiny_allowed'] = false;
+
+       $this->globalReturnArr['assetData']['css'] = array('toastr/toastr.min', 'sweetalert/sweetalert', 'iCheck/custom');
+
+       $this->globalReturnArr['assetData']['js'] = array('toastr/toastr.min', 'sweetalert/sweetalert.min', 'iCheck/icheck.min');
+
+       return $this->globalReturnArr;
+    }
+
     public function manage_user_profile($data)
     {
         //Declaring necessary variables
@@ -59,7 +86,7 @@ class AuthProfileController extends BaseController
         // -----------------------------
         $user_role_slug = "manage_profile";
 
-        if (!$this->checkUserRolePermission($user_role_slug, "hard")) {
+        if (!$this->permissionService->checkUserRolePermission($user_role_slug, "hard")) {
             return ['check' => 'failure', 'message' => "You don't have the permission to perform this action!"];
         }
 
@@ -103,7 +130,7 @@ class AuthProfileController extends BaseController
         // -----------------------------
         // DB Operation
         // -----------------------------
-        return $this->interface->manage_Profile_Data($formDataArr);
+        return $this->model->manage_Profile_Data($formDataArr);
     }
 
     public function manage_franchise_profile($data)
@@ -118,7 +145,7 @@ class AuthProfileController extends BaseController
         // -----------------------------
         // PERMISSION CHECK
         // -----------------------------
-        if (!$this->checkUserRolePermission('manage_profile', "hard")) {
+        if (!$this->permissionService->checkUserRolePermission('manage_profile', "hard")) {
             return ['check' => 'failure', 'message' => "You don't have the permission!"];
         }
 
@@ -173,7 +200,7 @@ class AuthProfileController extends BaseController
         // -----------------------------
         // DB CALL
         // -----------------------------
-        return $this->interface
+        return $this->model
             ->edit_Franchise_Profile($formDataArr);
     }
 
@@ -203,7 +230,13 @@ class AuthProfileController extends BaseController
         // -----------------------------
         // CALL MODEL
         // -----------------------------
-        return $this->interface
+        return $this->model
             ->check_User_Email_Availability($payload);
+    }
+
+    public function destroy_session_data()
+    {
+        session_destroy();
+		header("Location: ".SITE_URL);
     }
 }

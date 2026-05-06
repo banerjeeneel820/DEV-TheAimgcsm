@@ -3,9 +3,14 @@ defined('ROOTPATH') or exit('No direct script access allowed');
 
 class UtilityController extends BaseController
 {
+    private $cacheService;
+    private $permissionService;
+
     public function __construct()
     {
         parent::__construct();
+        $this->cacheService = new CacheService($this->model, $this->lib);
+        $this->permissionService = new PermissionService($this->model, $this->lib);
     }
 
     public function update_global_status_status($data)
@@ -42,7 +47,7 @@ class UtilityController extends BaseController
         // -----------------------------
         // PERMISSION
         // -----------------------------
-        if (!$this->checkUserRolePermission($roleMap[$type], "hard")) {
+        if (!$this->permissionService->checkUserRolePermission($roleMap[$type], "hard")) {
             return ['check' => 'failure', 'message' => "You don't have permission!"];
         }
 
@@ -74,7 +79,7 @@ class UtilityController extends BaseController
         // -----------------------------
         // CALL MODEL (SINGLE CALL)
         // -----------------------------
-        $response = $this->interface
+        $response = $this->model
             ->update_Global_Record_Status($type, $rowIds, $recordStatus);
 
         if ($response['responseArr']['check'] !== 'success') {
@@ -84,7 +89,7 @@ class UtilityController extends BaseController
         // -----------------------------
         // CACHE PURGE
         // -----------------------------
-        $this->purgeSiteCache($type);
+        $this->cacheService->purgeSiteCache($type);
 
         return ['check' => 'success', 'message' => 'Status updated successfully!'];
     }
@@ -109,7 +114,7 @@ class UtilityController extends BaseController
         $user_role_slug = $roleMap[$type];
 
         // Check permission
-        $checkActionPermission = $this->checkUserRolePermission($user_role_slug, "hard");
+        $checkActionPermission = $this->permissionService->checkUserRolePermission($user_role_slug, "hard");
 
         if (!$checkActionPermission) {
             return [
@@ -148,7 +153,7 @@ class UtilityController extends BaseController
         }
 
         // Call updated query method
-        $result = $this->interface
+        $result = $this->model
             ->update_Global_Featured_Status($type, $rowIds, $featured_status);
 
         if ($result["responseArr"]["check"] === "success") {
@@ -183,7 +188,7 @@ class UtilityController extends BaseController
         $user_role_slug = $roleMap[$type];
 
         // Check permission
-        $checkActionPermission = $this->checkUserRolePermission($user_role_slug, "hard");
+        $checkActionPermission = $this->permissionService->checkUserRolePermission($user_role_slug, "hard");
 
         if (!$checkActionPermission) {
             return [
@@ -222,7 +227,7 @@ class UtilityController extends BaseController
         }
 
         // Call updated query method
-        $result = $this->interface
+        $result = $this->model
             ->update_Global_Verified_Status($type, $rowIds, $verified_status);
 
         if ($result["responseArr"]["check"] === "success") {
@@ -275,7 +280,7 @@ class UtilityController extends BaseController
         // -----------------------------
         // PERMISSION CHECK
         // -----------------------------
-        if (!$this->checkUserRolePermission($roleMap[$type], "hard")) {
+        if (!$this->permissionService->checkUserRolePermission($roleMap[$type], "hard")) {
             return ['check' => 'failure', 'message' => "You don't have permission!"];
         }
 
@@ -307,13 +312,13 @@ class UtilityController extends BaseController
         // -----------------------------
         // FETCH DATA BEFORE DELETE (for file removal)
         // -----------------------------
-        $allRecords = $this->interface
+        $allRecords = $this->model
             ->fetch_Global_Multiple_Data($type, $rowIds);
 
         // -----------------------------
         // BULK DELETE
         // -----------------------------
-        $response = $this->interface
+        $response = $this->model
             ->delete_Global_Data([
                 'type'   => $type,
                 'rowIds' => $rowIds
@@ -342,7 +347,7 @@ class UtilityController extends BaseController
         // -----------------------------
         // PERMISSION CHECK
         // -----------------------------
-        $hasPermission = $this->checkUserRolePermission("update_site_setting", "hard");
+        $hasPermission = $this->permissionService->checkUserRolePermission("update_site_setting", "hard");
 
         // allow franchise override
         if (!$hasPermission && ($_SESSION['user_type'] ?? '') === "franchise") {
@@ -409,7 +414,7 @@ class UtilityController extends BaseController
         // -----------------------------
         // PERMISSION CHECK
         // -----------------------------
-        if (!$this->checkUserRolePermission('update_site_setting', "hard")) {
+        if (!$this->permissionService->checkUserRolePermission('update_site_setting', "hard")) {
             return [
                 'check' => 'failure',
                 'message' => "You don't have the permission to perform this action!"
@@ -487,7 +492,7 @@ class UtilityController extends BaseController
         // -----------------------------
         // PERMISSION CHECK
         // -----------------------------
-        if (!$this->checkUserRolePermission("manage_site_backup")) {
+        if (!$this->permissionService->checkUserRolePermission("manage_site_backup")) {
             return [
                 'check' => 'failure',
                 'message' => "You don't have the permission to perform this action!"
@@ -497,8 +502,8 @@ class UtilityController extends BaseController
         // -----------------------------
         // CHECK EXISTING TASKS
         // -----------------------------
-        $hasPending = $this->interface->check_Task_Status();
-        $hasRunning = $this->interface->check_Task_Status("running");
+        $hasPending = $this->model->check_Task_Status();
+        $hasRunning = $this->model->check_Task_Status("running");
 
         if (!empty($hasPending) || !empty($hasRunning)) {
             return [
@@ -531,7 +536,7 @@ class UtilityController extends BaseController
             'job_type' => "site_backup_creation"
         ];
 
-        $response = $this->interface->manage_Queue_Jobs($payload);
+        $response = $this->model->manage_Queue_Jobs($payload);
 
         if ($response['check'] !== "success") {
             return [
@@ -564,7 +569,7 @@ class UtilityController extends BaseController
         // -----------------------------
         // PERMISSION CHECK
         // -----------------------------
-        if (!$this->checkUserRolePermission("update_site_setting", "hard")) {
+        if (!$this->permissionService->checkUserRolePermission("update_site_setting", "hard")) {
             return ['check' => 'failure', 'message' => "You don't have the permission to perform this action!"];
         }
 
@@ -646,7 +651,7 @@ class UtilityController extends BaseController
         // -----------------------------
         // DB OPERATION
         // -----------------------------
-        $returnArr = $this->interface
+        $returnArr = $this->model
             ->update_Global_Site_Setting($formDataArr);
 
         // -----------------------------

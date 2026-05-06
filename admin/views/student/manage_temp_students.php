@@ -58,12 +58,12 @@
   }  
 
   //Fetching page action permission
-  $viewPermission = $this->checkUserRolePermission("view_student"); 
-  $createPermission = $this->checkUserRolePermission("create_student"); 
-  $updatePermission = $this->checkUserRolePermission("update_student"); 
-  $deletePermission = $this->checkUserRolePermission("delete_student"); 
+  $viewPermission = $this->permissionService->checkUserRolePermission("view_student"); 
+  $createPermission = $this->permissionService->checkUserRolePermission("create_student"); 
+  $updatePermission = $this->permissionService->checkUserRolePermission("update_student"); 
+  $deletePermission = $this->permissionService->checkUserRolePermission("delete_student"); 
 
-  $updateReceiptPermission = $this->checkUserRolePermission("update_receipt"); 
+  $updateReceiptPermission = $this->permissionService->checkUserRolePermission("update_receipt"); 
 
   if($_SESSION['user_type'] == 'franchise'){
 

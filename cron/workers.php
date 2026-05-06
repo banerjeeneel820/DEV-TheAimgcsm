@@ -19,7 +19,7 @@ class SiteBackupWorker
 
     public function __construct()
     {
-        $this->globalController = new GlobalInterfaceController();
+        $this->globalController = new GlobalInterfaceModel();
         $this->globalLibrary = new GlobalLibraryHandler();
         $this->logFile = __DIR__ . '/queue_jobs.log';
         $this->startTime = date('Y-m-d H:i:s');

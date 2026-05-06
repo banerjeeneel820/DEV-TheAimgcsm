@@ -1,10 +1,14 @@
 <?php
-defined('ROOTPATH') OR exit('No direct script access allowed');
+defined('ROOTPATH') or exit('No direct script access allowed');
 
 class Router
 {
-    public static function handle()
+    protected static $container;
+
+    public static function handle($container)
     {
+        self::$container = $container; // store container
+
         $method = Request::method();
 
         if ($method === 'POST') {
@@ -14,10 +18,19 @@ class Router
         }
     }
 
+    private static function isAjax()
+    {
+        return !empty($_SERVER['HTTP_X_REQUESTED_WITH']) &&
+            strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest';
+    }
+
     private static function handlePost()
-    {   
-        // Dispatch to AjaxController
-        self::dispatch('AjaxController', 'handle', true);
+    {
+        if (self::isAjax()) {
+            self::dispatch('AjaxDispatcher', 'handle', true);
+        } else {
+            self::dispatch('PostDispatcher', 'handle', false);
+        }
     }
 
     private static function handleGet()
@@ -28,11 +41,11 @@ class Router
             $route = 'login';
         }
 
-        // Dispatch to GlobalPageContentController
-        $pageData = self::dispatch('GlobalPageController', 'get_PageContent', false, $route);
+        // 👇 pass route as param
+        $pageData = self::dispatch('RouteDispatcher', 'get_PageContent', false, $route);
 
-        // Render view
-        $view = new GlobalViewController($route, $pageData);
+        // 👇 inject container into view if needed later
+        $view = new ViewEngine(self::$container, $route, $pageData);
         $view->render();
 
         exit;
@@ -40,16 +53,17 @@ class Router
 
     /**
      * Central Dispatch Method
-    */
+     */
     private static function dispatch($controllerName, $method, $isAjax = false, $param = null)
     {
         if (!class_exists($controllerName)) {
             self::error("Controller {$controllerName} not found");
         }
 
+        // ALWAYS pass container now
         $controller = ($param !== null)
-        ? new $controllerName($param)
-        : new $controllerName();
+            ? new $controllerName(self::$container, $param)
+            : new $controllerName(self::$container);
 
         if (!method_exists($controller, $method)) {
             self::error("Method {$method} not found in {$controllerName}");
@@ -57,7 +71,6 @@ class Router
 
         $response = $controller->$method(Request::all());
 
-        // AjaxController already handles json response via BaseController::json()
         if ($isAjax) {
             return;
         }

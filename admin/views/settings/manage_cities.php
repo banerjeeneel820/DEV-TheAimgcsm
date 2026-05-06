@@ -10,7 +10,7 @@
   }
 
   //Fetching page action permission
-  $pagePermission = $this->checkUserRolePermission("manage_city_db"); 
+  $pagePermission = $this->permissionService->checkUserRolePermission("manage_city_db"); 
 
   /* print"<pre>";
   print_r($pageContent['pageData']); 

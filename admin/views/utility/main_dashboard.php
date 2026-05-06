@@ -67,14 +67,14 @@ if($siteBackupQueue){
 }
 
 //Fetching page action permission
-$viewStuPermission = $this->checkUserRolePermission("view_student");
-$viewReceiptPermission = $this->checkUserRolePermission("view_receipt");
-$viewEnquiryPermission = $this->checkUserRolePermission("view_enquiry");
+$viewStuPermission = $this->permissionService->checkUserRolePermission("view_student");
+$viewReceiptPermission = $this->permissionService->checkUserRolePermission("view_receipt");
+$viewEnquiryPermission = $this->permissionService->checkUserRolePermission("view_enquiry");
 
-$stuUpdatePermission = $this->checkUserRolePermission("update_student");
-$updateReceiptPermission = $this->checkUserRolePermission("update_receipt");
+$stuUpdatePermission = $this->permissionService->checkUserRolePermission("update_student");
+$updateReceiptPermission = $this->permissionService->checkUserRolePermission("update_receipt");
 
-$siteBakupPermission = $this->checkUserRolePermission("manage_site_backup");
+$siteBakupPermission = $this->permissionService->checkUserRolePermission("manage_site_backup");
 $backupLimit = $_SESSION['user_type'] == "developer" ? true : ($_COOKIE["backupCount"] < 2 ? true:false);
 
 // $mem_var = new Memcached();

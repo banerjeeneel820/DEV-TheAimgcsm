@@ -35,9 +35,9 @@ if (isset($_GET['record_status'])) {
 $galleryCategoryArr = explode(',', $pageContent['pageData']['gallery_data']->category_string);
 
 //Fetching page action permission
-$createPermission = $this->checkUserRolePermission("create_gallery");
-$updatePermission = $this->checkUserRolePermission("update_gallery");
-$deletePermission = $this->checkUserRolePermission("delete_gallery");
+$createPermission = $this->permissionService->checkUserRolePermission("create_gallery");
+$updatePermission = $this->permissionService->checkUserRolePermission("update_gallery");
+$deletePermission = $this->permissionService->checkUserRolePermission("delete_gallery");
 
 /*print"<pre>";
   print_r($itemArr);

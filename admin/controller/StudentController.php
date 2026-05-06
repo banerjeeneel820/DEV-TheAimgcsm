@@ -4,464 +4,365 @@ defined('ROOTPATH') or exit('No direct script access allowed');
 class StudentController extends BaseController
 {
 
-    private $studentReceiptService;
+    private $studentService;
+    private $permissionService;
+    private $courseFranchiseService;
 
-    public function __construct()
+    public function __construct($container)
     {
-        parent::__construct();
-        $this->studentReceiptService = new StudentReceiptService($this->interface, $this->lib);
+        parent::__construct($container);
+        $this->studentService = $container->get('studentService');//new StudentService($this->model, $this->lib);
+        $this->permissionService = $container->get('permissionService');//new PermissionService($this->model, $this->lib);
+        $this->courseFranchiseService = $container->get('courseFranchiseService');//new CourseFranchiseService($this->model, $this->lib);
     }
 
-    public function create_Student_ID()
+    // View student data methods start here
+    public function fetch_student_data($data)
     {
-        //Creating new Student id method
-        $stuIdDetail = $this->interface->fetch_Last_Student_Detail();
-        $lst_stu_id = $stuIdDetail['lst_stu_id'];
+        $user_role_slug = 'view_student';
 
-        if (!empty($lst_stu_id)) {
-            $lst_stu_id_part_2 = substr($lst_stu_id, 10);
-            $nxt_stu_id = round($lst_stu_id_part_2 + 1);
-        } else {
-            $lst_stu_id_part_2 = 1;
-            $nxt_stu_id = $lst_stu_id_part_2;
+        // =========================
+        // Assets
+        // =========================
+        $assets = Asset::load("student_list");
+
+        // =========================
+        // Permission
+        // =========================
+        $hasPermission = $this->permissionService->checkUserRolePermission($user_role_slug);
+
+        if (!$hasPermission) {
+            return $this->page(
+                [
+                    'student_data'   => [],
+                    'franchise_data' => [],
+                    'course_data'    => [],
+                    'page_type'      => 'student'
+                ],
+                'Student List',
+                $assets,
+                false,
+                false
+            );
         }
 
-        $current_stu_id = "WBTAIMGCSM" . $nxt_stu_id;
+        // =========================
+        // Prepare Filters
+        // =========================
+        $filters = $this->studentService->prepareStudentFilters($data);
 
-        return $current_stu_id;
+        // =========================
+        // Fetch Static Data
+        // =========================
+        $activeData = $this->courseFranchiseService->fetch_Active_Course_Franchise_Data();
+
+        // =========================
+        // Fetch Students
+        // =========================
+        $students = $this->studentService->getviewStudents($filters);
+
+        // =========================
+        // Final Response
+        // =========================
+        return $this->page(
+            [
+                'student_data'   => $students,
+                'franchise_data' => $activeData['franchise'],
+                'course_data'    => $activeData['course'],
+                'page_type'      => 'student'
+            ],
+            'Student List',
+            $assets,
+            false,
+            true
+        );
     }
+    // View student data methods ends here
 
-    public function create_Tmp_Student_ID($min = 999, $max = 999999, $quantity = 1)
+    // Manage student data view methods start here
+    public function manage_student_data_view($data)
     {
-        $numbers = range($min, $max);
-        shuffle($numbers);
-        $randomNumArr = array_slice($numbers, 0, $quantity);
+        $assets = Asset::load('manage_student_form');
+        $type   = 'student';
 
-        return "TMPSTUDENT" . $randomNumArr[0];
+        $studentId = !empty($data['id']) ? $data['id'] : null;
+        $isUpdate  = !empty($studentId);
+
+        // =========================
+        // Permission
+        // =========================
+        $hasPermission = $this->studentService->resolveManageStudentViewPermission($isUpdate);
+
+        if (!$hasPermission) {
+            return $this->page(
+                [
+                    'student_data'   => [],
+                    'franchise_data' => [],
+                    'course_data'    => [],
+                    'page_type'      => $type
+                ],
+                'Manage Student',
+                $assets,
+                false,
+                false
+            );
+        }
+
+        // =========================
+        // Fetch Student (if update)
+        // =========================
+        $studentData = $isUpdate
+            ? $this->studentService->getStudentDataWithAccessCheck($studentId)
+            : [];
+
+        // If access denied during ownership check
+        if ($studentData === false) {
+            return $this->page(
+                [
+                    'student_data'   => [],
+                    'franchise_data' => [],
+                    'course_data'    => [],
+                    'page_type'      => $type
+                ],
+                'Manage Student',
+                $assets,
+                false,
+                false
+            );
+        }
+
+        // =========================
+        // Common Data (Service)
+        // =========================
+        $activeData = $this->courseFranchiseService->fetch_Active_Course_Franchise_Data();
+
+        // =========================
+        // Final Response
+        // =========================
+        return $this->page(
+            [
+                'student_data'   => $studentData,
+                'franchise_data' => $activeData['franchise'],
+                'course_data'    => $activeData['course'],
+                'page_type'      => $type
+            ],
+            'Manage Student',
+            $assets,
+            true,
+            true
+        );
     }
+    // Manage student data view methods ends here
 
+    // Manage student data methods start here
     public function manage_student($data)
     {
-        $formDataArr = [];
-        $validationDataArr = [];
-        $returnArr = [];
-        $dir = 'student';
+        $context = $this->studentService->buildStudentContext();
 
-        // helper
+        $this->studentService->validateManageStudentAccess($context);
+
+        $formData = $this->studentService->buildStudentFormData($context);
+
+        $this->studentService->validateStudentData($formData, $context);
+
+        $uploadResult = $this->studentService->handleStudentImageUpload($formData, $context);
+
+        $result = $this->studentService->saveStudent($formData);
+
+        return $this->studentService->handlePostSave($result, $formData, $context, $uploadResult);
+    }
+    // Manage student data methods ends here
+
+    // Manage student admission data view methods start here
+    public function manage_student_admission_data_view($data)
+    {
+        $assets = Asset::load('student_admission_list');
+        $type   = 'student_admission';
+
+        // =========================
+        // Extract Inputs
+        // =========================
+        [$studentId, $tmpId, $actionType] = $this->studentService->extractAdmissionInputs($data);
+
+        // =========================
+        // Franchise Restriction
+        // =========================
+        if ($this->studentService->isRestrictedFranchise()) {
+            return $this->page(
+                [
+                    'student_list' => [],
+                    'page_type'    => $type
+                ],
+                'Student Admission',
+                $assets,
+                false,
+                false
+            );
+        }
+
+        // =========================
+        // ACTION: MANAGE STUDENT
+        // =========================
+        if ($actionType === "manage_student") {
+            return $this->handleManageStudentAdmission(
+                $studentId,
+                $tmpId,
+                $assets,
+                $type
+            );
+        }
+
+        // =========================
+        // ACTION: VIEW STUDENTS
+        // =========================
+        return $this->handleViewStudents($assets, $type);
+    }
+
+    private function handleManageStudentAdmission($studentId, $tmpId, $assets, $type)
+    {
+        $isUpdate = !empty($studentId);
+
+        // =========================
+        // Permission
+        // =========================
+        $hasPermission = $this->studentService->resolveAdmissionPermission($isUpdate);
+
+        if (!$hasPermission) {
+            return $this->page(
+                [
+                    'student_data'   => [],
+                    'franchise_data' => [],
+                    'course_data'    => [],
+                    'category_data'  => [],
+                    'page_type'      => $type
+                ],
+                'Manage Admission',
+                $assets,
+                false,
+                false
+            );
+        }
+
+        // =========================
+        // Student Data
+        // =========================
+        $studentData = $this->studentService->resolveAdmissionStudentData($studentId, $tmpId);
+
+        // =========================
+        // Common Data (Service)
+        // =========================
+        $activeData = $this->courseFranchiseService
+            ->fetch_Active_Course_Franchise_Data();
+
+        $categoryData = $this->model
+            ->fetch_Single_Parent_Category('receipt');
+
+        // =========================
+        // Final Response
+        // =========================
+        return $this->page(
+            [
+                'student_data'   => $studentData,
+                'franchise_data' => $activeData['franchise'],
+                'course_data'    => $activeData['course'],
+                'category_data'  => $categoryData,
+                'page_type'      => $type
+            ],
+            'Manage Admission',
+            $assets,
+            false,
+            true
+        );
+    }
+
+    private function handleViewStudents($assets, $type)
+    {
+        $hasPermission = $this->permissionService
+            ->checkUserRolePermission('view_student');
+
+        if (!$hasPermission) {
+            return $this->page(
+                [
+                    'student_list' => [],
+                    'page_type'    => $type
+                ],
+                'Student Admission',
+                $assets,
+                false,
+                false
+            );
+        }
+
+        $filters = [];
+
+        if ($_SESSION['user_type'] === 'franchise') {
+            $filters['franchise_id'] = (int)$_SESSION['user_id'];
+        }
+
+        $students = $this->model->fetch_Fresh_Students($filters);
+
+        return $this->page(
+            [
+                'student_list' => $students,
+                'page_type'    => $type
+            ],
+            'Student Admission',
+            $assets,
+            false,
+            true
+        );
+    }
+    // Manage student admission data view methods ends here
+
+    // Manage student admission data methods start here
+    public function manage_student_admission($data)
+    {
         $post = fn ($key) => $this->lib->postDataSanitize($key);
 
-        $action_type = $post('action_type');
-        $formDataArr['stu_row_id'] = $post('stu_row_id');
+        $studentId = $post('student_id');
+        $isUpdate  = !empty($studentId) && $studentId !== "null";
 
-        $isUpdate = !empty($formDataArr['stu_row_id']) && $formDataArr['stu_row_id'] != "null";
-        $user_role_slug = $isUpdate ? 'update_student' : 'create_student';
+        // 1. Permission
+        $permissionCheck = $this->studentService->validateAdmissionPermissions($isUpdate);
+        if ($permissionCheck !== true) return $permissionCheck;
 
-        // fetch student if update
-        if ($isUpdate) {
-            $studentDetailArr = $this->interface->fetch_Detail_Single_Student($formDataArr['stu_row_id']);
-        }
+        // 2. Fetch student if update
+        $studentDetail = $isUpdate
+            ? $this->studentService->getStudentOrFail($studentId)
+            : null;
 
-        // check for valid student data
-        if ($isUpdate && empty($studentDetailArr)) {
-            return ['check' => 'failure', 'message' => 'Student not found'];
-        }
+        if (is_array($studentDetail)) return $studentDetail; // failure case
 
-        // franchise check
-        if ($_SESSION['user_type'] == "franchise") {
+        // 3. Prepare form data
+        $formData = $this->studentService->prepareAdmissionData($post, $isUpdate, $studentDetail);
 
-            $franchise_id = $_SESSION['user_id'];
+        // 4. Save student
+        $studentResult = $this->model->manage_Student_Admission($formData);
 
-            if ($isUpdate && $studentDetailArr->franchise_id != $franchise_id) {
-                return ['check' => 'failure', 'message' => "You don't have the permission to perform this action!"];
-            }
-
-            $franchiseDetailArr = $this->interface->fetch_Global_Single_Franchise($franchise_id);
-            $owned_status = $franchiseDetailArr->owned_status;
-        } else {
-            $owned_status = "yes";
-        }
-
-        // permission check
-        if (!$this->checkUserRolePermission($user_role_slug, "hard")) {
-            return ['check' => 'failure', 'message' => "You don't have the permission to perform this action!"];
-        }
-
-        // ===== COMMON FIELDS =====
-        $formDataArr['stu_name'] = $post('stu_name');
-        $formDataArr['stu_father_name'] = $post('stu_father_name');
-        $formDataArr['stu_phone'] = $post('stu_phone');
-        $formDataArr['stu_email'] = $post('stu_email');
-        $formDataArr['stu_address'] = $post('stu_address');
-        $formDataArr['course_id'] = $post('course_id');
-        $formDataArr['stu_qualification'] = $post('stu_qualification');
-
-        $formDataArr['stu_gender'] = $post('stu_gender') ?: 'none';
-        $formDataArr['stu_marital_status'] = $post('stu_marital_status') ?: 'none';
-
-        // ===== USER TYPE LOGIC =====
-        if ($_SESSION['user_type'] == 'franchise') {
-
-            $formDataArr['franchise_id'] = $_SESSION['user_id'];
-
-            if ($owned_status == "no") {
-
-                if ($isUpdate) {
-                    foreach (['student_status', 'record_status', 'stu_result', 'conversion_status'] as $f) {
-                        $formDataArr[$f] = $studentDetailArr->$f;
-                    }
-                } else {
-                    $formDataArr += [
-                        'student_status' => "admitted",
-                        'record_status' => "blocked",
-                        'stu_result' => "unqualified",
-                        'conversion_status' => 'n',
-                        'stu_id' => $this->create_Student_ID()
-                    ];
-                }
-
-                // restricted fields
-                foreach (['stu_course_fees', 'monthly_course_fees', 'month_exclude_receipt', 'fees_paid_before_dr'] as $f) {
-                    $formDataArr[$f] = null;
-                }
-            } else {
-
-                // flexible franchise
-                $formDataArr['student_status'] = $post('student_status') ?? ($isUpdate ? $studentDetailArr->student_status : 'admitted');
-                $formDataArr['conversion_status'] = $post('conversion_status') ?? ($isUpdate ? $studentDetailArr->conversion_status : 'n');
-                $formDataArr['stu_result'] = $post('stu_result') ?? ($isUpdate ? $studentDetailArr->stu_result : 'unqualified');
-                $formDataArr['record_status'] = $post('record_status') ?? ($isUpdate ? $studentDetailArr->record_status : 'active');
-
-                if (!$isUpdate) {
-                    $formDataArr['stu_id'] = $this->create_Student_ID();
-                }
-
-                foreach (['stu_course_fees', 'monthly_course_fees', 'month_exclude_receipt', 'stu_course_discount', 'fees_paid_before_dr'] as $f) {
-                    $formDataArr[$f] = $post($f);
-                }
-            }
-        } else {
-
-            // admin
-            $formDataArr['franchise_id'] = $post('franchise_id');
-
-            $formDataArr['student_status'] = $post('student_status') ?? ($isUpdate ? $studentDetailArr->student_status : 'admitted');
-            $formDataArr['conversion_status'] = $post('conversion_status') ?? ($isUpdate ? $studentDetailArr->conversion_status : null);
-            $formDataArr['stu_result'] = $post('stu_result') ?? ($isUpdate ? $studentDetailArr->stu_result : 'unqualified');
-            $formDataArr['record_status'] = $post('record_status') ?? ($isUpdate ? $studentDetailArr->record_status : 'active');
-
-            if (!$isUpdate) {
-                $formDataArr['stu_id'] = $this->create_Student_ID();
-            }
-
-            foreach (['stu_course_fees', 'monthly_course_fees', 'month_exclude_receipt', 'stu_course_discount', 'fees_paid_before_dr'] as $f) {
-                $formDataArr[$f] = $post($f);
-            }
-        }
-
-        if ($isUpdate) {
-
-            if (
-                isset($formDataArr['stu_course_discount'], $formDataArr['fees_paid_before_dr']) &&
-                ($formDataArr['stu_course_discount'] != $studentDetailArr->stu_course_discount ||
-                    $formDataArr['fees_paid_before_dr'] != $studentDetailArr->fees_paid_before_dr
-                )
-            ) {
-                $formDataArr['verified_status'] = 'n';
-            } else {
-                $formDataArr['verified_status'] = $studentDetailArr->verified_status;
-            }
-        }
-
-        // ===== DATE =====
-        $dobInput = $post('stu_dob');
-
-        if (!empty($dobInput)) {
-            $dob = str_replace('/', '-', $dobInput);
-            $formDataArr['stu_dob'] = date('Y-m-d', strtotime($dob));
-        } else {
-            $formDataArr['stu_dob'] = null;
-        }
-
-        $formDataArr['stu_notes'] = $post('stu_notes');
-
-        // ===== VALIDATE STUDENT DATA BEFORE CREATE OR UPDATE =====
-        $validationDataArr = $formDataArr;
-        $validationDataArr['fran_own_status'] = $owned_status;
-        $validationResult = $this->validator->validateGlobalStudentData($validationDataArr);
-
-        if ($validationResult['check'] == 'failure') {
-            return $validationResult;
-        }
-
-        // ===== FILE UPLOAD =====
-        $uploadReturnArr = ['check' => 'skip'];
-
-        if (!empty($_FILES["local_stu_image"]["size"])) {
-
-            $uploadReturnArr = $this->lib->upload_file('local_stu_image', $dir);
-
-            if ($uploadReturnArr['check'] != 'success') {
-                return ['check' => 'failure', 'msg' => "Image upload failed!"];
-            }
-
-            $formDataArr['image_file_name'] = $uploadReturnArr['fileName'];
-        } else {
-            if ($isUpdate) {
-                $formDataArr['image_file_name'] = $post('hidden_stu_image');
-            } elseif ($action_type == "clone") {
-
-                $oldFile = $post('hidden_stu_image');
-
-                if (!empty($oldFile)) {
-
-                    $ext = pathinfo($oldFile, PATHINFO_EXTENSION);
-                    $newFileName = $this->lib->generateRandomString() . '_' . time() . '.' . $ext;
-
-                    $source = USER_UPLOAD_DIR . $dir . '/' . $oldFile;
-                    $dest   = USER_UPLOAD_DIR . $dir . '/' . $newFileName;
-
-                    if (file_exists($source) && copy($source, $dest)) {
-                        $formDataArr['image_file_name'] = $newFileName;
-                    } else {
-                        $formDataArr['image_file_name'] = null;
-                    }
-                } else {
-                    $formDataArr['image_file_name'] = null;
-                }
-            } else {
-                $formDataArr['image_file_name'] = null;
-            }
-        }
-
-        // ===== SAVE =====
-        $returnArr = $this->interface->manage_Global_Student($formDataArr);
-
-        if ($returnArr['check'] == 'success') {
-
-            // delete old image
-            if (
-                $isUpdate &&
-                $action_type != "clone" &&
-                $uploadReturnArr['check'] == 'success' &&
-                !empty($_FILES["local_stu_image"]["size"])
-            ) {
-                $filePath = USER_UPLOAD_DIR . $dir . '/' . $post('hidden_stu_image');
-                if (!empty($hiddenImage) && file_exists($filePath)) {
-                    unlink($filePath);
-                }
-            }
-
-            $returnArr['stu_id'] = $isUpdate ? $post('stu_id') : $formDataArr['stu_id'];
-            $returnArr['course'] = $post('course_name');
-
-            if (!$isUpdate) {
-                $this->purgeSiteCache("student");
-            }
-        } else {
-
-            if ($uploadReturnArr['check'] == 'success') {
-                $filePath = USER_UPLOAD_DIR . $dir . '/' . $post('image_file_name');
-                if (!empty($hiddenImage) && file_exists($filePath)) {
-                    unlink($filePath);
-                }
-            }
-
+        if ($studentResult['check'] !== 'success') {
             return ['check' => 'failure', 'message' => "Something went wrong!"];
         }
 
-        return $returnArr;
+        // 5. Handle receipt + rollback
+        $receiptResult = $this->studentService->handleReceiptAndRollback(
+            $studentResult,
+            $formData,
+            $post,
+            $isUpdate
+        );
+
+        if ($receiptResult !== true) return $receiptResult;
+
+        // 6. Temp conversion
+        $this->studentService->handleTempConversion($post);
+
+        // 7. Final response
+        return $this->studentService->buildAdmissionResponse($studentResult, $formData, $post, $isUpdate);
     }
+    // Manage student admission data methods ends here
 
-    public function manage_student_admission($data)
-    {
-        //Declaring necessary variables
-        $formDataArr = [];
-        $studentReturnArr = [];
-        $receiptReturnArr = [];
-        $returnArr = [];
-
-        // helper
-        $post = fn ($key) => $this->lib->postDataSanitize($key);
-
-        // -----------------------------
-        // Basic Data
-        // -----------------------------
-        $formDataArr['student_id'] = $post('student_id');
-
-        $isUpdate = !empty($formDataArr['student_id']) && $formDataArr['student_id'] != "null";
-        $user_role_slug = $isUpdate ? 'update_student' : 'create_student';
-        $receipt_role_slug = 'create_receipt';
-
-        // -----------------------------
-        // Permission Check
-        // -----------------------------
-        if (!$this->checkUserRolePermission($user_role_slug, "hard")) {
-            return ['check' => 'failure', 'message' => "You don't have the permission to perform this action!"];
-        }
-
-        // permission check
-        if (!$this->checkUserRolePermission($receipt_role_slug, "hard")) {
-            return ['check' => 'failure', 'message' => "No permission to create receipt"];
-        }
-
-        // -----------------------------
-        // Fetch Student (if update)
-        // -----------------------------
-        if ($isUpdate) {
-            $studentDetailArr = $this->interface
-                ->fetch_Detail_Single_Student($formDataArr['student_id']);
-        }
-
-        // check for valid student data
-        if ($isUpdate && empty($studentDetailArr)) {
-            return ['check' => 'failure', 'message' => 'Student not found'];
-        }
-
-        // -----------------------------
-        // Fees & Franchise Logic
-        // -----------------------------
-        $formDataArr['stu_course_fees']     = $post('stu_course_fees');
-        $formDataArr['monthly_course_fees'] = $post('monthly_course_fees');
-        $formDataArr['stu_course_discount'] = $post('stu_course_discount');
-        $formDataArr['fees_paid_before_dr'] = $post('fees_paid_before_dr');
-
-        if ($_SESSION['user_type'] == "franchise" && $_SESSION['owned_status'] == "yes") {
-
-            $franchise_id = $_SESSION['user_id'];
-
-            if ($isUpdate && $studentDetailArr->franchise_id != $franchise_id) {
-                return ['check' => 'failure', 'message' => "You don't have the permission to perform this action!"];
-            }
-
-            if ($isUpdate) {
-                $formDataArr['verified_status'] =
-                    ($formDataArr['stu_course_discount'] != $studentDetailArr->stu_course_discount)
-                    ? 'n'
-                    : $studentDetailArr->verified_status;
-            }
-        } else {
-
-            $franchise_id = $post('franchise_id');
-
-            if ($isUpdate) {
-                $formDataArr['verified_status'] = 'y';
-            }
-        }
-
-        // -----------------------------
-        // Basic Fields
-        // -----------------------------
-        $formDataArr['stu_name']         = $post('stu_name');
-        $formDataArr['stu_father_name']  = $post('stu_father_name');
-        $formDataArr['stu_phone']        = $post('stu_phone');
-        $formDataArr['course_id']        = $post('course_id');
-        $formDataArr['franchise_id']     = $franchise_id;
-
-        $formDataArr['student_status']   = "admitted";
-        $formDataArr['record_status']    = "active";
-
-        // -----------------------------
-        // Create Student ID
-        // -----------------------------
-        if (!$isUpdate) {
-            $formDataArr['stu_id'] = $this->create_Student_ID();
-        }
-
-        // -----------------------------
-        // Temp Record
-        // -----------------------------
-        $formDataArr['tmp_stu_record_id'] = $post('tmp_stu_record_id') ?: null;
-
-        // -----------------------------
-        // Save Student
-        // -----------------------------
-        $studentReturnArr = $this->interface->manage_Student_Admission($formDataArr);
-
-        // -----------------------------
-        // Receipt Creation + Rollback
-        // -----------------------------
-        $receiptAmount = (float) $post('receipt_amount');
-        $receiptResult = ['check' => 'skip'];
-
-        if (
-            $studentReturnArr['check'] == 'success' &&
-            $studentReturnArr['last_insert_id'] > 0 &&
-            !$isUpdate && $receiptAmount > 0
-        ) {
-            $receiptResult = $this->createAdmissionReceipt($formDataArr, $post);
-
-            // ROLLBACK if receipt fails
-            if ($receiptResult['check'] === 'failure') {
-
-                // delete created student (rollback)
-                $this->interface
-                    ->delete_Student_By_Id($formDataArr['stu_id']);
-
-                return [
-                    'check'   => 'failure',
-                    'message' => 'Student created but receipt failed. Operation rolled back.'
-                ];
-            }
-        }
-
-        // -----------------------------
-        // Temp Conversion Update
-        // -----------------------------
-        $id = $post('id');
-
-        if ($studentReturnArr['check'] == 'success' && !empty($id)) {
-            $this->interface->update_Tmp_Student_Conversion_Status($id, 'y');
-        }
-
-        // -----------------------------
-        // Final Response
-        // -----------------------------
-        if ($studentReturnArr['check'] == 'success') {
-
-            $returnArr = $studentReturnArr;
-
-            $returnArr['stu_id'] = $isUpdate
-                ? $post('stu_id')
-                : $formDataArr['stu_id'];
-
-            $returnArr['course'] = $post('course_name');
-        } else {
-            $returnArr = ['check' => 'failure', 'message' => "Something went wrong!"];
-        }
-
-        return $returnArr;
-    }
-
-    private function createAdmissionReceipt($formDataArr, $post)
-    {
-        $receipt_role_slug = 'create_receipt';
-
-        // permission check
-        if (!$this->checkUserRolePermission($receipt_role_slug, "hard")) {
-            return ['check' => 'failure', 'message' => "No permission to create receipt"];
-        }
-
-        $receiptAmount = (float) $post('receipt_amount');
-
-        if ($receiptAmount <= 0) {
-            return ['check' => 'skip']; // nothing to do
-        }
-
-        $receiptFormArr = [
-            'receipt_id'             => $this->studentReceiptService->create_Receipt_ID(),
-            'stu_id'                 => $formDataArr['stu_id'],
-            'category_id'            => $post('category_id'),
-            'receipt_amount'         => $receiptAmount,
-            'extra_fees'             => $post('extra_fees'),
-            'extra_fees_description' => "Registration Fees",
-            'record_status'          => 'active'
-        ];
-
-        return $this->interface
-            ->create_Student_Admission_Receipt($receiptFormArr);
-    }
-
-    public function manage_temp_student($data)
+    // Manage temp student admission data methods start here
+    public function manage_temp_student($data) : Array
     {
         //Declaring necessary variables
         $formDataArr = [];
@@ -481,7 +382,7 @@ class StudentController extends BaseController
         // -----------------------------
         // Permission Check
         // -----------------------------
-        if (!$this->checkUserRolePermission($user_role_slug, "hard")) {
+        if (!$this->permissionService->checkUserRolePermission($user_role_slug, "hard")) {
             return ['check' => 'failure', 'message' => "You don't have the permission to perform this action!"];
         }
 
@@ -493,7 +394,7 @@ class StudentController extends BaseController
             $franchise_id = $_SESSION['user_id'];
 
             if ($isUpdate) {
-                $studentDetailArr = $this->interface
+                $studentDetailArr = $this->model
                     ->fetch_Detail_Single_Student($formDataArr['id']);
 
                 if ($studentDetailArr->franchise_id != $franchise_id) {
@@ -502,7 +403,7 @@ class StudentController extends BaseController
             }
 
             // kept for future use (as in your original code)
-            // $franchiseDetailArr = $this->interface
+            // $franchiseDetailArr = $this->model
             //     ->fetch_Global_Single_Franchise($franchise_id);
 
             // $owned_status = $franchiseDetailArr->owned_status;
@@ -525,13 +426,13 @@ class StudentController extends BaseController
         // Create Temp Student ID
         // -----------------------------
         if (!$isUpdate) {
-            $formDataArr['tmp_stu_id'] = $this->create_Tmp_Student_ID();
+            $formDataArr['tmp_stu_id'] = $this->studentService->create_Tmp_Student_ID();
         }
 
         // -----------------------------
         // DB Operation
         // -----------------------------
-        $returnArr = $this->interface->manage_Temp_Student($formDataArr);
+        $returnArr = $this->model->manage_Temp_Student($formDataArr);
 
         // -----------------------------
         // Response Handling
@@ -549,7 +450,9 @@ class StudentController extends BaseController
 
         return $returnArr;
     }
+    // Manage temp student admission data methods ends here
 
+    // Update student status methods start here
     public function change_student_status($data)
     {
         //Declaring necessary variables
@@ -568,7 +471,7 @@ class StudentController extends BaseController
         // -----------------------------
         // Permission Check
         // -----------------------------
-        if (!$this->checkUserRolePermission($user_role_slug, "hard")) {
+        if (!$this->permissionService->checkUserRolePermission($user_role_slug, "hard")) {
             return ['check' => 'failure', 'message' => "You don't have the permission to perform this action!"];
         }
 
@@ -589,7 +492,7 @@ class StudentController extends BaseController
         // -----------------------------
         // DB Operation
         // -----------------------------
-        $returnArr = $this->interface
+        $returnArr = $this->model
             ->manage_Student_Status($formDataArr);
 
         // -----------------------------
@@ -608,7 +511,7 @@ class StudentController extends BaseController
         // -----------------------------
         $user_role_slug = "update_student";
 
-        if (!$this->checkUserRolePermission($user_role_slug, "hard")) {
+        if (!$this->permissionService->checkUserRolePermission($user_role_slug, "hard")) {
             return ['check' => 'failure', 'message' => "You don't have the permission to perform this action!"];
         }
 
@@ -641,13 +544,15 @@ class StudentController extends BaseController
         // -----------------------------
         // Process Bulk Update
         // -----------------------------
-        $response = $this->interface->update_Bulk_Student_Status($paramArr);
+        $response = $this->model->update_Bulk_Student_Status($paramArr);
 
         return $response['responseArr']['check'] === 'success'
             ? ['check' => 'success', 'message' => 'Bulk update successful']
             : ['check' => 'failure', 'message' => 'Bulk update failed'];
     }
+    // Update student status methods ends here
 
+    // Fetch student data methods starts here
     public function fetch_student_detail_modal($data)
     {
         $post = fn ($key) => $this->lib->postDataSanitize($key);
@@ -655,7 +560,7 @@ class StudentController extends BaseController
         // -----------------------------
         // PERMISSION CHECK
         // -----------------------------
-        if (!$this->checkUserRolePermission("view_student", "hard")) {
+        if (!$this->permissionService->checkUserRolePermission("view_student", "hard")) {
             return ['check' => 'failure', 'message' => "You don't have the permission to perform this action!"];
         }
 
@@ -664,7 +569,7 @@ class StudentController extends BaseController
         // -----------------------------
         $student_id = (int) $post('student_id');
 
-        $student = $this->interface
+        $student = $this->model
             ->fetch_Global_Single_Student($student_id);
 
         if (empty($student)) {
@@ -722,4 +627,5 @@ class StudentController extends BaseController
             'studentDetail'  => $student
         ];
     }
+    // Fetch student data methods ends here
 }

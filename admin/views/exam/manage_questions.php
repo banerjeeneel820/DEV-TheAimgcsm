@@ -1719,43 +1719,43 @@ $question_div_collapse = $_COOKIE['question_div_collapse'] == "true" ? "collapse
       });
     });
 
-    $('#main_question_container').sortable({
-      //handle: ".draggable",
-      update: function(event, ui) {
-        var formData = $(this).sortable('serialize');
+    // $('#main_question_container').sortable({
+    //   //handle: ".draggable",
+    //   update: function(event, ui) {
+    //     var formData = $(this).sortable('serialize');
 
-        formData += '&exam_id=' + exam_id + '&action=sortExamQuestions';
+    //     formData += '&exam_id=' + exam_id + '&action=sortExamQuestions';
 
-        //POST to server using $.post or $.ajax
-        $.ajax({
-          data: formData,
-          method: 'POST',
-          url: ajaxControllerHandler,
-          beforeSend: function() {
-            //Display loader
-            // $('.overlayer').fadeIn();
-            // $('.content_div_loader').addClass('sk-loading');
-          },
-          success: function(responseData) {
-            var data = JSON.parse(responseData);
-            //console.log(data);
+    //     //POST to server using $.post or $.ajax
+    //     $.ajax({
+    //       data: formData,
+    //       method: 'POST',
+    //       url: ajaxControllerHandler,
+    //       beforeSend: function() {
+    //         //Display loader
+    //         // $('.overlayer').fadeIn();
+    //         // $('.content_div_loader').addClass('sk-loading');
+    //       },
+    //       success: function(responseData) {
+    //         var data = JSON.parse(responseData);
+    //         //console.log(data);
 
-            $('.overlayer').fadeOut();
-            $('.content_div_loader').removeClass('sk-loading');
+    //         $('.overlayer').fadeOut();
+    //         $('.content_div_loader').removeClass('sk-loading');
 
-            if (data.check == "success") {
-              toastr.success("Oreding is successfully completed", 'Success!');
+    //         if (data.check == "success") {
+    //           toastr.success("Oreding is successfully completed", 'Success!');
 
-              reindexQuestions();
-              //loadQuestions({ reset: true });
+    //           reindexQuestions();
+    //           //loadQuestions({ reset: true });
 
-            } else {
-              toastr.error(data.message, 'Error!');
-            }
-          }
-        });
-      }
-    });
+    //         } else {
+    //           toastr.error(data.message, 'Error!');
+    //         }
+    //       }
+    //     });
+    //   }
+    // });
 
     $(document).on('submit', '#manage_exam_questions_form', function(event) {
       event.preventDefault();

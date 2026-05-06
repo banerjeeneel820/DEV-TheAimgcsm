@@ -3,10 +3,12 @@ defined('ROOTPATH') or exit('No direct script access allowed');
 
 class ExamController extends BaseController
 {
+    private $permissionService;
 
     public function __construct()
     {
         parent::__construct();
+        $this->permissionService = new PermissionService($this->model, $this->lib);
     }
 
     public function manage_exam($data)
@@ -30,7 +32,7 @@ class ExamController extends BaseController
         // -----------------------------
         // Permission Check
         // -----------------------------
-        if (!$this->checkUserRolePermission($user_role_slug, "hard")) {
+        if (!$this->permissionService->checkUserRolePermission($user_role_slug, "hard")) {
             return ['check' => 'failure', 'message' => "You don't have the permission to perform this action!"];
         }
 
@@ -78,7 +80,7 @@ class ExamController extends BaseController
         // -----------------------------
         // DB Operation
         // -----------------------------
-        $returnArr = $this->interface->manage_Global_Exam($formDataArr);
+        $returnArr = $this->model->manage_Global_Exam($formDataArr);
 
         // -----------------------------
         // Post Processing
@@ -122,14 +124,14 @@ class ExamController extends BaseController
         // -----------------------------
         $user_role_slug = 'update_exam';
 
-        if (!$this->checkUserRolePermission($user_role_slug, "hard")) {
+        if (!$this->permissionService->checkUserRolePermission($user_role_slug, "hard")) {
             return ['check' => 'failure', 'message' => "You don't have the permission to perform this action!"];
         }
 
         // -----------------------------
         // Fetch Questions
         // -----------------------------
-        $questions = $this->interface->fetch_Exam_Questions($exam_id);
+        $questions = $this->model->fetch_Exam_Questions($exam_id);
 
         // -----------------------------
         // Response
@@ -154,7 +156,7 @@ class ExamController extends BaseController
         // -----------------------------
         $user_role_slug = 'update_exam';
 
-        if (!$this->checkUserRolePermission($user_role_slug, "hard")) {
+        if (!$this->permissionService->checkUserRolePermission($user_role_slug, "hard")) {
             return ['check' => 'failure', 'message' => "You don't have the permission to perform this action!"];
         }
 
@@ -173,7 +175,7 @@ class ExamController extends BaseController
         // -----------------------------
         // Fetch Questions
         // -----------------------------
-        $returnArr = $this->interface->fetch_Exam_Questions_Limit($paramArr);
+        $returnArr = $this->model->fetch_Exam_Questions_Limit($paramArr);
 
         // -----------------------------
         // Response
@@ -192,7 +194,7 @@ class ExamController extends BaseController
         // -----------------------------
         $user_role_slug = 'update_exam';
 
-        if (!$this->checkUserRolePermission($user_role_slug, "hard")) {
+        if (!$this->permissionService->checkUserRolePermission($user_role_slug, "hard")) {
             return [
                 'check' => 'failure',
                 'message' => "You don't have the permission to perform this action!"
@@ -269,7 +271,7 @@ class ExamController extends BaseController
         // -----------------------------
         // DB Operation
         // -----------------------------
-        $result = $this->interface->update_Exam_Questions($payload);
+        $result = $this->model->update_Exam_Questions($payload);
 
         if ($result['check'] === 'success') {
 
@@ -310,14 +312,14 @@ class ExamController extends BaseController
         // -----------------------------
         $user_role_slug = 'update_exam';
 
-        if (!$this->checkUserRolePermission($user_role_slug, "hard")) {
+        if (!$this->permissionService->checkUserRolePermission($user_role_slug, "hard")) {
             return ['check' => 'failure', 'message' => "You don't have the permission to perform this action!"];
         }
 
         // -----------------------------
         // Fetch Current Ordering
         // -----------------------------
-        $current_questions = $this->interface
+        $current_questions = $this->model
             ->fetch_Exam_Questions($formDataArr['exam_id']);
 
         foreach ($current_questions as $question) {
@@ -338,7 +340,7 @@ class ExamController extends BaseController
             $formDataArr['question_id'] = $id;
             $formDataArr['ordering'] = $index + 1;
 
-            $returnArr = $this->interface
+            $returnArr = $this->model
                 ->save_Exam_Questions_Order($formDataArr);
         }
 
@@ -366,14 +368,14 @@ class ExamController extends BaseController
         // -----------------------------
         $user_role_slug = 'update_exam';
 
-        if (!$this->checkUserRolePermission($user_role_slug, "hard")) {
+        if (!$this->permissionService->checkUserRolePermission($user_role_slug, "hard")) {
             return ['check' => 'failure', 'message' => "You don't have the permission to perform this action!"];
         }
 
         // -----------------------------
         // DB Operation
         // -----------------------------
-        $returnArr = $this->interface->delete_All_Questions($exam_id);
+        $returnArr = $this->model->delete_All_Questions($exam_id);
 
         // -----------------------------
         // Response
@@ -406,7 +408,7 @@ class ExamController extends BaseController
         // -----------------------------
         // DB Operation
         // -----------------------------
-        $returnArr = $this->interface
+        $returnArr = $this->model
             ->update_Exam_Validation_Log($formDataArr);
 
         // -----------------------------
@@ -435,7 +437,7 @@ class ExamController extends BaseController
         // -----------------------------
         // DB Operation
         // -----------------------------
-        $returnArr = $this->interface
+        $returnArr = $this->model
             ->update_Exam_Answer($postData);
 
         // -----------------------------
@@ -469,7 +471,7 @@ class ExamController extends BaseController
         // -----------------------------
         // DB Operation
         // -----------------------------
-        $returnArr = $this->interface
+        $returnArr = $this->model
             ->update_Flag_Question_Exam($formDataArr);
 
         // -----------------------------
@@ -503,7 +505,7 @@ class ExamController extends BaseController
         // -----------------------------
         // DB Operation
         // -----------------------------
-        $returnArr = $this->interface
+        $returnArr = $this->model
             ->update_Viewed_Question_Exam($formDataArr);
 
         // -----------------------------

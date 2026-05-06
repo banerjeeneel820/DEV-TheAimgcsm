@@ -18,7 +18,7 @@ $current_page_no = $pageContent['pageData']['enquiry_data']['pageNo'];
 $courseArr = $pageContent['pageData']['course_data'];
 
 //Fetching page action permission
-$deletePermission = $this->checkUserRolePermission("delete_enquiry");
+$deletePermission = $this->permissionService->checkUserRolePermission("delete_enquiry");
 
 /*print'<pre>';
   print_r($enquiryListArr);

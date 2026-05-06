@@ -5,12 +5,16 @@ class StudentReceiptController extends BaseController
 {
 
     private $studentReceiptService;
+    private $cacheService;
+    private $permissionService;
 
     public function __construct()
     {
         parent::__construct();
 
-        $this->studentReceiptService = new StudentReceiptService($this->interface, $this->lib);
+        $this->studentReceiptService = new StudentReceiptService($this->model, $this->lib);
+        $this->cacheService = new CacheService($this->model, $this->lib);
+        $this->permissionService = new PermissionService($this->model, $this->lib);
     }
 
     public function manage_receipt($data)
@@ -55,13 +59,13 @@ class StudentReceiptController extends BaseController
         $send_mail = $post('send_mail');
 
         // ===== PERMISSION =====
-        if (!$this->checkUserRolePermission($user_role_slug, "hard")) {
+        if (!$this->permissionService->checkUserRolePermission($user_role_slug, "hard")) {
             return ['check' => 'failure', 'message' => "You don't have the permission to perform this action!"];
         }
 
         // ===== FETCH EXISTING RECEIPT =====
         $receiptDetailArr = $isUpdate
-            ? $this->interface->fetch_Receipt_Detail($formDataArr['receipt_row_id'])
+            ? $this->model->fetch_Receipt_Detail($formDataArr['receipt_row_id'])
             : null;
 
         // ===== VALIDATE RECEIPT EXISTS =====
@@ -96,7 +100,7 @@ class StudentReceiptController extends BaseController
         }
 
         // ===== STUDENT DETAILS =====
-        $stuReceiptDetails = $this->interface->fetch_Global_Single_Student($formDataArr['student_id']);
+        $stuReceiptDetails = $this->model->fetch_Global_Single_Student($formDataArr['student_id']);
 
         // ===== VALIDATE RECEIPT EXISTS =====
         if (empty($stuReceiptDetails)) {
@@ -142,7 +146,7 @@ class StudentReceiptController extends BaseController
 
         // ===== FRANCHISE CHECK =====
         if ($_SESSION['user_type'] == "franchise") {
-            $studentDetailArr = $this->interface->fetch_Detail_Single_Student($formDataArr['student_id']);
+            $studentDetailArr = $this->model->fetch_Detail_Single_Student($formDataArr['student_id']);
 
             if ($studentDetailArr->franchise_id != $_SESSION['user_id']) {
                 return ['check' => 'failure', 'message' => "You don't have the permission to perform this action!"];
@@ -182,7 +186,7 @@ class StudentReceiptController extends BaseController
         }
 
         // ===== SAVE =====
-        $returnArr = $this->interface->manage_Student_Receipt($formDataArr);
+        $returnArr = $this->model->manage_Student_Receipt($formDataArr);
 
         if ($returnArr['check'] != 'success') {
             return ['check' => 'failure', 'message' => "Something went wrong!"];
@@ -199,15 +203,15 @@ class StudentReceiptController extends BaseController
             }
         } else {
             $receipt_id = $returnArr['last_insert_id'];
-            $receiptDetails = $this->interface->fetch_Single_Receipt_Data($receipt_id);
+            $receiptDetails = $this->model->fetch_Single_Receipt_Data($receipt_id);
 
-            $this->purgeSiteCache("student_receipts");
+            $this->cacheService->purgeSiteCache("student_receipts");
         }
 
         // ---------------------------------
         // PERMISSION FOR RECEIPT CREATION
         // ---------------------------------
-        if (!$this->checkUserRolePermission('create_receipt', "hard")) {
+        if (!$this->permissionService->checkUserRolePermission('create_receipt', "hard")) {
             return ['check' => 'failure', 'message' => "You don't have permission!"];
         }
 
@@ -256,7 +260,7 @@ class StudentReceiptController extends BaseController
         // -----------------------------
         $user_role_slug = "view_receipt";
 
-        if (!$this->checkUserRolePermission($user_role_slug, "hard")) {
+        if (!$this->permissionService->checkUserRolePermission($user_role_slug, "hard")) {
             return ['check' => 'failure', 'message' => "You don't have the permission to perform this action!"];
         }
 
@@ -296,7 +300,7 @@ class StudentReceiptController extends BaseController
         // -----------------------------
         $receiptDataArr = json_decode(
             json_encode(
-                $this->interface->fetch_Receipt_Collection($formDataArr)
+                $this->model->fetch_Receipt_Collection($formDataArr)
             ),
             true
         );
@@ -327,7 +331,7 @@ class StudentReceiptController extends BaseController
         // -----------------------------
         // PERMISSION CHECK
         // -----------------------------
-        if (!$this->checkUserRolePermission('create_receipt', "hard")) {
+        if (!$this->permissionService->checkUserRolePermission('create_receipt', "hard")) {
             return ['check' => 'failure', 'message' => "You don't have permission!"];
         }
 
@@ -359,7 +363,7 @@ class StudentReceiptController extends BaseController
         $id = $post('id');
 
         // PERMISSION
-        if (!$this->checkUserRolePermission('create_receipt', "hard")) {
+        if (!$this->permissionService->checkUserRolePermission('create_receipt', "hard")) {
             return ['check' => 'failure', 'message' => "You don't have the permission to perform this action!"];
         }
 

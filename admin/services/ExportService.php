@@ -3,14 +3,14 @@ defined('ROOTPATH') or exit('No direct script access allowed');
 
 class ExportService
 {   
-    private $interface;
+    private $model;
     private $lib;
     private $pdfService;
     private $excelService;
 
-    public function __construct($interface, $lib)
+    public function __construct($model, $lib)
     {
-        $this->interface = $interface;
+        $this->model = $model;
         $this->lib = $lib;
 
         $this->pdfService = new PdfService(new PdfFactory());
@@ -155,7 +155,7 @@ class ExportService
 
         $exportMethod = $input['export_method'] ?? 'excel';
 
-        $result = $this->getStudentData($input);
+        $result = $this->lib->getStudentData($input);
 
         $students = $result['data'];
         $criteria = $result['filter'];
@@ -205,7 +205,7 @@ class ExportService
                 'fetchType' => $input['fetchType']
             ];
 
-            $result = $this->interface
+            $result = $this->model
                 ->fetch_Dashboard_Student_Data($data)['data'];
 
             return [
@@ -220,7 +220,7 @@ class ExportService
             'search_end'
         ]);
 
-        $result = $this->interface
+        $result = $this->model
             ->fetch_Global_Student_Recipts($params);
 
         $students = $this->lib->toArray($result);
@@ -258,7 +258,7 @@ class ExportService
 
         $exportMethod = $input['export_method'] ?? 'excel';
 
-        $result = $this->getReceiptData($input);
+        $result = $this->lib->getReceiptData($input);
 
         $receipts = $result['data'];
         $criteria = $result['filter'];
@@ -309,7 +309,7 @@ class ExportService
                 'fetchType' => $input['fetchType']
             ];
 
-            $result = $this->interface
+            $result = $this->model
                 ->fetch_Dashboard_Receipt_Data($data)['data'];
 
             return [
@@ -326,10 +326,10 @@ class ExportService
         //print_r($params);exit;
 
         if ($input['student_id']) {
-            $result = $this->interface
+            $result = $this->model
                 ->fetch_Single_Student_Receipt($input['student_id'], $params);
         } else {
-            $result = $this->interface
+            $result = $this->model
                 ->fetch_Global_Receipts($params);
         }
 
@@ -358,7 +358,7 @@ class ExportService
 
         $exportMethod = $input['export_method'] ?? 'excel';
 
-        $result = $this->getFranchiseData($input);
+        $result = $this->lib->getFranchiseData($input);
 
         $franchises = $result['data'];
         $criteria = $result['filter'];
@@ -403,7 +403,7 @@ class ExportService
         // Internal helper (as you wanted earlier)
         $params = $this->buildCommonFilters($input);
 
-        $result = $this->interface
+        $result = $this->model
             ->fetch_Global_Franchise($params);
 
         $franchises = $this->lib->toArray($result);

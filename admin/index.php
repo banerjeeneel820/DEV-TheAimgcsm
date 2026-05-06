@@ -7,6 +7,8 @@ if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
 
-Router::handle();
+$container = new Container();
+
+Router::handle($container);
 
 ob_end_flush();

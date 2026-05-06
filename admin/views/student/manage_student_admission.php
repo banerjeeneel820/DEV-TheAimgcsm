@@ -27,11 +27,11 @@
   }    
 
   //Fetching page action permission
-  $viewPermission = $this->checkUserRolePermission("view_student"); 
-  $createPermission = $this->checkUserRolePermission("create_student"); 
-  $updatePermission = $this->checkUserRolePermission("update_student"); 
+  $viewPermission = $this->permissionService->checkUserRolePermission("view_student"); 
+  $createPermission = $this->permissionService->checkUserRolePermission("create_student"); 
+  $updatePermission = $this->permissionService->checkUserRolePermission("update_student"); 
 
-  $updateReceiptPermission = $this->checkUserRolePermission("update_receipt"); 
+  $updateReceiptPermission = $this->permissionService->checkUserRolePermission("update_receipt"); 
   
   /*print"<pre>";
   print_r($studentDetails);
@@ -164,10 +164,10 @@
                                      </div>   
                                     </div>
 
-                                    <label class="col-sm-2 col-form-label text-right">Monthly Course Fees <span class="cursor-pointer" data-toggle="tooltip" data-placement="bottom" title="Enter Student Total Course Discount"><i class="fa fa-question-circle"></i></span></label>
+                                    <label class="col-sm-2 col-form-label text-right">Monthly Fees <span class="cursor-pointer" data-toggle="tooltip" data-placement="bottom" title="Enter Student Total Course Discount"><i class="fa fa-question-circle"></i></span></label>
                                       <div class="col-sm-4">
                                         <div class="input-group">
-                                          <input type="text" class="form-control" name="monthly_course_fees" placeholder="Enter Student's Monthly Course Fees..." value="<?=(isset($studentDetailArr)?$studentDetailArr->monthly_course_fees:'')?>" required>
+                                          <input type="text" class="form-control" name="monthly_course_fees" placeholder="Enter Student's Monthly Course Fees..." value="<?=(isset($studentDetails)?$studentDetails->monthly_course_fees:'')?>" required>
                                         </div>   
                                     </div> 
                                 </div>    

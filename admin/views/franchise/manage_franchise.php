@@ -1,7 +1,7 @@
 <?php
   if(isset($_GET['id'])){
     $fran_row_id = $_GET['id'];
-    $franDetailArr = $pageContent['pageData']['frnachise_data'];
+    $franDetailArr = $pageContent['pageData']['franchise_data'];
 
     //Configuring franchise file data
     if(strlen($franDetailArr->fran_image)>0 && file_exists(USER_UPLOAD_DIR.'franchise/'.$franDetailArr->fran_image)){

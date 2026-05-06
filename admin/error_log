@@ -267,8 +267,8 @@ Stack trace:
 [27-Feb-2024 11:35:17 Asia/Kolkata] PHP Warning:  mysqli::query(): (HY000/1021): Disk full (/tmp/#sql_274284_0.MAI); waiting for someone to free some space... (errno: 28 &quot;No space left on device&quot;) in /home/theaimgc/public_html/admin/model/GlobalInterfaceModel.php on line 15
 [27-Feb-2024 11:35:17 Asia/Kolkata] PHP Fatal error:  Uncaught Error: Call to a member function fetch_object() on bool in /home/theaimgc/public_html/admin/model/GlobalInterfaceModel.php:17
 Stack trace:
-#0 /home/theaimgc/public_html/admin/controller/GlobalInterfaceController.php(391): GlobalInterfaceModel->global_Fetch_All_DB('SELECT rcpt.id,...')
-#1 /home/theaimgc/public_html/admin/library/GlobalLibraryHandler.php(1633): GlobalInterfaceController->fetch_Global_Receipt(Array)
+#0 /home/theaimgc/public_html/admin/controller/GlobalInterfaceModel.php(391): GlobalInterfaceModel->global_Fetch_All_DB('SELECT rcpt.id,...')
+#1 /home/theaimgc/public_html/admin/library/GlobalLibraryHandler.php(1633): GlobalInterfaceModel->fetch_Global_Receipt(Array)
 #2 /home/theaimgc/public_html/admin/controller/GlobalPageContentController.php(79): GlobalLibraryHandler->manage_Receipt_Required_Data()
 #3 /home/theaimgc/public_html/admin/index.php(23): GlobalPageContentController->get_PageContent()
 #4 {main}
@@ -276,8 +276,8 @@ Stack trace:
 [27-Feb-2024 11:36:14 Asia/Kolkata] PHP Warning:  mysqli::query(): (HY000/1021): Disk full (/tmp/#sql_274284_0.MAI); waiting for someone to free some space... (errno: 28 &quot;No space left on device&quot;) in /home/theaimgc/public_html/admin/model/GlobalInterfaceModel.php on line 15
 [27-Feb-2024 11:36:14 Asia/Kolkata] PHP Fatal error:  Uncaught Error: Call to a member function fetch_object() on bool in /home/theaimgc/public_html/admin/model/GlobalInterfaceModel.php:17
 Stack trace:
-#0 /home/theaimgc/public_html/admin/controller/GlobalInterfaceController.php(391): GlobalInterfaceModel->global_Fetch_All_DB('SELECT rcpt.id,...')
-#1 /home/theaimgc/public_html/admin/library/GlobalLibraryHandler.php(1633): GlobalInterfaceController->fetch_Global_Receipt(Array)
+#0 /home/theaimgc/public_html/admin/controller/GlobalInterfaceModel.php(391): GlobalInterfaceModel->global_Fetch_All_DB('SELECT rcpt.id,...')
+#1 /home/theaimgc/public_html/admin/library/GlobalLibraryHandler.php(1633): GlobalInterfaceModel->fetch_Global_Receipt(Array)
 #2 /home/theaimgc/public_html/admin/controller/GlobalPageContentController.php(79): GlobalLibraryHandler->manage_Receipt_Required_Data()
 #3 /home/theaimgc/public_html/admin/index.php(23): GlobalPageContentController->get_PageContent()
 #4 {main}
@@ -285,8 +285,8 @@ Stack trace:
 [27-Feb-2024 11:36:45 Asia/Kolkata] PHP Warning:  mysqli::query(): (HY000/1021): Disk full (/tmp/#sql_274284_0.MAI); waiting for someone to free some space... (errno: 28 &quot;No space left on device&quot;) in /home/theaimgc/public_html/admin/model/GlobalInterfaceModel.php on line 15
 [27-Feb-2024 11:36:45 Asia/Kolkata] PHP Fatal error:  Uncaught Error: Call to a member function fetch_object() on bool in /home/theaimgc/public_html/admin/model/GlobalInterfaceModel.php:17
 Stack trace:
-#0 /home/theaimgc/public_html/admin/controller/GlobalInterfaceController.php(391): GlobalInterfaceModel->global_Fetch_All_DB('SELECT rcpt.id,...')
-#1 /home/theaimgc/public_html/admin/library/GlobalLibraryHandler.php(1633): GlobalInterfaceController->fetch_Global_Receipt(Array)
+#0 /home/theaimgc/public_html/admin/controller/GlobalInterfaceModel.php(391): GlobalInterfaceModel->global_Fetch_All_DB('SELECT rcpt.id,...')
+#1 /home/theaimgc/public_html/admin/library/GlobalLibraryHandler.php(1633): GlobalInterfaceModel->fetch_Global_Receipt(Array)
 #2 /home/theaimgc/public_html/admin/controller/GlobalPageContentController.php(79): GlobalLibraryHandler->manage_Receipt_Required_Data()
 #3 /home/theaimgc/public_html/admin/index.php(23): GlobalPageContentController->get_PageContent()
 #4 {main}
@@ -294,8 +294,8 @@ Stack trace:
 [27-Feb-2024 11:37:40 Asia/Kolkata] PHP Warning:  mysqli::query(): (HY000/1021): Disk full (/tmp/#sql_274284_0.MAI); waiting for someone to free some space... (errno: 28 &quot;No space left on device&quot;) in /home/theaimgc/public_html/admin/model/GlobalInterfaceModel.php on line 15
 [27-Feb-2024 11:37:40 Asia/Kolkata] PHP Fatal error:  Uncaught Error: Call to a member function fetch_object() on bool in /home/theaimgc/public_html/admin/model/GlobalInterfaceModel.php:17
 Stack trace:
-#0 /home/theaimgc/public_html/admin/controller/GlobalInterfaceController.php(391): GlobalInterfaceModel->global_Fetch_All_DB('SELECT rcpt.id,...')
-#1 /home/theaimgc/public_html/admin/library/GlobalLibraryHandler.php(1633): GlobalInterfaceController->fetch_Global_Receipt(Array)
+#0 /home/theaimgc/public_html/admin/controller/GlobalInterfaceModel.php(391): GlobalInterfaceModel->global_Fetch_All_DB('SELECT rcpt.id,...')
+#1 /home/theaimgc/public_html/admin/library/GlobalLibraryHandler.php(1633): GlobalInterfaceModel->fetch_Global_Receipt(Array)
 #2 /home/theaimgc/public_html/admin/controller/GlobalPageContentController.php(79): GlobalLibraryHandler->manage_Receipt_Required_Data()
 #3 /home/theaimgc/public_html/admin/index.php(23): GlobalPageContentController->get_PageContent()
 #4 {main}
@@ -303,8 +303,8 @@ Stack trace:
 [27-Feb-2024 11:38:04 Asia/Kolkata] PHP Warning:  mysqli::query(): (HY000/1021): Disk full (/tmp/#sql_274284_0.MAI); waiting for someone to free some space... (errno: 28 &quot;No space left on device&quot;) in /home/theaimgc/public_html/admin/model/GlobalInterfaceModel.php on line 15
 [27-Feb-2024 11:38:04 Asia/Kolkata] PHP Fatal error:  Uncaught Error: Call to a member function fetch_object() on bool in /home/theaimgc/public_html/admin/model/GlobalInterfaceModel.php:17
 Stack trace:
-#0 /home/theaimgc/public_html/admin/controller/GlobalInterfaceController.php(391): GlobalInterfaceModel->global_Fetch_All_DB('SELECT rcpt.id,...')
-#1 /home/theaimgc/public_html/admin/library/GlobalLibraryHandler.php(1633): GlobalInterfaceController->fetch_Global_Receipt(Array)
+#0 /home/theaimgc/public_html/admin/controller/GlobalInterfaceModel.php(391): GlobalInterfaceModel->global_Fetch_All_DB('SELECT rcpt.id,...')
+#1 /home/theaimgc/public_html/admin/library/GlobalLibraryHandler.php(1633): GlobalInterfaceModel->fetch_Global_Receipt(Array)
 #2 /home/theaimgc/public_html/admin/controller/GlobalPageContentController.php(79): GlobalLibraryHandler->manage_Receipt_Required_Data()
 #3 /home/theaimgc/public_html/admin/index.php(23): GlobalPageContentController->get_PageContent()
 #4 {main}
@@ -312,8 +312,8 @@ Stack trace:
 [27-Feb-2024 11:38:12 Asia/Kolkata] PHP Warning:  mysqli::query(): (HY000/1021): Disk full (/tmp/#sql_274284_0.MAI); waiting for someone to free some space... (errno: 28 &quot;No space left on device&quot;) in /home/theaimgc/public_html/admin/model/GlobalInterfaceModel.php on line 15
 [27-Feb-2024 11:38:12 Asia/Kolkata] PHP Fatal error:  Uncaught Error: Call to a member function fetch_object() on bool in /home/theaimgc/public_html/admin/model/GlobalInterfaceModel.php:17
 Stack trace:
-#0 /home/theaimgc/public_html/admin/controller/GlobalInterfaceController.php(391): GlobalInterfaceModel->global_Fetch_All_DB('SELECT rcpt.id,...')
-#1 /home/theaimgc/public_html/admin/library/GlobalLibraryHandler.php(1633): GlobalInterfaceController->fetch_Global_Receipt(Array)
+#0 /home/theaimgc/public_html/admin/controller/GlobalInterfaceModel.php(391): GlobalInterfaceModel->global_Fetch_All_DB('SELECT rcpt.id,...')
+#1 /home/theaimgc/public_html/admin/library/GlobalLibraryHandler.php(1633): GlobalInterfaceModel->fetch_Global_Receipt(Array)
 #2 /home/theaimgc/public_html/admin/controller/GlobalPageContentController.php(79): GlobalLibraryHandler->manage_Receipt_Required_Data()
 #3 /home/theaimgc/public_html/admin/index.php(23): GlobalPageContentController->get_PageContent()
 #4 {main}
@@ -321,8 +321,8 @@ Stack trace:
 [27-Feb-2024 11:39:24 Asia/Kolkata] PHP Warning:  mysqli::query(): (HY000/1021): Disk full (/tmp/#sql_274284_0.MAI); waiting for someone to free some space... (errno: 28 &quot;No space left on device&quot;) in /home/theaimgc/public_html/admin/model/GlobalInterfaceModel.php on line 15
 [27-Feb-2024 11:39:24 Asia/Kolkata] PHP Fatal error:  Uncaught Error: Call to a member function fetch_object() on bool in /home/theaimgc/public_html/admin/model/GlobalInterfaceModel.php:17
 Stack trace:
-#0 /home/theaimgc/public_html/admin/controller/GlobalInterfaceController.php(391): GlobalInterfaceModel->global_Fetch_All_DB('SELECT rcpt.id,...')
-#1 /home/theaimgc/public_html/admin/library/GlobalLibraryHandler.php(1633): GlobalInterfaceController->fetch_Global_Receipt(Array)
+#0 /home/theaimgc/public_html/admin/controller/GlobalInterfaceModel.php(391): GlobalInterfaceModel->global_Fetch_All_DB('SELECT rcpt.id,...')
+#1 /home/theaimgc/public_html/admin/library/GlobalLibraryHandler.php(1633): GlobalInterfaceModel->fetch_Global_Receipt(Array)
 #2 /home/theaimgc/public_html/admin/controller/GlobalPageContentController.php(79): GlobalLibraryHandler->manage_Receipt_Required_Data()
 #3 /home/theaimgc/public_html/admin/index.php(23): GlobalPageContentController->get_PageContent()
 #4 {main}
@@ -333,15 +333,15 @@ Stack trace:
 [10-Jul-2025 21:33:45 Asia/Kolkata] PHP Warning:  Undefined array key "dataType" in /home/theaimgc/public_html/admin/library/GlobalLibraryHandler.php on line 296
 [10-Jul-2025 21:33:45 Asia/Kolkata] PHP Warning:  Undefined array key "dataType" in /home/theaimgc/public_html/admin/library/GlobalLibraryHandler.php on line 307
 [10-Jul-2025 21:33:45 Asia/Kolkata] PHP Warning:  Undefined array key "dataType" in /home/theaimgc/public_html/admin/library/GlobalLibraryHandler.php on line 318
-[10-Jul-2025 21:33:45 Asia/Kolkata] PHP Warning:  Undefined array key "franchise_id" in /home/theaimgc/public_html/admin/controller/GlobalInterfaceController.php on line 907
+[10-Jul-2025 21:33:45 Asia/Kolkata] PHP Warning:  Undefined array key "franchise_id" in /home/theaimgc/public_html/admin/controller/GlobalInterfaceModel.php on line 907
 [10-Jul-2025 21:33:46 Asia/Kolkata] PHP Warning:  Undefined array key "dataType" in /home/theaimgc/public_html/admin/library/GlobalLibraryHandler.php on line 347
 [10-Jul-2025 21:33:46 Asia/Kolkata] PHP Warning:  Undefined array key "dataType" in /home/theaimgc/public_html/admin/library/GlobalLibraryHandler.php on line 358
 [10-Jul-2025 21:33:46 Asia/Kolkata] PHP Warning:  Undefined array key "dataType" in /home/theaimgc/public_html/admin/library/GlobalLibraryHandler.php on line 369
 [10-Jul-2025 21:33:46 Asia/Kolkata] PHP Warning:  Undefined array key "dataType" in /home/theaimgc/public_html/admin/library/GlobalLibraryHandler.php on line 380
-[10-Jul-2025 21:33:46 Asia/Kolkata] PHP Warning:  Undefined array key "franchise_id" in /home/theaimgc/public_html/admin/controller/GlobalInterfaceController.php on line 1009
-[10-Jul-2025 21:33:46 Asia/Kolkata] PHP Warning:  Undefined array key "enquiry_type" in /home/theaimgc/public_html/admin/controller/GlobalInterfaceController.php on line 1142
-[10-Jul-2025 21:33:46 Asia/Kolkata] PHP Deprecated:  strlen(): Passing null to parameter #1 ($string) of type string is deprecated in /home/theaimgc/public_html/admin/controller/GlobalInterfaceController.php on line 1142
-[10-Jul-2025 21:33:46 Asia/Kolkata] PHP Warning:  Undefined array key "course_id" in /home/theaimgc/public_html/admin/controller/GlobalInterfaceController.php on line 1147
+[10-Jul-2025 21:33:46 Asia/Kolkata] PHP Warning:  Undefined array key "franchise_id" in /home/theaimgc/public_html/admin/controller/GlobalInterfaceModel.php on line 1009
+[10-Jul-2025 21:33:46 Asia/Kolkata] PHP Warning:  Undefined array key "enquiry_type" in /home/theaimgc/public_html/admin/controller/GlobalInterfaceModel.php on line 1142
+[10-Jul-2025 21:33:46 Asia/Kolkata] PHP Deprecated:  strlen(): Passing null to parameter #1 ($string) of type string is deprecated in /home/theaimgc/public_html/admin/controller/GlobalInterfaceModel.php on line 1142
+[10-Jul-2025 21:33:46 Asia/Kolkata] PHP Warning:  Undefined array key "course_id" in /home/theaimgc/public_html/admin/controller/GlobalInterfaceModel.php on line 1147
 [10-Jul-2025 21:33:46 Asia/Kolkata] PHP Warning:  Undefined array key "route" in /home/theaimgc/public_html/admin/layout/header.php on line 70
 [10-Jul-2025 21:33:46 Asia/Kolkata] PHP Warning:  Undefined array key "route" in /home/theaimgc/public_html/admin/layout/header.php on line 78
 [10-Jul-2025 21:33:46 Asia/Kolkata] PHP Warning:  Undefined array key "route" in /home/theaimgc/public_html/admin/layout/header.php on line 87
@@ -456,15 +456,15 @@ Stack trace:
 [10-Jul-2025 21:33:47 Asia/Kolkata] PHP Warning:  Undefined array key "dataType" in /home/theaimgc/public_html/admin/library/GlobalLibraryHandler.php on line 296
 [10-Jul-2025 21:33:47 Asia/Kolkata] PHP Warning:  Undefined array key "dataType" in /home/theaimgc/public_html/admin/library/GlobalLibraryHandler.php on line 307
 [10-Jul-2025 21:33:47 Asia/Kolkata] PHP Warning:  Undefined array key "dataType" in /home/theaimgc/public_html/admin/library/GlobalLibraryHandler.php on line 318
-[10-Jul-2025 21:33:47 Asia/Kolkata] PHP Warning:  Undefined array key "franchise_id" in /home/theaimgc/public_html/admin/controller/GlobalInterfaceController.php on line 907
+[10-Jul-2025 21:33:47 Asia/Kolkata] PHP Warning:  Undefined array key "franchise_id" in /home/theaimgc/public_html/admin/controller/GlobalInterfaceModel.php on line 907
 [10-Jul-2025 21:33:47 Asia/Kolkata] PHP Warning:  Undefined array key "dataType" in /home/theaimgc/public_html/admin/library/GlobalLibraryHandler.php on line 347
 [10-Jul-2025 21:33:47 Asia/Kolkata] PHP Warning:  Undefined array key "dataType" in /home/theaimgc/public_html/admin/library/GlobalLibraryHandler.php on line 358
 [10-Jul-2025 21:33:47 Asia/Kolkata] PHP Warning:  Undefined array key "dataType" in /home/theaimgc/public_html/admin/library/GlobalLibraryHandler.php on line 369
 [10-Jul-2025 21:33:47 Asia/Kolkata] PHP Warning:  Undefined array key "dataType" in /home/theaimgc/public_html/admin/library/GlobalLibraryHandler.php on line 380
-[10-Jul-2025 21:33:47 Asia/Kolkata] PHP Warning:  Undefined array key "franchise_id" in /home/theaimgc/public_html/admin/controller/GlobalInterfaceController.php on line 1009
-[10-Jul-2025 21:33:48 Asia/Kolkata] PHP Warning:  Undefined array key "enquiry_type" in /home/theaimgc/public_html/admin/controller/GlobalInterfaceController.php on line 1142
-[10-Jul-2025 21:33:48 Asia/Kolkata] PHP Deprecated:  strlen(): Passing null to parameter #1 ($string) of type string is deprecated in /home/theaimgc/public_html/admin/controller/GlobalInterfaceController.php on line 1142
-[10-Jul-2025 21:33:48 Asia/Kolkata] PHP Warning:  Undefined array key "course_id" in /home/theaimgc/public_html/admin/controller/GlobalInterfaceController.php on line 1147
+[10-Jul-2025 21:33:47 Asia/Kolkata] PHP Warning:  Undefined array key "franchise_id" in /home/theaimgc/public_html/admin/controller/GlobalInterfaceModel.php on line 1009
+[10-Jul-2025 21:33:48 Asia/Kolkata] PHP Warning:  Undefined array key "enquiry_type" in /home/theaimgc/public_html/admin/controller/GlobalInterfaceModel.php on line 1142
+[10-Jul-2025 21:33:48 Asia/Kolkata] PHP Deprecated:  strlen(): Passing null to parameter #1 ($string) of type string is deprecated in /home/theaimgc/public_html/admin/controller/GlobalInterfaceModel.php on line 1142
+[10-Jul-2025 21:33:48 Asia/Kolkata] PHP Warning:  Undefined array key "course_id" in /home/theaimgc/public_html/admin/controller/GlobalInterfaceModel.php on line 1147
 [10-Jul-2025 21:33:48 Asia/Kolkata] PHP Warning:  Undefined array key "route" in /home/theaimgc/public_html/admin/layout/header.php on line 70
 [10-Jul-2025 21:33:48 Asia/Kolkata] PHP Warning:  Undefined array key "route" in /home/theaimgc/public_html/admin/layout/header.php on line 78
 [10-Jul-2025 21:33:48 Asia/Kolkata] PHP Warning:  Undefined array key "route" in /home/theaimgc/public_html/admin/layout/header.php on line 87

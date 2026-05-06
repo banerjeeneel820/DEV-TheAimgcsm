@@ -1,13 +1,13 @@
 <?php
 defined('ROOTPATH') OR exit('No direct script access allowed');
 
-class AjaxController extends BaseController
+class AjaxDispatcher extends BaseController
 {
     private $routes;
 
-    public function __construct()
+    public function __construct($container)
     {
-        parent::__construct();
+        parent::__construct($container);
 
         // load routes
         $this->routes = require ROOTPATH . '/config/ajax_routes.php';

@@ -7,6 +7,29 @@ use PHPMailer\PHPMailer\Exception;
 class GlobalLibraryHandler
 {
 
+  public function dd(...$vars)
+  {
+    echo '<pre style="
+          background:#1e1e1e;
+          color:#dcdcdc;
+          padding:15px;
+          border-radius:8px;
+          font-size:14px;
+          line-height:1.5;
+          overflow:auto;
+      ">';
+
+    foreach ($vars as $index => $var) {
+      echo "🔹 Variable " . ($index + 1) . ":\n\n";
+      var_dump($var);
+      echo "\n\n--------------------------\n\n";
+    }
+
+    echo '</pre>';
+
+    die();
+  }
+
   public function buildBackUrl($newRoute)
   {
     $scheme = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? "https" : "http";
@@ -895,6 +918,16 @@ class GlobalLibraryHandler
   {
     $value = $this->inputDataSanitize($key, 'post', true);
     return $value !== null ? $value : $default;
+  }
+
+  public function get($key)
+  {
+      return $this->getDataSanitize($key);
+  }
+
+  public function post($key)
+  {
+      return $this->postDataSanitize($key);
   }
 
   public function formatDateDB($date)

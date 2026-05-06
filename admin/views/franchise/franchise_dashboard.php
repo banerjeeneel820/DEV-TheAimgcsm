@@ -65,15 +65,15 @@ if($siteBackupQueue){
 }
 
 //Fetching page action permission
-$viewStuPermission = $this->checkUserRolePermission("view_student");
-$viewReceiptPermission = $this->checkUserRolePermission("view_receipt");
-$viewCoursePermission = $this->checkUserRolePermission("view_course");
+$viewStuPermission = $this->permissionService->checkUserRolePermission("view_student");
+$viewReceiptPermission = $this->permissionService->checkUserRolePermission("view_receipt");
+$viewCoursePermission = $this->permissionService->checkUserRolePermission("view_course");
 
-$viewNewsPermission = $this->checkUserRolePermission("view_news");
-$viewGalleryPermission = $this->checkUserRolePermission("view_gallery");
+$viewNewsPermission = $this->permissionService->checkUserRolePermission("view_news");
+$viewGalleryPermission = $this->permissionService->checkUserRolePermission("view_gallery");
 
-$stuUpdatePermission = $this->checkUserRolePermission("update_student");
-$updateReceiptPermission = $this->checkUserRolePermission("update_receipt");
+$stuUpdatePermission = $this->permissionService->checkUserRolePermission("update_student");
+$updateReceiptPermission = $this->permissionService->checkUserRolePermission("update_receipt");
 
 if ($viewCoursePermission) {
   $view_course_url = SITE_URL . "?route=view_course";
@@ -107,7 +107,7 @@ if ($_SESSION['user_type'] == 'franchise') {
   }
 }
 
-$siteBakupPermission = $this->checkUserRolePermission("manage_site_backup");
+$siteBakupPermission = $this->permissionService->checkUserRolePermission("manage_site_backup");
 $backupLimit = $_SESSION['user_type'] == "developer" ? true : ($_COOKIE["backupCount"] < 2 ? true : false);
 
 /*print"<pre>";
