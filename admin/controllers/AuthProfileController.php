@@ -7,9 +7,9 @@ class AuthProfileController extends BaseController
     private $globalReturnArr;
     private $permissionService;
 
-    public function __construct()
+    public function __construct($containe)
     {
-        parent::__construct();
+        parent::__construct($containe);
         $this->globalViewObj = new GlobalViewDataController();
         $this->permissionService = new PermissionService($this->model, $this->lib);
     }

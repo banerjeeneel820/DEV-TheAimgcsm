@@ -4,19 +4,9 @@ defined('ROOTPATH') or exit('No direct script access allowed');
 class BaseController
 {
     protected $lib;
-    protected $container;
-    // protected $cache;
-    // protected $validator;
-    // protected $model;
 
     public function __construct($container)
     {
-        // $this->lib = new GlobalLibraryHandler();
-        // $this->cache = new CacheService();
-        // $this->validator = new GlobalValidationController($this->lib);
-        // $this->model = new GlobalInterfaceModel();
-
-        $this->container = $container;
         $this->lib = $container->get('lib');
 
         // Check user auth

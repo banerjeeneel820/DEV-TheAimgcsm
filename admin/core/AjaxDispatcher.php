@@ -4,10 +4,13 @@ defined('ROOTPATH') OR exit('No direct script access allowed');
 class AjaxDispatcher extends BaseController
 {
     private $routes;
+    protected $container;
 
     public function __construct($container)
     {
         parent::__construct($container);
+
+        $this->container = $container;
 
         // load routes
         $this->routes = require ROOTPATH . '/config/ajax_routes.php';
@@ -29,7 +32,7 @@ class AjaxDispatcher extends BaseController
         // Load controller (if no autoload)
         //require_once(ROOTPATH . "/controller/" . $controllerName . ".php");
 
-        $controller = new $controllerName();
+        $controller = new $controllerName($this->container);
 
         if (!method_exists($controller, $method)) {
             return $this->json([

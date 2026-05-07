@@ -1,9 +1,9 @@
 <?php
 error_reporting(1);
 //ini_set("display_errors", 1);
- 
+
 //if ($_GET['route'] != "logout") {
-	session_start();
+//session_start();
 //}
 
 if (!defined("HOST")) {
@@ -22,36 +22,12 @@ if (!defined("TABLEPREFIX")) {
 	define("TABLEPREFIX", "theaimgc_dev_");
 }
 
-date_default_timezone_set("Asia/Kolkata");
-
-//CHECK SSL
-function is_ssl()
-{
-	// Check if SSL
-	if ((isset($_SERVER['HTTPS']) && (($_SERVER['HTTPS'] == 'on') || ($_SERVER['HTTPS'] == '1'))) || (isset($_SERVER['HTTPS']) && (isset($_SERVER['SERVER_PORT']) && $_SERVER['SERVER_PORT'] == 443))) {
-		$_SERVER['HTTPS'] = true;
-	} elseif (!empty($_SERVER['HTTP_X_FORWARDED_PROTO']) && $_SERVER['HTTP_X_FORWARDED_PROTO'] == 'https' || !empty($_SERVER['HTTP_X_FORWARDED_SSL']) && $_SERVER['HTTP_X_FORWARDED_SSL'] == 'on') {
-		$_SERVER['HTTPS'] = true;
-	} else {
-		$_SERVER['HTTPS'] = false;
-	}
-
-	if ($_SERVER['HTTPS'] == true) {
-		return true;
-	} else {
-		return false;
-	}
-}
-
 /**Auto configuring required PATH & URL constants for app environment*/
 if (!defined("SERVER_ENV")) {
 	define("SERVER_ENV", "STAGING"); //set this into `STAGING`/`PRODUCTION` when deployed in live
 }
 if (!defined("SERVER_PROTOCOL")) {
 	define("SERVER_PROTOCOL", is_ssl() == true ? 'https://' : 'http://');
-}
-if (!defined("ROOTPATH")) {
-	define('ROOTPATH', dirname(__FILE__));
 }
 if (!defined("HOST_NAME")) {
 	define('HOST_NAME', $_SERVER['HTTP_HOST']);
@@ -98,32 +74,3 @@ if (!defined("APP_DEFAULT_SALT")) {
 	define("APP_DEFAULT_SALT", "MIND_#%_YOUR_@_OWN_!^&(?)_BUSINESS_[{NO_CRACK_SALT}]");
 }
 /*-------------End here------------------*/
-
-// somewhere early in your project's loading, require the Composer autoloader
-// see: http://getcomposer.org/doc/00-intro.md
-require ROOTPATH . '/../vendor/autoload.php';
-
-// Autoload any class as required
-spl_autoload_register(function ($class) {
-	$paths = [
-		ROOTPATH . '/core/',
-		ROOTPATH . '/controller/',
-		ROOTPATH . '/model/',
-		ROOTPATH . '/library/',
-		ROOTPATH . '/services/',
-	];
-
-	foreach ($paths as $path) {
-		$file = $path . $class . '.php';
-		if (file_exists($file)) {
-		require_once $file;
-		return;
-		}
-	}
-});
-
-//define("MAIL_USERNAME", "");
-//define("MAIL_PASSWORD", "");
-//define("MAIL_HOST", "smtp.gmail.com");
-//define("EMAIL_FROM", "");
-//define("ACCOUNTS_EMAIL", "");	

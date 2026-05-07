@@ -6,6 +6,12 @@ use PHPMailer\PHPMailer\Exception;
 
 class GlobalLibraryHandler
 {
+  private $db;
+
+  public function __construct($db)
+  {
+    $this->db = $db->getConnection();
+  }
 
   public function dd(...$vars)
   {
@@ -902,7 +908,7 @@ class GlobalLibraryHandler
     $value = trim($data[$key]);
 
     if ($escape) {
-      return mysqli_real_escape_string(DB::$WRITELINK, $value);
+      return mysqli_real_escape_string($this->db, $value);
     }
 
     return $value;
@@ -922,12 +928,12 @@ class GlobalLibraryHandler
 
   public function get($key)
   {
-      return $this->getDataSanitize($key);
+    return $this->getDataSanitize($key);
   }
 
   public function post($key)
   {
-      return $this->postDataSanitize($key);
+    return $this->postDataSanitize($key);
   }
 
   public function formatDateDB($date)

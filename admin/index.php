@@ -1,11 +1,16 @@
 <?php
 ob_start();
 
-require_once("constants.php");
+define('ROOTPATH', __DIR__);
 
 if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
+
+// bootstrap
+require ROOTPATH . '/core/Bootstrap.php';
+
+Bootstrap::init();
 
 $container = new Container();
 

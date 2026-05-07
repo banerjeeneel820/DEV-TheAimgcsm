@@ -8,11 +8,11 @@ class GlobalViewDataController extends BaseController
   private $memObj;
   private $permissionService;
 
-  public function __construct()
+  public function __construct($container)
   { 
-    parent::__construct();
+    parent::__construct($container);
     $this->globalReturnArr = [];
-    $this->permissionService = new PermissionService($this->model, $this->lib);
+    $this->permissionService = $container->get('permissionService');
   }
 
   private function getDashboardData($type, $fetchType, $params, $franchise_id = null)

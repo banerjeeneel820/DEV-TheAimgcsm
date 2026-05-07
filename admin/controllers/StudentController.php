@@ -11,9 +11,9 @@ class StudentController extends BaseController
     public function __construct($container)
     {
         parent::__construct($container);
-        $this->studentService = $container->get('studentService');//new StudentService($this->model, $this->lib);
-        $this->permissionService = $container->get('permissionService');//new PermissionService($this->model, $this->lib);
-        $this->courseFranchiseService = $container->get('courseFranchiseService');//new CourseFranchiseService($this->model, $this->lib);
+        $this->studentService = $container->get('studentService');
+        $this->permissionService = $container->get('permissionService');
+        $this->courseFranchiseService = $container->get('courseFranchiseService');
     }
 
     // View student data methods start here
@@ -254,8 +254,8 @@ class StudentController extends BaseController
         $activeData = $this->courseFranchiseService
             ->fetch_Active_Course_Franchise_Data();
 
-        $categoryData = $this->model
-            ->fetch_Single_Parent_Category('receipt');
+        $categoryData = $this->studentService
+            ->fetchReceiptCategory('receipt');
 
         // =========================
         // Final Response
@@ -299,7 +299,7 @@ class StudentController extends BaseController
             $filters['franchise_id'] = (int)$_SESSION['user_id'];
         }
 
-        $students = $this->model->fetch_Fresh_Students($filters);
+        $students = $this->studentService->fetchFreshStudents($filters);
 
         return $this->page(
             [
@@ -337,7 +337,7 @@ class StudentController extends BaseController
         $formData = $this->studentService->prepareAdmissionData($post, $isUpdate, $studentDetail);
 
         // 4. Save student
-        $studentResult = $this->model->manage_Student_Admission($formData);
+        $studentResult = $this->studentService->manageStudentAdmission($formData);
 
         if ($studentResult['check'] !== 'success') {
             return ['check' => 'failure', 'message' => "Something went wrong!"];
@@ -394,8 +394,8 @@ class StudentController extends BaseController
             $franchise_id = $_SESSION['user_id'];
 
             if ($isUpdate) {
-                $studentDetailArr = $this->model
-                    ->fetch_Detail_Single_Student($formDataArr['id']);
+                $studentDetailArr = $this->studentService
+                    ->fetchTempStudentData($formDataArr['id']);
 
                 if ($studentDetailArr->franchise_id != $franchise_id) {
                     return ['check' => 'failure', 'message' => "You don't have the permission to perform this action!"];
@@ -432,7 +432,7 @@ class StudentController extends BaseController
         // -----------------------------
         // DB Operation
         // -----------------------------
-        $returnArr = $this->model->manage_Temp_Student($formDataArr);
+        $returnArr = $this->studentService->saveTempStudent($formDataArr);
 
         // -----------------------------
         // Response Handling
@@ -492,8 +492,8 @@ class StudentController extends BaseController
         // -----------------------------
         // DB Operation
         // -----------------------------
-        $returnArr = $this->model
-            ->manage_Student_Status($formDataArr);
+        $returnArr = $this->studentService
+            ->saveStudentStatus($formDataArr);
 
         // -----------------------------
         // Response
@@ -544,7 +544,7 @@ class StudentController extends BaseController
         // -----------------------------
         // Process Bulk Update
         // -----------------------------
-        $response = $this->model->update_Bulk_Student_Status($paramArr);
+        $response = $this->studentService->saveBulkStudentStatus($paramArr);
 
         return $response['responseArr']['check'] === 'success'
             ? ['check' => 'success', 'message' => 'Bulk update successful']
@@ -569,8 +569,8 @@ class StudentController extends BaseController
         // -----------------------------
         $student_id = (int) $post('student_id');
 
-        $student = $this->model
-            ->fetch_Global_Single_Student($student_id);
+        $student = $this->studentService
+            ->fetchStudentDetails($student_id);
 
         if (empty($student)) {
             return ['check' => 'failure', 'message' => "Student not found!"];

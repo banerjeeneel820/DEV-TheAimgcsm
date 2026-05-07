@@ -18,10 +18,6 @@ class StudentService
         $this->studentReceiptService = $studentReceiptService;
         $this->cacheService = $cacheService;
         $this->validator = $validator;
-        // $this->permissionService = new PermissionService($this->model, $this->lib);
-        // $this->studentReceiptService = new StudentReceiptService($this->model, $this->lib);
-        // $this->validator = new GlobalValidationController($this->lib);
-        // $this->cacheService = new CacheService($this->model, $this->lib);
     }
 
     // View student data helper methods start here
@@ -484,6 +480,10 @@ class StudentService
         return $this->permissionService->checkUserRolePermission($slug);
     }
 
+    public function fetchReceiptCategory($category){
+        return  $this->model->fetch_Global_Student($category);
+    }
+
     public function resolveAdmissionStudentData($studentId, $tmpId)
     {
         if (!empty($studentId)) {
@@ -497,6 +497,10 @@ class StudentService
         }
 
         return [];
+    }
+
+    public function fetchFreshStudents($filters){
+        return  $this->model->fetch_Fresh_Students($filters);
     }
     // Student admission view helper methods ends here
 
@@ -568,6 +572,11 @@ class StudentService
         $data['tmp_stu_record_id'] = $post('tmp_stu_record_id') ?: null;
 
         return $data;
+    }
+
+    public function manageStudentAdmission($formattedPayload)
+    {
+        return $this->model->manage_Student_Admission($formattedPayload);
     }
 
     private function resolveFranchiseLogic($post, $isUpdate, $studentDetail, $data)
@@ -666,6 +675,11 @@ class StudentService
     // Student admission helper methods ends here
 
     // Manage temp student Helper methods start here
+    public function fetchTempStudentData($id)
+    {
+        return $this->model->fetch_Detail_Single_Student($id);
+    }
+
     public function create_Tmp_Student_ID($min = 999, $max = 999999, $quantity = 1)
     {
         $numbers = range($min, $max);
@@ -673,5 +687,29 @@ class StudentService
         $randomNumArr = array_slice($numbers, 0, $quantity);
 
         return "TMPSTUDENT" . $randomNumArr[0];
+    }
+
+    public function saveTempStudent($formDataArr)
+    {
+        return $this->model->manage_Temp_Student($formDataArr);
+    }
+    // Manage temp student Helper methods ends here
+
+    // Update student status Helper methods start here
+    public function saveStudentStatus($formDataArr)
+    {
+        return $this->model->manage_Student_Status($formDataArr);
+    }
+
+    public function saveBulkStudentStatus($formDataArr)
+    {
+        return $this->model->update_Bulk_Student_Status($formDataArr);
+    }
+    // Update student status Helper methods ends here
+
+    // Fetch student modal data Helper methods start here
+    public function fetchStudentDetails($id)
+    {
+        return $this->model->fetch_Global_Single_Student($id);
     }
 }

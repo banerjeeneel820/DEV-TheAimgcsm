@@ -41,10 +41,10 @@ class Router
             $route = 'login';
         }
 
-        // 👇 pass route as param
+        // pass route as param
         $pageData = self::dispatch('RouteDispatcher', 'get_PageContent', false, $route);
 
-        // 👇 inject container into view if needed later
+        // inject container into view if needed later
         $view = new ViewEngine(self::$container, $route, $pageData);
         $view->render();
 
