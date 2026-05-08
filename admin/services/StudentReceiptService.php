@@ -3,14 +3,11 @@ defined('ROOTPATH') or exit('No direct script access allowed');
 
 class StudentReceiptService
 {
-    private $model;
-    private $lib;
 
-    public function __construct($model, $lib)
-    {
-        $this->model = $model;
-        $this->lib = $lib;
-    }
+    public function __construct(
+        private GlobalInterfaceModel $model,
+        private GlobalLibraryHandler $lib,
+    ){}
 
     public function create_Receipt_ID()
     {

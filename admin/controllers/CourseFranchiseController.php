@@ -7,12 +7,12 @@ class CourseFranchiseController extends BaseController
     private $cacheService;
     private $permissionService;
 
-    public function __construct()
+    public function __construct($container)
     {
-        parent::__construct();
-        $this->courseFranchiseService = new CourseFranchiseService($this->model, $this->lib);
-        $this->cacheService = new CacheService($this->model, $this->lib);
-        $this->permissionService = new PermissionService($this->model, $this->lib);
+        parent::__construct($container);
+        $this->courseFranchiseService = $container->get(CourseFranchiseService::class);
+        $this->cacheService = $container->get(CacheService::class);
+        $this->permissionService = $container->get(PermissionService::class);
     }
 
     public function fetch_franchise_data($data)
@@ -147,8 +147,8 @@ class CourseFranchiseController extends BaseController
         // -----------------------------
         // SLUG VALIDATION
         // -----------------------------
-        $slugData = $this->model
-            ->check_Slug_Availibility('franchise', 'seo_url_structure', $formDataArr['seo_url_structure']);
+        $slugData = $this->courseFranchiseService
+            ->checkSlugAvailibility('franchise', 'seo_url_structure', $formDataArr['seo_url_structure']);
 
         if (!empty($slugData->id) && (!$isUpdate || $slugData->id != $formDataArr['fran_row_id'])) {
             return ['check' => 'failure', 'message' => 'This title is already taken; Please try another.'];
@@ -201,8 +201,8 @@ class CourseFranchiseController extends BaseController
         // -----------------------------
         // DB OPERATION
         // -----------------------------
-        $returnArr = $this->model
-            ->manage_Global_Franchise($formDataArr);
+        $returnArr = $this->courseFranchiseService
+            ->saveFranchiseData($formDataArr);
 
         // -----------------------------
         // RESPONSE HANDLING
@@ -340,8 +340,8 @@ class CourseFranchiseController extends BaseController
         // -----------------------------
         // SLUG VALIDATION
         // -----------------------------
-        $slugData = $this->model
-            ->check_Slug_Availibility('course', 'seo_url_structure', $formDataArr['seo_url_structure']);
+        $slugData = $this->courseFranchiseService
+            ->checkSlugAvailibility('course', 'seo_url_structure', $formDataArr['seo_url_structure']);
 
         if (!empty($slugData->id) && (!$isUpdate || $slugData->id != $formDataArr['course_id'])) {
             return ['check' => 'failure', 'message' => 'This title is already taken; Please try another.'];
@@ -386,8 +386,8 @@ class CourseFranchiseController extends BaseController
         // -----------------------------
         // DB OPERATION
         // -----------------------------
-        $returnArr = $this->model
-            ->manage_Global_Course($formDataArr);
+        $returnArr = $this->courseFranchiseService
+            ->saveCourseData($formDataArr);
 
         // -----------------------------
         // RESPONSE HANDLING

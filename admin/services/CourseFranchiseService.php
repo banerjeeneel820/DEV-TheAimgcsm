@@ -3,15 +3,12 @@ defined('ROOTPATH') or exit('No direct script access allowed');
 
 class CourseFranchiseService
 {
-    private $model;
-    private $lib;
     private $memObj;
 
-    public function __construct($model, $lib)
-    {
-        $this->model = $model;
-        $this->lib = $lib;
-    }
+    public function __construct(
+        private GlobalInterfaceModel $model,
+        private GlobalLibraryHandler $lib,
+    ){}
 
     public function getFranchiseData($record_status)
     {
@@ -103,6 +100,12 @@ class CourseFranchiseService
         return $current_fran_id;
     }
 
+    public function checkSlugAvailibility($type, $field, $slug)
+    {
+        return $this->model
+        ->check_Slug_Availibility($type, $field, $slug);
+    }
+
     public function fetch_Active_Course_Franchise_Data()
     {
 
@@ -142,4 +145,15 @@ class CourseFranchiseService
 
         return $activeCourseFranchiseArr;
     }
+
+    public function saveFranchiseData($formDataArr){
+        return $this->model
+        ->manage_Global_Franchise($formDataArr);
+    }
+
+    public function saveCourseData($formDataArr){
+        return $this->model
+        ->manage_Global_Course($formDataArr);
+    }
+   
 }

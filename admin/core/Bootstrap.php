@@ -16,9 +16,35 @@ class Bootstrap
         require_once ROOTPATH . '/config/constants.php';
 
         // =========================
+        // ERROR REPORTING
+        // =========================
+        switch (SERVER_ENV) {
+
+            case 'PRODUCTION':
+
+                error_reporting(0);
+                ini_set('display_errors', 0);
+
+                break;
+
+            case 'STAGING':
+                error_reporting(0);
+                ini_set('display_errors', 0);
+
+                break;
+                
+            default:
+                error_reporting(0);
+                error_reporting(E_ALL);
+                ini_set('display_errors', 1);
+
+                break;
+        }
+
+        // =========================
         // TIMEZONE
         // =========================
-        date_default_timezone_set("Asia/Kolkata");
+        date_default_timezone_set(TIMEZONE);
 
         // =========================
         // COMPOSER AUTOLOAD
@@ -45,6 +71,7 @@ class Bootstrap
                 $file = $path . $class . '.php';
 
                 if (file_exists($file)) {
+
                     require_once $file;
                     return;
                 }

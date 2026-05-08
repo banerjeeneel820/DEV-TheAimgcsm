@@ -128,4 +128,8 @@ return [
         'groups' => ['common', 'datatable', 'fancybox', 'prettycheckbox','select2','printThis']
     ],
 
+    'tmp_student_list' => [
+        'groups' => ['common', 'tablefilter', 'fancybox', 'prettycheckbox','select2','datapicker','printThis']
+    ],
+
 ];

@@ -3,24 +3,21 @@ defined('ROOTPATH') or exit('No direct script access allowed');
 
 class StudentService
 {
-    private $model;
-    private $lib;
-    private $permissionService;
-    private $studentReceiptService;
-    private $validator;
-    private $cacheService;
-
-    public function __construct($model, $lib, $permissionService, $cacheService, $studentReceiptService, $validator)
-    {
-        $this->model = $model;
-        $this->lib = $lib;
-        $this->permissionService = $permissionService;
-        $this->studentReceiptService = $studentReceiptService;
-        $this->cacheService = $cacheService;
-        $this->validator = $validator;
+    public function __construct(
+        private GlobalInterfaceModel $model,
+        private GlobalLibraryHandler $lib,
+        private PermissionService $permissionService,
+        private CacheService $cacheService,
+        private StudentReceiptService $studentReceiptService,
+        private GlobalValidationController $validator
+    ) {
     }
 
-    // View student data helper methods start here
+    /*
+    |--------------------------------------------------------------------------
+    | View student data helper methods
+    |--------------------------------------------------------------------------
+    */
     public function prepareStudentFilters($data)
     {
         $filters = [
@@ -60,19 +57,23 @@ class StudentService
         // date filters
         foreach (['created', 'search_start', 'search_end'] as $field) {
             if (!empty($data[$field])) {
-                $filters[$field] = $this->lib->formatDateDBDB($data[$field]);
+                $filters[$field] = $this->lib->formatDateDB($data[$field]);
             }
         }
 
         return $filters;
     }
 
-    public function getviewStudents($filters){
-       return  $this->model->fetch_Global_Student($filters);
+    public function getviewStudents($filters)
+    {
+        return  $this->model->fetch_Global_Student($filters);
     }
-    // View student data helper methods ends here
 
-    // View manage student data helper methods start here
+    /*
+    |--------------------------------------------------------------------------
+    | Manage student data view helper methods
+    |--------------------------------------------------------------------------
+    */
     public function resolveManageStudentViewPermission($isUpdate)
     {
         $slug = $isUpdate ? 'update_student' : 'create_student';
@@ -98,9 +99,12 @@ class StudentService
 
         return $student;
     }
-    // View manage student data helper methods ends here
 
-    // Manage student helper methods start here
+    /*
+    |--------------------------------------------------------------------------
+    | Manage student data helper methods
+    |--------------------------------------------------------------------------
+    */
     public function create_Student_ID()
     {
         //Creating new Student id method
@@ -455,9 +459,12 @@ class StudentService
             @unlink($filePath);
         }
     }
-    // Manage student helper methods ends here
 
-    // Student admission view helper methods starts here
+    /*
+    |--------------------------------------------------------------------------
+    | Manage student admission data view helper methods
+    |--------------------------------------------------------------------------
+    */
     public function extractAdmissionInputs($data)
     {
         $studentId = !empty($data['student_id']) ? (int)$data['student_id'] : null;
@@ -480,8 +487,9 @@ class StudentService
         return $this->permissionService->checkUserRolePermission($slug);
     }
 
-    public function fetchReceiptCategory($category){
-        return  $this->model->fetch_Global_Student($category);
+    public function fetchReceiptCategory($category)
+    {
+        return  $this->model->fetch_Single_Parent_Category($category);
     }
 
     public function resolveAdmissionStudentData($studentId, $tmpId)
@@ -499,12 +507,16 @@ class StudentService
         return [];
     }
 
-    public function fetchFreshStudents($filters){
+    public function fetchFreshStudents($filters)
+    {
         return  $this->model->fetch_Fresh_Students($filters);
     }
-    // Student admission view helper methods ends here
 
-    // Student admission helper methods start here
+    /*
+    |--------------------------------------------------------------------------
+    | Manage student admission data helper methods
+    |--------------------------------------------------------------------------
+    */
     public function validateAdmissionPermissions($isUpdate)
     {
         $studentSlug = $isUpdate ? 'update_student' : 'create_student';
@@ -672,10 +684,119 @@ class StudentService
         return $this->model
             ->create_Student_Admission_Receipt($receiptFormArr);
     }
-    // Student admission helper methods ends here
 
-    // Manage temp student Helper methods start here
-    public function fetchTempStudentData($id)
+    /*
+    |--------------------------------------------------------------------------
+    | Manage temp student admission data view methods
+    |--------------------------------------------------------------------------
+    */
+    public function fetchTmpSingleStudent($id)
+    {
+        return $this->model->fetch_Tmp_Single_Student($id);
+    }
+
+    public function prepareTempStudentFilters($data)
+    {
+        $filters = [
+            'record_status' => $data['record_status'] ?? 'active',
+            'pageNo'        => !empty($data['pageNo'])
+                ? (int)$data['pageNo']
+                : 1,
+            'limit'         => 20
+        ];
+
+        // =========================
+        // Franchise Filter
+        // =========================
+        if ($_SESSION['user_type'] == 'franchise') {
+
+            $filters['franchise_id'] =
+                (int)$_SESSION['user_id'];
+        } elseif (!empty($data['franchise_id'])) {
+
+            $filters['franchise_id'] =
+                (int)$data['franchise_id'];
+        }
+
+        // =========================
+        // Course Filter
+        // =========================
+        if (!empty($data['course_id'])) {
+
+            $filters['course_id'] =
+                (int)$data['course_id'];
+        }
+
+        // =========================
+        // Search
+        // =========================
+        if (!empty($data['search_string'])) {
+
+            $filters['search_string'] =
+                trim($data['search_string']);
+        }
+
+        // =========================
+        // Date Filters
+        // =========================
+        foreach (['created', 'search_start', 'search_end']
+            as $field) {
+
+            if (!empty($data[$field])) {
+
+                $filters[$field] =
+                    $this->lib->formatDateDB($data[$field]);
+            }
+        }
+
+        // =========================
+        // Status Filters
+        // =========================
+        if (!empty($data['verified_status'])) {
+
+            $filters['verified_status'] =
+                $data['verified_status'];
+        }
+
+        // =========================
+        // Conversion Status
+        // =========================
+        if (!empty($data['conversion_status'])) {
+
+            $filters['conversion_status'] =
+                $data['conversion_status'];
+        } else {
+
+            $hasFilters =
+                !empty($data['verified_status']) ||
+                !empty($data['course_id']) ||
+                !empty($data['search_string']) ||
+                !empty($data['created']) ||
+                !empty($data['search_start']) ||
+                !empty($data['search_end']) ||
+                ($_SESSION['user_type'] !== 'franchise'
+                    &&
+                    !empty($data['franchise_id'])
+                );
+
+            $filters['conversion_status'] =
+                $hasFilters ? null : 'n';
+        }
+
+        return $filters;
+    }
+
+    public function fetchTmpStudents($filters)
+    {
+        return $this->model->fetch_Tmp_Students($filters);
+    }
+
+    /*
+    |--------------------------------------------------------------------------
+    | Manage temp student admission data helper methods
+    |--------------------------------------------------------------------------
+    */
+    public function fetchTempStudentDetails($id)
     {
         return $this->model->fetch_Detail_Single_Student($id);
     }
@@ -693,9 +814,12 @@ class StudentService
     {
         return $this->model->manage_Temp_Student($formDataArr);
     }
-    // Manage temp student Helper methods ends here
 
-    // Update student status Helper methods start here
+    /*
+    |--------------------------------------------------------------------------
+    | Update student status helper methods
+    |--------------------------------------------------------------------------
+    */
     public function saveStudentStatus($formDataArr)
     {
         return $this->model->manage_Student_Status($formDataArr);
@@ -705,9 +829,12 @@ class StudentService
     {
         return $this->model->update_Bulk_Student_Status($formDataArr);
     }
-    // Update student status Helper methods ends here
 
-    // Fetch student modal data Helper methods start here
+    /*
+    |--------------------------------------------------------------------------
+    | Fetch student data modal helper methods
+    |--------------------------------------------------------------------------
+    */
     public function fetchStudentDetails($id)
     {
         return $this->model->fetch_Global_Single_Student($id);

@@ -8,9 +8,9 @@ class GlobalLibraryHandler
 {
   private $db;
 
-  public function __construct($db)
+  public function __construct(Database $database)
   {
-    $this->db = $db->getConnection();
+    $this->db = $database->getConnection();
   }
 
   public function dd(...$vars)

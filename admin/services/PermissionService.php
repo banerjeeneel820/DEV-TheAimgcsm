@@ -3,14 +3,10 @@ defined('ROOTPATH') or exit('No direct script access allowed');
 
 class PermissionService
 {   
-    private $model;
-    private $lib;
-
-    public function __construct($model, $lib)
-    {
-        $this->model = $model;
-        $this->lib = $lib;
-    }
+    public function __construct(
+        private GlobalInterfaceModel $model,
+        private GlobalLibraryHandler $lib,
+    ){}
 
     public function checkUserRolePermission($user_role_slug, $fetch_type = "hard")
     {

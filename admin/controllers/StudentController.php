@@ -11,12 +11,16 @@ class StudentController extends BaseController
     public function __construct($container)
     {
         parent::__construct($container);
-        $this->studentService = $container->get('studentService');
-        $this->permissionService = $container->get('permissionService');
-        $this->courseFranchiseService = $container->get('courseFranchiseService');
+        $this->studentService = $container->get(StudentService::class);
+        $this->permissionService = $container->get(PermissionService::class);
+        $this->courseFranchiseService = $container->get(CourseFranchiseService::class);
     }
 
-    // View student data methods start here
+    /*
+    |--------------------------------------------------------------------------
+    | View student data methods
+    |--------------------------------------------------------------------------
+    */
     public function fetch_student_data($data)
     {
         $user_role_slug = 'view_student';
@@ -77,9 +81,12 @@ class StudentController extends BaseController
             true
         );
     }
-    // View student data methods ends here
 
-    // Manage student data view methods start here
+    /*
+    |--------------------------------------------------------------------------
+    | Manage student data view methods
+    |--------------------------------------------------------------------------
+    */
     public function manage_student_data_view($data)
     {
         $assets = Asset::load('manage_student_form');
@@ -152,9 +159,12 @@ class StudentController extends BaseController
             true
         );
     }
-    // Manage student data view methods ends here
 
-    // Manage student data methods start here
+    /*
+    |--------------------------------------------------------------------------
+    | Manage student data methods
+    |--------------------------------------------------------------------------
+    */
     public function manage_student($data)
     {
         $context = $this->studentService->buildStudentContext();
@@ -171,9 +181,12 @@ class StudentController extends BaseController
 
         return $this->studentService->handlePostSave($result, $formData, $context, $uploadResult);
     }
-    // Manage student data methods ends here
 
-    // Manage student admission data view methods start here
+    /*
+    |--------------------------------------------------------------------------
+    | Manage student admission data view methods
+    |--------------------------------------------------------------------------
+    */
     public function manage_student_admission_data_view($data)
     {
         $assets = Asset::load('student_admission_list');
@@ -312,9 +325,12 @@ class StudentController extends BaseController
             true
         );
     }
-    // Manage student admission data view methods ends here
 
-    // Manage student admission data methods start here
+    /*
+    |--------------------------------------------------------------------------
+    | Manage student admission data methods
+    |--------------------------------------------------------------------------
+    */
     public function manage_student_admission($data)
     {
         $post = fn ($key) => $this->lib->postDataSanitize($key);
@@ -359,10 +375,177 @@ class StudentController extends BaseController
         // 7. Final response
         return $this->studentService->buildAdmissionResponse($studentResult, $formData, $post, $isUpdate);
     }
-    // Manage student admission data methods ends here
 
-    // Manage temp student admission data methods start here
-    public function manage_temp_student($data) : Array
+    /*
+    |--------------------------------------------------------------------------
+    | Manage temp student admission data view methods
+    |--------------------------------------------------------------------------
+    */
+    public function manage_temp_student_data_view($data)
+    {
+        $type = 'student_admission';
+
+        // =========================
+        // Assets
+        // =========================
+        $assets = Asset::load("tmp_student_list");
+
+        // =========================
+        // Franchise Restriction
+        // =========================
+        if (
+            $_SESSION['user_type'] == 'franchise' &&
+            $_SESSION['owned_status'] == 'no'
+        ) {
+
+            return $this->page(
+                [
+                    'student_list' => [],
+                    'page_type'    => $type
+                ],
+                'Student Admission',
+                $assets,
+                false,
+                false
+            );
+        }
+
+        // =========================
+        // Request Type
+        // =========================
+        $actionType = $this->lib->get('actionType');
+
+        // =========================
+        // Manage Student View
+        // =========================
+        if ($actionType === "manage_student") {
+
+            return $this->handleManageTempStudentView($assets, $type);
+        }
+
+        // =========================
+        // Temp Student Listing
+        // =========================
+        return $this->handleTempStudentListingView($assets, $type, $data);
+    }
+
+    private function handleManageTempStudentView($assets, $type)
+    {
+        $id = trim($this->lib->get('id'));
+
+        $isUpdate = !empty($id);
+
+        $user_role_slug = $isUpdate
+            ? 'update_student'
+            : 'create_student';
+
+        $hasPermission = $this->permissionService
+            ->checkUserRolePermission($user_role_slug);
+
+        if (!$hasPermission) {
+
+            return $this->page(
+                [
+                    'student_data'   => [],
+                    'franchise_data' => [],
+                    'course_data'    => [],
+                    'page_type'      => $type
+                ],
+                'Student Admission',
+                $assets,
+                false,
+                false
+            );
+        }
+
+        // =========================
+        // Fetch Student
+        // =========================
+        $studentData = $isUpdate
+            ? $this->studentService->fetchTmpSingleStudent($id)
+            : [];
+
+        // =========================
+        // Common Data
+        // =========================
+        $activeData = $this->courseFranchiseService
+            ->fetch_Active_Course_Franchise_Data();
+
+        return $this->page(
+            [
+                'student_data'   => $studentData,
+                'franchise_data' => $activeData['franchise'],
+                'course_data'    => $activeData['course'],
+                'page_type'      => $type
+            ],
+            'Student Admission',
+            $assets,
+            false,
+            true
+        );
+    }
+
+    private function handleTempStudentListingView($assets, $type, $data)
+    {
+        $user_role_slug = 'view_student';
+
+        $hasPermission = $this->permissionService
+            ->checkUserRolePermission($user_role_slug);
+
+        if (!$hasPermission) {
+
+            return $this->page(
+                [
+                    'student_data'   => [],
+                    'franchise_data' => [],
+                    'course_data'    => [],
+                    'page_type'      => $type
+                ],
+                'Student Admission',
+                $assets,
+                false,
+                false
+            );
+        }
+
+        // =========================
+        // Filters
+        // =========================
+        $filters = $this->studentService
+            ->prepareTempStudentFilters($data);
+
+        // =========================
+        // Common Data
+        // =========================
+        $activeData = $this->courseFranchiseService
+            ->fetch_Active_Course_Franchise_Data();
+
+        // =========================
+        // Fetch Students
+        // =========================
+        $students = $this->studentService
+            ->fetchTmpStudents($filters);
+
+        return $this->page(
+            [
+                'student_data'   => $students,
+                'franchise_data' => $activeData['franchise'],
+                'course_data'    => $activeData['course'],
+                'page_type'      => $type
+            ],
+            'Student Admission',
+            $assets,
+            false,
+            true
+        );
+    }
+
+    /*
+    |--------------------------------------------------------------------------
+    | Manage temp student admission data methods
+    |--------------------------------------------------------------------------
+    */
+    public function manage_temp_student($data): array
     {
         //Declaring necessary variables
         $formDataArr = [];
@@ -395,7 +578,7 @@ class StudentController extends BaseController
 
             if ($isUpdate) {
                 $studentDetailArr = $this->studentService
-                    ->fetchTempStudentData($formDataArr['id']);
+                    ->fetchTempStudentDetails($formDataArr['id']);
 
                 if ($studentDetailArr->franchise_id != $franchise_id) {
                     return ['check' => 'failure', 'message' => "You don't have the permission to perform this action!"];
@@ -450,9 +633,12 @@ class StudentController extends BaseController
 
         return $returnArr;
     }
-    // Manage temp student admission data methods ends here
 
-    // Update student status methods start here
+    /*
+    |--------------------------------------------------------------------------
+    | Update student status methods
+    |--------------------------------------------------------------------------
+    */
     public function change_student_status($data)
     {
         //Declaring necessary variables
@@ -550,9 +736,12 @@ class StudentController extends BaseController
             ? ['check' => 'success', 'message' => 'Bulk update successful']
             : ['check' => 'failure', 'message' => 'Bulk update failed'];
     }
-    // Update student status methods ends here
 
-    // Fetch student data methods starts here
+    /*
+    |--------------------------------------------------------------------------
+    | Fetch student data modal methods
+    |--------------------------------------------------------------------------
+    */
     public function fetch_student_detail_modal($data)
     {
         $post = fn ($key) => $this->lib->postDataSanitize($key);
@@ -627,5 +816,4 @@ class StudentController extends BaseController
             'studentDetail'  => $student
         ];
     }
-    // Fetch student data methods ends here
 }

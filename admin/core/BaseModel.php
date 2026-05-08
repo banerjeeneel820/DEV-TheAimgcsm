@@ -5,8 +5,8 @@ class BaseModel {
 
     protected $db;
 
-    public function __construct($db){
-        $this->db = $db->getConnection();
+    public function __construct(Database $database){
+        $this->db = $database->getConnection();
     }
 
     private function getTypes($params){

@@ -4,9 +4,9 @@ defined('ROOTPATH') or exit('No direct script access allowed');
 class GlobalInterfaceModel extends BaseModel
 {
 
-   public function __construct($db)
+   public function __construct(Database $database)
    {
-      parent::__construct($db);
+      parent::__construct($database);
    }
 
    private function debugQuery($sql, $params = [])
@@ -999,7 +999,7 @@ class GlobalInterfaceModel extends BaseModel
          FROM " . DB_AIMGCSM . "." . TABLEPREFIX . "students stu
 
          LEFT JOIN " . DB_AIMGCSM . "." . TABLEPREFIX . "temp_students tmp_stu 
-               ON stu.tmp_stu_record_id = tmp_stu.id
+               ON stu.tmp_stu_record_id = tmp_stu.tmp_id
 
          LEFT JOIN ($receiptSubQuery) rcpt 
                ON stu.stu_id = rcpt.stu_id
@@ -1679,7 +1679,7 @@ class GlobalInterfaceModel extends BaseModel
 
          $baseSql
 
-         ORDER BY tmp_stu.id DESC
+         ORDER BY tmp_stu.tmp_id DESC
          LIMIT ?, ?
       ";
 
@@ -1687,7 +1687,7 @@ class GlobalInterfaceModel extends BaseModel
       // COUNT QUERY
       // =========================
       $countSql = "
-         SELECT COUNT(DISTINCT tmp_stu.id) as total
+         SELECT COUNT(DISTINCT tmp_stu.tmp_id) as total
          $baseSql
       ";
 
@@ -3833,7 +3833,7 @@ class GlobalInterfaceModel extends BaseModel
    public function update_Tmp_Student_Verified_Status($id, $verified_status)
    {
 
-      $sql = "UPDATE " . DB_AIMGCSM . "." . TABLEPREFIX . "temp_students tmp_stu SET `verified_status`='$verified_status',`updated_at` = now() WHERE tmp_stu.id = '$id'";
+      $sql = "UPDATE " . DB_AIMGCSM . "." . TABLEPREFIX . "temp_students tmp_stu SET `verified_status`='$verified_status',`updated_at` = now() WHERE tmp_stu.tmp_id = '$id'";
       //echo $sql;exit();
       $resultArr = $this->global_CRUD_DB($sql);
 
