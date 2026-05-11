@@ -999,7 +999,7 @@ class GlobalInterfaceModel extends BaseModel
          FROM " . DB_AIMGCSM . "." . TABLEPREFIX . "students stu
 
          LEFT JOIN " . DB_AIMGCSM . "." . TABLEPREFIX . "temp_students tmp_stu 
-               ON stu.tmp_stu_record_id = tmp_stu.tmp_id
+               ON stu.tmp_stu_record_id = tmp_stu.id
 
          LEFT JOIN ($receiptSubQuery) rcpt 
                ON stu.stu_id = rcpt.stu_id
@@ -1679,7 +1679,7 @@ class GlobalInterfaceModel extends BaseModel
 
          $baseSql
 
-         ORDER BY tmp_stu.tmp_id DESC
+         ORDER BY tmp_stu.id DESC
          LIMIT ?, ?
       ";
 
@@ -1687,7 +1687,7 @@ class GlobalInterfaceModel extends BaseModel
       // COUNT QUERY
       // =========================
       $countSql = "
-         SELECT COUNT(DISTINCT tmp_stu.tmp_id) as total
+         SELECT COUNT(DISTINCT tmp_stu.id) as total
          $baseSql
       ";
 
@@ -3467,7 +3467,7 @@ class GlobalInterfaceModel extends BaseModel
                FROM " . DB_AIMGCSM . "." . TABLEPREFIX . "students stu
    
                LEFT JOIN " . DB_AIMGCSM . "." . TABLEPREFIX . "temp_students tmp_stu 
-                   ON stu.tmp_stu_record_id = tmp_stu.tmp_id
+                   ON stu.tmp_stu_record_id = tmp_stu.id
    
                LEFT JOIN " . DB_AIMGCSM . "." . TABLEPREFIX . "course crs 
                    ON stu.course_id = crs.id
@@ -3496,7 +3496,7 @@ class GlobalInterfaceModel extends BaseModel
    public function fetch_Tmp_Single_Student($id)
    {
 
-      $sql = "SELECT tmp_stu.*,frn.center_name,frn.fran_email,frn.fran_phone,frn.fran_address,crs.course_title FROM " . DB_AIMGCSM . "." . TABLEPREFIX . "temp_students tmp_stu LEFT JOIN " . DB_AIMGCSM . "." . TABLEPREFIX . "franchise frn ON tmp_stu.franchise_id = frn.id LEFT JOIN " . DB_AIMGCSM . "." . TABLEPREFIX . "course crs ON tmp_stu.course_id = crs.id WHERE id = '$id'";
+      $sql = "SELECT tmp_stu.*,frn.center_name,frn.fran_email,frn.fran_phone,frn.fran_address,crs.course_title FROM " . DB_AIMGCSM . "." . TABLEPREFIX . "temp_students tmp_stu LEFT JOIN " . DB_AIMGCSM . "." . TABLEPREFIX . "franchise frn ON tmp_stu.franchise_id = frn.id LEFT JOIN " . DB_AIMGCSM . "." . TABLEPREFIX . "course crs ON tmp_stu.course_id = crs.id WHERE tmp_stu.id = '$id'";
 
       //echo $sql;exit();
 
@@ -3833,7 +3833,7 @@ class GlobalInterfaceModel extends BaseModel
    public function update_Tmp_Student_Verified_Status($id, $verified_status)
    {
 
-      $sql = "UPDATE " . DB_AIMGCSM . "." . TABLEPREFIX . "temp_students tmp_stu SET `verified_status`='$verified_status',`updated_at` = now() WHERE tmp_stu.tmp_id = '$id'";
+      $sql = "UPDATE " . DB_AIMGCSM . "." . TABLEPREFIX . "temp_students tmp_stu SET `verified_status`='$verified_status',`updated_at` = now() WHERE tmp_stu.id = '$id'";
       //echo $sql;exit();
       $resultArr = $this->global_CRUD_DB($sql);
 
@@ -3843,7 +3843,7 @@ class GlobalInterfaceModel extends BaseModel
    public function update_Tmp_Student_Conversion_Status($id, $conversion_status)
    {
 
-      $sql = "UPDATE " . DB_AIMGCSM . "." . TABLEPREFIX . "temp_students tmp_stu SET `conversion_status`='$conversion_status',`updated_at` = now() WHERE tmp_stu.tmp_id = '$id'";
+      $sql = "UPDATE " . DB_AIMGCSM . "." . TABLEPREFIX . "temp_students tmp_stu SET `conversion_status`='$conversion_status',`updated_at` = now() WHERE tmp_stu.id = '$id'";
       //echo $sql;exit();
       $resultArr = $this->global_CRUD_DB($sql);
 

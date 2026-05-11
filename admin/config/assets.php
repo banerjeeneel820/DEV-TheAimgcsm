@@ -125,11 +125,15 @@ return [
     ],
 
     'student_admission_list' => [
-        'groups' => ['common', 'datatable', 'fancybox', 'prettycheckbox','select2','printThis']
+        'groups' => ['common', 'datatable', 'fancybox', 'prettycheckbox', 'select2', 'printThis']
     ],
 
     'tmp_student_list' => [
-        'groups' => ['common', 'tablefilter', 'fancybox', 'prettycheckbox','select2','datapicker','printThis']
+        'groups' => ['common', 'tablefilter', 'fancybox', 'prettycheckbox', 'select2', 'datapicker', 'printThis']
+    ],
+
+    'student_receipt_list' => [
+        'groups' => ['common', 'datatable', 'tablefilter', 'fancybox', 'prettycheckbox', 'select2', 'datapicker', 'iCheck', 'printThis']
     ],
 
 ];

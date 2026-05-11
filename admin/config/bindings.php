@@ -60,13 +60,6 @@ return [
         );
     },
 
-    'studentReceiptService' => function ($container) {
-        return new StudentReceiptService(
-            $container->get('interfaceModel'),
-            $container->get('lib')
-        );
-    },
-
     'studentService' => function ($container) {
         return new StudentService(
             $container->get('interfaceModel'),
@@ -74,6 +67,16 @@ return [
             $container->get('permissionService'),
             $container->get('cacheService'),
             $container->get('studentReceiptService'),
+            $container->get('globalValidationController')
+        );
+    },
+
+    'studentReceiptService' => function ($container) {
+        return new StudentReceiptService(
+            $container->get('interfaceModel'),
+            $container->get('lib'),
+            $container->get('permissionService'),
+            $container->get('cacheService'),
             $container->get('globalValidationController')
         );
     },
