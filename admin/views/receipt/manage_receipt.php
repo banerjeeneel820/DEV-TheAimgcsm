@@ -1401,7 +1401,6 @@ if (!empty($_GET['rcpt_id'])) {
             $('#export_receipt_href').attr("href", result.file_url);
             $("#hidden_export_receipt_button").click();
           } else {
-
             // Calling custom function to print doc
             printDocument(result.file_url);
 
@@ -1411,7 +1410,6 @@ if (!empty($_GET['rcpt_id'])) {
             //   type: 'pdf',
             //   showModal: true
             // });
-
           }
 
           setTimeout(function() {

@@ -136,4 +136,16 @@ return [
         'groups' => ['common', 'datatable', 'tablefilter', 'fancybox', 'prettycheckbox', 'select2', 'datapicker', 'iCheck', 'printThis']
     ],
 
+    'exam_list' => [
+        'groups' => ['common', 'datatable', 'prettycheckbox']
+    ],
+
+    'manage_exam_form' => [
+        'groups' => ['common', 'iCheck', 'fancybox', 'select2','datapicker']
+    ],
+
+    'manage_exam_questions' => [
+        'groups' => ['common', 'iCheck']
+    ],
+
 ];

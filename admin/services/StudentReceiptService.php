@@ -548,71 +548,6 @@ class StudentReceiptService
         return $response;
     }
 
-    public function createStudentReceiptPdf($receipt_id)
-    {
-        // -----------------------------
-        // FETCH DATA
-        // -----------------------------
-        $receipt = $this->model
-            ->fetch_Single_Receipt_Data($receipt_id);
-
-        if (empty($receipt)) {
-            return ['check' => 'failure', 'message' => 'Invalid receipt data'];
-        }
-
-        $student = $this->fetchStudentDetails($receipt->stu_id, $receipt->created_at);
-
-        // -----------------------------
-        // FILE PATH
-        // -----------------------------
-        $fileName = "Receipt_{$receipt->receipt_id}.pdf";
-
-        $file_upload_dir = USER_UPLOAD_DIR . "runtime_upload/$fileName";
-        $file_url        = USER_UPLOAD_URL . "runtime_upload/$fileName";
-
-        // -----------------------------
-        // TEMPLATE CONFIG
-        // -----------------------------
-        $email_code = $this->getStuReceiptEmailCode($receipt->category);
-
-        $site = $this->model->fetch_Global_Site_Setting_Detail();
-        $template = $this->model->fetch_Email_Template_Detail($email_code);
-
-        // -----------------------------
-        // CALCULATIONS
-        // -----------------------------
-        $calc = $this->calculateStuReceiptData($receipt, $student);
-
-        // -----------------------------
-        // TEMPLATE VARIABLES
-        // -----------------------------
-        $swap = $this->buildStuReceiptTemplateVars($receipt, $student, $site, $template, $calc);
-
-        // -----------------------------
-        // RENDER TEMPLATE
-        // -----------------------------
-        $html = strtr($template->template, $swap);
-
-        // -----------------------------
-        // GENERATE PDF (IF NOT EXISTS)
-        // -----------------------------
-        if (!file_exists($file_upload_dir)) {
-
-            PdfFactory::generate($html, $file_upload_dir, 'created_receipt');
-        }
-
-        // -----------------------------
-        // RESPONSE
-        // -----------------------------
-        return [
-            'check'           => 'success',
-            'email_subject'   => $template->subject,
-            'email_template'  => $html,
-            'file_upload_dir' => $file_upload_dir,
-            'file_url'        => $file_url
-        ];
-    }
-
     private function getStuReceiptEmailCode($category)
     {
         return match ($category) {
@@ -697,62 +632,6 @@ class StudentReceiptService
             "{TOTAL_AMOUNT}"     => $calc['receiptAmount'],
 
             "{FEES_PAID_BFR_DR}" => $student->fees_paid_before_dr ?? 0,
-        ];
-    }
-
-    public function generateTempReceiptPdf($id)
-    {
-        // -----------------------------
-        // FETCH DATA
-        // -----------------------------
-        $tmpStudent = $this->model->fetch_Tmp_Single_Student($id);
-
-        if (empty($tmpStudent)) {
-            return ['check' => 'failure', 'message' => 'Student not found'];
-        }
-
-        // -----------------------------
-        // FILE PATH
-        // -----------------------------
-        $fileName = "TEMPRCPT_" . $tmpStudent->tmp_stu_id . ".pdf";
-
-        $file_upload_dir = USER_UPLOAD_DIR . 'runtime_upload/' . $fileName;
-        $file_url        = USER_UPLOAD_URL . 'runtime_upload/' . $fileName;
-
-        // -----------------------------
-        // CACHE CHECK
-        // -----------------------------
-        if (file_exists($file_upload_dir)) {
-            return [
-                'check' => 'success',
-                'file_upload_dir' => $file_upload_dir,
-                'file_url' => $file_url
-            ];
-        }
-
-        // -----------------------------
-        // PREPARE DATA
-        // -----------------------------
-        $site = $this->model->fetch_Global_Site_Setting_Detail();
-        $template = $this->model
-            ->fetch_Email_Template_Detail('student-temp-receipt-invoice')->template;
-
-        $swap = $this->buildTempReceiptTemplateVars($tmpStudent, $site);
-
-        // -----------------------------
-        // RENDER
-        // -----------------------------
-        $html = strtr($template, $swap);
-
-        // -----------------------------
-        // GENERATE PDF
-        // -----------------------------
-        PdfFactory::generate($html, $file_upload_dir, 'created_receipt');
-
-        return [
-            'check' => 'success',
-            'file_upload_dir' => $file_upload_dir,
-            'file_url' => $file_url
         ];
     }
 
@@ -876,7 +755,7 @@ class StudentReceiptService
             'check' => 'success'
         ];
     }
-
+    
     public function fetchReceiptCollection($filters) 
     {
     
@@ -901,6 +780,137 @@ class StudentReceiptService
     
             'message' =>
                 'Receipt Collection was successfully fetched!'
+        ];
+    }
+
+    /*
+    |--------------------------------------------------------------------------
+    | Calculate total receipt collection helper methods
+    |--------------------------------------------------------------------------
+    */
+    public function generateTempReceiptPdf($id)
+    {
+        // -----------------------------
+        // FETCH DATA
+        // -----------------------------
+        $tmpStudent = $this->model->fetch_Tmp_Single_Student($id);
+
+        if (empty($tmpStudent)) {
+            return ['check' => 'failure', 'message' => 'Student not found'];
+        }
+
+        // -----------------------------
+        // FILE PATH
+        // -----------------------------
+        $fileName = "TEMPRCPT_" . $tmpStudent->tmp_stu_id . ".pdf";
+
+        $file_upload_dir = USER_UPLOAD_DIR . 'runtime_upload/' . $fileName;
+        $file_url        = USER_UPLOAD_URL . 'runtime_upload/' . $fileName;
+
+        // -----------------------------
+        // CACHE CHECK
+        // -----------------------------
+        if (file_exists($file_upload_dir)) {
+            return [
+                'check' => 'success',
+                'file_upload_dir' => $file_upload_dir,
+                'file_url' => $file_url
+            ];
+        }
+
+        // -----------------------------
+        // PREPARE DATA
+        // -----------------------------
+        $site = $this->model->fetch_Global_Site_Setting_Detail();
+        $template = $this->model
+            ->fetch_Email_Template_Detail('student-temp-receipt-invoice')->template;
+
+        $swap = $this->buildTempReceiptTemplateVars($tmpStudent, $site);
+
+        // -----------------------------
+        // RENDER
+        // -----------------------------
+        $html = strtr($template, $swap);
+
+        // -----------------------------
+        // GENERATE PDF
+        // -----------------------------
+        PdfFactory::generate($html, $file_upload_dir, 'created_receipt');
+
+        return [
+            'check' => 'success',
+            'file_upload_dir' => $file_upload_dir,
+            'file_url' => $file_url
+        ];
+    }
+
+    /*
+    |--------------------------------------------------------------------------
+    | Common helper method for generating receipt pdf
+    |--------------------------------------------------------------------------
+    */
+    public function createStudentReceiptPdf($receipt_id)
+    {
+        // -----------------------------
+        // FETCH DATA
+        // -----------------------------
+        $receipt = $this->model
+            ->fetch_Single_Receipt_Data($receipt_id);
+
+        if (empty($receipt)) {
+            return ['check' => 'failure', 'message' => 'Invalid receipt data'];
+        }
+
+        $student = $this->fetchStudentDetails($receipt->stu_id, $receipt->created_at);
+
+        // -----------------------------
+        // FILE PATH
+        // -----------------------------
+        $fileName = "Receipt_{$receipt->receipt_id}.pdf";
+
+        $file_upload_dir = USER_UPLOAD_DIR . "runtime_upload/$fileName";
+        $file_url        = USER_UPLOAD_URL . "runtime_upload/$fileName";
+
+        // -----------------------------
+        // TEMPLATE CONFIG
+        // -----------------------------
+        $email_code = $this->getStuReceiptEmailCode($receipt->category);
+
+        $site = $this->model->fetch_Global_Site_Setting_Detail();
+        $template = $this->model->fetch_Email_Template_Detail($email_code);
+
+        // -----------------------------
+        // CALCULATIONS
+        // -----------------------------
+        $calc = $this->calculateStuReceiptData($receipt, $student);
+
+        // -----------------------------
+        // TEMPLATE VARIABLES
+        // -----------------------------
+        $swap = $this->buildStuReceiptTemplateVars($receipt, $student, $site, $template, $calc);
+
+        // -----------------------------
+        // RENDER TEMPLATE
+        // -----------------------------
+        $html = strtr($template->template, $swap);
+
+        // -----------------------------
+        // GENERATE PDF (IF NOT EXISTS)
+        // -----------------------------
+        if (!file_exists($file_upload_dir)) {
+
+            PdfFactory::generate($html, $file_upload_dir, 'created_receipt');
+        }
+
+        // -----------------------------
+        // RESPONSE
+        // -----------------------------
+        return [
+            'check'           => 'success',
+            'email_subject'   => $template->subject,
+            'email_template'  => $html,
+            'file_upload_dir' => $file_upload_dir,
+            'file_url'        => $file_url
         ];
     }
 }

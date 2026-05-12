@@ -110,6 +110,6 @@ class BaseModel {
 
     protected function escape($value)
     {
-       return mysqli_real_escape_string(DB::$WRITELINK, trim($value));
+       return mysqli_real_escape_string($this->db, trim($value));
     }
 }

@@ -872,14 +872,19 @@
 
                         //console.log(export_type);
 
-                        if(export_type == "download"){
-                           $('#export_receipt_href').attr("href",result.file_url);
-                           $( "#hidden_export_receipt_button").click(); 
-                        }else{
-                           //Generating dynamic button for print pdf
-                           var printPdfBtn = '<button id="print_receipt_btn" onclick="printJS(\''+result.file_url+'\')" style="display:none;">'+'<i class="fa fa-print"></i> Print</button>';
-                           $("body").append(printPdfBtn); 
-                           $( "#print_receipt_btn").click();          
+                        if (export_type == "download") {
+                          $('#export_receipt_href').attr("href", result.file_url);
+                          $("#hidden_export_receipt_button").click();
+                        } else {
+                          // Calling custom function to print doc
+                          printDocument(result.file_url);
+
+                          // Chrome / Edge (printJS works fine)
+                          // printJS({
+                          //   printable: result.file_url,
+                          //   type: 'pdf',
+                          //   showModal: true
+                          // });
                         }
                       }, 500);
 

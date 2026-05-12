@@ -60,6 +60,13 @@ return [
         );
     },
 
+    'courseFranchiseService' => function ($container) {
+        return new CourseFranchiseService(
+            $container->get('interfaceModel'),
+            $container->get('lib')
+        );
+    },
+
     'studentService' => function ($container) {
         return new StudentService(
             $container->get('interfaceModel'),
@@ -81,10 +88,11 @@ return [
         );
     },
 
-    'courseFranchiseService' => function ($container) {
-        return new CourseFranchiseService(
+    'ExamService' => function ($container) {
+        return new ExamService(
             $container->get('interfaceModel'),
-            $container->get('lib')
+            $container->get('lib'),
+            $container->get('permissionService'),
         );
     },
 

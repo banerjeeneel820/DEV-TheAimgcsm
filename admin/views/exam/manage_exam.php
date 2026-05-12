@@ -174,7 +174,7 @@
 
                                 <div class="form-group row">
                                     <div class="col-sm-4 col-sm-offset-2">
-                                        <a href="<?=SITE_URL?>?route=view_exam" data-toggle="tooltip" title="" class="btn btn-default" data-original-title="Cancel"><i class="fa fa-reply"></i></a>
+                                        <a href="<?=SITE_URL?>?route=view_exams" data-toggle="tooltip" title="" class="btn btn-default" data-original-title="Cancel"><i class="fa fa-reply"></i></a>
                                         <button class="btn btn-success btn-sm" id="create" type="submit" data-toggle="tooltip" title="" class="btn btn-success" data-original-title="Save"><i class="fa fa-save"></i> Save</button>
                                     </div>
                                 </div>

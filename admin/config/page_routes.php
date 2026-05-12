@@ -31,7 +31,7 @@ return [
     'view_exams'     => ['ExamController', 'fetch_exam_data'],
     'add_exam'     => ['ExamController', 'manage_exam_data_view'],
     'edit_exam'     => ['ExamController', 'manage_exam_data_view'],
-    'manage_questions'     => ['ExamController', 'manage_exam_question_view'],
+    'manage_questions'  => ['ExamController', 'manage_exam_question_view'],
     'start_exam'     => ['ExamController', 'manage_start_exam_view'],
 
     // Cms Routes
