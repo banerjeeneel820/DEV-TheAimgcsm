@@ -17,8 +17,6 @@ class Bootstrap
         // =========================
         require_once ROOTPATH . '/config/constants.php';
 
-        require_once ROOTPATH . '/config/sidebar.php';
-
         // =========================
         // ERROR REPORTING
         // =========================

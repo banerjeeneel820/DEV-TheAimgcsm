@@ -17,7 +17,6 @@ class ViewEngine extends BaseController
 		$this->route  = $route;
 		$this->data   = $data;
 		$this->assets = $data['assetData'] ?? [];
-		$this->sidebarMenus = require ROOTPATH . '/config/sidebar.php';
 		$this->viewRoutes = require ROOTPATH . '/config/view_routes.php';
 		$this->permissionService = $this->permissionService = $container->get('permissionService');
 	}
@@ -78,7 +77,7 @@ class ViewEngine extends BaseController
 
 		// Layout check
 		if ($this->shouldLoadLayout()) {
-			$sidebarMenus = $this->sidebarMenus;
+			$sidebarMenus = require ROOTPATH . '/config/sidebar.php';
 			$cssPluginArr = $this->assets['css'] ?? [];
 			include ROOTPATH . "/layout/header.php";
 		}

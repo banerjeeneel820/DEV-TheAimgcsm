@@ -161,9 +161,9 @@ return [
     ],
 
     [
-        'key' => 'students',
-        'title' => 'Students',
-        'icon' => 'fa fa-mortar-board',
+        'key' => 'exams',
+        'title' => 'Exams',
+        'icon' => 'fa fa-laptop',
         'routes' => [
             'view_exams',
             'add_exam',
