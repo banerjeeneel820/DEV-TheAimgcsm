@@ -31,7 +31,7 @@
   }
 
   // Constructing back button url
-  $backToListUrl = $this->lib-> buildBackUrl('view_students');
+  $backToListUrl = $this->lib->buildBackUrl('view_students');
   
   /*print"<pre>";
   print_r($pageContent['student_data']);

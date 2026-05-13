@@ -35,6 +35,8 @@
 <body>
     <div id="wrapper">
         <!-- <div id="preloader" class="show"></div> -->
+
+        <!-- Admin Sidebar Nav Section -->
         <nav class="navbar-default navbar-static-side sidebar-position" id="sidebar-wrapper" role="navigation">
             <div class="sidebar-collapse">
                 <ul class="nav metismenu" id="side-menu">
@@ -58,6 +60,8 @@
                             TAG
                         </div>
                     </li>
+
+                    <?php //include ROOTPATH . "/layout/sidebar.php"; ?>
 
                     <?php if ($this->permissionService->checkUserRolePermission("view_dashboard") || $_SESSION['user_type'] == 'student') { ?>
                         <li <?php if (!$_GET['route'] || $_GET['route'] == "home") echo "class='active'"; ?>>
@@ -182,7 +186,7 @@
 
                     <?php if ($this->permissionService->checkUserRolePermission("view_exam")) { ?>
 
-                        <li <?php if ($_GET['route'] == "view_exams" || $_GET['route'] == "add_exam" || $_GET['route'] == "edit_exam") echo "class='active'"; ?>>
+                        <li <?php if ($_GET['route'] == "view_exams" || $_GET['route'] == "add_exam" || $_GET['route'] == "edit_exam" || $_GET['route'] == "manage_questions") echo "class='active'"; ?>>
 
                             <a href="javascript:void(0)"><i class="fa fa-laptop"></i> <span class="nav-label">Exams </span> <span class="fa arrow"></span></a>
                             <ul class="nav nav-second-level">
@@ -195,7 +199,7 @@
 
                                 <?php } ?>
 
-                                <?php if ($this->permissionService->checkUserRolePermission("create_course")) { ?>
+                                <?php if ($this->permissionService->checkUserRolePermission("create_exam")) { ?>
 
                                     <li <?php if ($_GET['route'] == "add_exam") echo "class='active'"; ?>>
                                         <a href="<?= SITE_URL ?>?route=add_exam"> <i class="fa fa-plus-circle"></i> Add New Exam</a>
@@ -238,7 +242,6 @@
                             </ul>
                         </li>
                     <?php } ?>
-
 
                     <?php if ($this->permissionService->checkUserRolePermission("view_category")) { ?>
 
@@ -295,13 +298,11 @@
                         </li>
                     <?php } ?>
 
-
                     <?php if ($this->permissionService->checkUserRolePermission("view_enquiry")) { ?>
                         <li <?php if ($_GET['route'] == "view_enquiry") echo "class='active'"; ?>>
                             <a href="<?= SITE_URL ?>?route=view_enquiry"><i class="fa fa-envelope-o"></i> <span class="nav-label">Enquiry</span></a>
                         </li>
                     <?php } ?>
-
 
                     <?php if ($this->permissionService->checkUserRolePermission("update_site_setting") || $this->permissionService->checkUserRolePermission("manage_profile") && $_SESSION['user_type'] != 'student') { ?>
 
@@ -329,13 +330,6 @@
                                     </li>
                                 <?php } ?>
                             </ul>
-                        </li>
-                    <?php } ?>
-
-                    <?php if ($_SESSION['user_type'] == 'student' && $this->permissionService->checkUserRolePermission("manage_profile")) { ?>
-
-                        <li <?php if ($_GET['route'] == "edit_profile") echo "class='active'"; ?>>
-                            <a href="<?= SITE_URL ?>?route=edit_profile"><i class="fa fa-cog"></i> <span class="nav-label">Profile Settings</span></a>
                         </li>
                     <?php } ?>
 

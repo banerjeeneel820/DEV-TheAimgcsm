@@ -61,7 +61,7 @@ class BaseController
                 'tiny_allowed' => $tiny,
                 'page_permission' => $permission
             ]),
-            'assetData' => $assets
+            'assetData' => $assets,
         ];
     }
 

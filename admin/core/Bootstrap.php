@@ -10,10 +10,14 @@ class Bootstrap
         // =========================
         require_once ROOTPATH . '/libraries/helpers.php';
 
+        require_once ROOTPATH . '/libraries/sidebar_helper.php';
+
         // =========================
         // CONFIG
         // =========================
         require_once ROOTPATH . '/config/constants.php';
+
+        require_once ROOTPATH . '/config/sidebar.php';
 
         // =========================
         // ERROR REPORTING

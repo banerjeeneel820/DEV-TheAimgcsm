@@ -6,6 +6,7 @@ class ViewEngine extends BaseController
 	private $route;
 	private $data;
 	private $assets;
+	private $sidebarMenus;
 	private $viewRoutes;
 	private $permissionService;
 
@@ -16,6 +17,7 @@ class ViewEngine extends BaseController
 		$this->route  = $route;
 		$this->data   = $data;
 		$this->assets = $data['assetData'] ?? [];
+		$this->sidebarMenus = require ROOTPATH . '/config/sidebar.php';
 		$this->viewRoutes = require ROOTPATH . '/config/view_routes.php';
 		$this->permissionService = $this->permissionService = $container->get('permissionService');
 	}
@@ -58,7 +60,7 @@ class ViewEngine extends BaseController
 		}
 	}
 
-		private function renderViewWithLayout()
+	private function renderViewWithLayout()
 	{
 		$data = $this->prepareViewData();
 
@@ -66,9 +68,9 @@ class ViewEngine extends BaseController
 		extract($data, EXTR_SKIP);
 		extract($data['pageData'] ?? [], EXTR_SKIP);
 
-		//$this->dd($pageContent['pageData']['franchise_data']);
-
 		$viewPath = $this->resolveViewPath();
+		$permissionService = $this->permissionService;
+		$currentRoute = $this->route;
 
 		if (!$viewPath) {
 			$viewPath = 'utility/not_found.php';
@@ -76,6 +78,7 @@ class ViewEngine extends BaseController
 
 		// Layout check
 		if ($this->shouldLoadLayout()) {
+			$sidebarMenus = $this->sidebarMenus;
 			$cssPluginArr = $this->assets['css'] ?? [];
 			include ROOTPATH . "/layout/header.php";
 		}

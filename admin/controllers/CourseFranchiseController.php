@@ -295,7 +295,7 @@ class CourseFranchiseController extends BaseController
         // Fetch data only if edit mode
         $courseData = $isEdit
             ? $this->courseFranchiseService->getCourseById($courseId)
-            : [];
+            : [];      
 
         return $this->page(
             [
