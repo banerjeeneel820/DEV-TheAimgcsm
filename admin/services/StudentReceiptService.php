@@ -180,7 +180,7 @@ class StudentReceiptService
 
         if (
             !$this->permissionService
-            ->checkUserRolePermission($permissionSlug, 'hard')
+                ->checkUserRolePermission($permissionSlug, 'hard')
         ) {
 
             return [
@@ -195,12 +195,11 @@ class StudentReceiptService
     public function fetchExistingReceipt(
         $isUpdate,
         $payload
-    ) 
-    {
+    ) {
         if (!$isUpdate) {
             return null;
         }
-    
+
         return $this->model
             ->fetch_Receipt_Detail(
                 $payload['receipt_row_id']
@@ -212,87 +211,85 @@ class StudentReceiptService
         $receiptDetailArr,
         $payload,
         $isUpdate
-    ) 
-    {
-    
+    ) {
+
         $course_fee =
             !empty($stuReceiptDetails->stu_course_fees)
             ? (int)$stuReceiptDetails->stu_course_fees
             : (int)$stuReceiptDetails->course_default_fees;
-    
+
         $course_due_fees =
             $course_fee
             - (int)$stuReceiptDetails->stu_course_discount
             - (int)$stuReceiptDetails->course_fees_paid
             - (int)$stuReceiptDetails->advanced_fees
             - (int)$stuReceiptDetails->fees_paid_before_dr;
-    
+
         if ($isUpdate) {
-    
+
             $course_due_fees +=
                 (int)$receiptDetailArr->receipt_amount;
         }
-    
+
         return max(0, $course_due_fees);
     }
 
     public function validateBusinessRules(
         $courseDueFees,
         $payload
-    ) 
-    {
-    
+    ) {
+
         if (
             $courseDueFees == 0
             && $payload['category_id'] != 109501
         ) {
-    
+
             return [
                 'check' => 'failure',
                 'message' => 'This student has cleared their fees!'
             ];
         }
-    
+
         if ($payload['receipt_amount'] <= 0) {
-    
+
             return [
                 'check' => 'failure',
                 'message' => 'Invalid receipt amount!'
             ];
         }
-    
+
         if ($payload['receipt_amount'] > $courseDueFees) {
-    
+
             return [
                 'check' => 'failure',
                 'message' => 'Receipt amount is greater than due course fees!'
             ];
         }
-    
+
         return ['check' => 'success'];
     }
 
-    public function validateFranchiseAccess($studentId) 
+    public function validateFranchiseAccess($studentId)
     {
         if ($_SESSION['user_type'] !== 'franchise') {
             return ['check' => 'success'];
         }
-    
+
         $studentDetailArr =
             $this->model
             ->fetch_Detail_Single_Student($studentId);
-    
+
         if (
             $studentDetailArr->franchise_id
             != $_SESSION['user_id']
         ) {
-    
+
             return [
                 'check' => 'failure',
                 'message' => "You don't have the permission to perform this action!"
             ];
         }
-    
+
         return ['check' => 'success'];
     }
 
@@ -300,121 +297,120 @@ class StudentReceiptService
         $payload,
         $receiptDetailArr,
         $isUpdate
-    ) 
-    {
+    ) {
         $savePayload = [
-    
+
             'receipt_row_id' =>
-                $payload['receipt_row_id'],
-    
+            $payload['receipt_row_id'],
+
             'receipt_id' =>
-                $isUpdate
+            $isUpdate
                 ? $payload['receipt_id']
                 : $this->create_Receipt_ID(),
-    
+
             'student_id' =>
-                $payload['student_id'],
-    
+            $payload['student_id'],
+
             'record_status' =>
-                $payload['record_status'],
-    
+            $payload['record_status'],
+
             'category_id' =>
-                $payload['category_id'],
-    
+            $payload['category_id'],
+
             'receipt_amount' =>
-                $payload['receipt_amount'],
-    
+            $payload['receipt_amount'],
+
             'late_fine' =>
-                $payload['late_fine'],
-    
+            $payload['late_fine'],
+
             'extra_fees' =>
-                $payload['extra_fees'],
-    
+            $payload['extra_fees'],
+
             'extra_fees_description' =>
-                $payload['extra_fees']
+            $payload['extra_fees']
                 ? $payload['extra_fees_description']
                 : null
         ];
-    
+
         /*
         |--------------------------------------------------------------------------
         | ORIGINAL VALUES
         |--------------------------------------------------------------------------
         */
         if (!$isUpdate) {
-    
+
             $savePayload += [
-    
+
                 'original_receipt_amount' =>
-                    $payload['receipt_amount'],
-    
+                $payload['receipt_amount'],
+
                 'original_late_fine' =>
-                    $payload['late_fine'],
-    
+                $payload['late_fine'],
+
                 'original_extra_fees' =>
-                    $payload['extra_fees']
+                $payload['extra_fees']
             ];
         }
-    
+
         /*
         |--------------------------------------------------------------------------
         | UPDATE CHANGES
         |--------------------------------------------------------------------------
         */
         if ($isUpdate) {
-    
+
             $changes = [];
-    
+
             $original = [
-    
+
                 'receipt_amount' =>
-                    (int)$receiptDetailArr->og_receipt_amount,
-    
+                (int)$receiptDetailArr->og_receipt_amount,
+
                 'late_fine' =>
-                    (int)$receiptDetailArr->og_late_fine,
-    
+                (int)$receiptDetailArr->og_late_fine,
+
                 'extra_fees' =>
-                    (int)$receiptDetailArr->og_extra_fees
+                (int)$receiptDetailArr->og_extra_fees
             ];
-    
+
             if (
                 $payload['receipt_amount']
                 < $original['receipt_amount']
             ) {
-    
+
                 $changes[] =
                     "Receipt amount reduced from Rs. {$original['receipt_amount']} to Rs. {$payload['receipt_amount']}.";
             }
-    
+
             if (
                 $payload['late_fine']
                 < $original['late_fine']
             ) {
-    
+
                 $changes[] =
                     "Late fine reduced from Rs. {$original['late_fine']} to Rs. {$payload['late_fine']}.";
             }
-    
+
             if (
                 $payload['extra_fees']
                 < $original['extra_fees']
             ) {
-    
+
                 $changes[] =
                     "Additional fees reduced from Rs. {$original['extra_fees']} to Rs. {$payload['extra_fees']}.";
             }
-    
+
             $savePayload['verified_status'] =
                 !empty($changes)
                 ? 'n'
                 : 'y';
-    
+
             $savePayload['edit_description'] =
                 !empty($changes)
                 ? serialize($changes)
                 : null;
         }
-    
+
         return $savePayload;
     }
 
@@ -439,7 +435,7 @@ class StudentReceiptService
     public function saveReceiptData($savePayload)
     {
         return $this->model
-        ->manage_Student_Receipt($savePayload);
+            ->manage_Student_Receipt($savePayload);
     }
 
     public function handlePostSaveOperations(
@@ -448,44 +444,42 @@ class StudentReceiptService
         $savePayload,
         $isUpdate
     ) {
-    
+
         if ($isUpdate) {
-    
+
             $receipt_id =
                 $savePayload['receipt_row_id'];
-    
+
             $receiptDetails =
                 $receiptDetailArr;
-    
+
             if (!empty($savePayload['edit_description'])) {
-    
+
                 $file =
                     USER_UPLOAD_DIR
                     . "runtime_upload/Receipt_{$receiptDetails->receipt_id}.pdf";
-    
+
                 if (file_exists($file)) {
                     unlink($file);
                 }
             }
-        }
-    
-        else {
-    
+        } else {
+
             $receipt_id =
                 $saveResult['last_insert_id'];
-    
+
             $receiptDetails =
                 $this->model
                 ->fetch_Single_Receipt_Data($receipt_id);
-    
+
             $this->cacheService
                 ->purgeSiteCache('student_receipts');
         }
-    
+
         return [
-    
+
             'receipt_id' => $receipt_id,
-    
+
             'receipt_details' => $receiptDetails
         ];
     }
@@ -495,29 +489,29 @@ class StudentReceiptService
         $stuReceiptDetails,
         $receiptPdfRslt
     ) {
-    
+
         if ($payload['send_mail'] !== 'yes') {
             return;
         }
-    
+
         $emailParamArr = [
-    
+
             'receiver_name' =>
-                $stuReceiptDetails->stu_name,
-    
+            $stuReceiptDetails->stu_name,
+
             'receiver_email' =>
-                $stuReceiptDetails->stu_email,
-    
+            $stuReceiptDetails->stu_email,
+
             'attachment_path' =>
-                $receiptPdfRslt['file_upload_dir'] ?? null,
-    
+            $receiptPdfRslt['file_upload_dir'] ?? null,
+
             'email_subject' =>
-                $receiptPdfRslt['email_subject'],
-    
+            $receiptPdfRslt['email_subject'],
+
             'email_template' =>
-                $receiptPdfRslt['email_template']
+            $receiptPdfRslt['email_template']
         ];
-    
+
         $this->lib->php_mailer_send_mail($emailParamArr);
     }
 
@@ -525,26 +519,25 @@ class StudentReceiptService
         $receiptPdfRslt,
         $receiptData,
         $isUpdate
-    ) 
-    {
-    
+    ) {
+
         $response = [
-    
+
             'check' => 'success',
-    
+
             'file_url' =>
-                $receiptPdfRslt['file_url'] ?? null,
-    
+            $receiptPdfRslt['file_url'] ?? null,
+
             'receipt_id' =>
-                $receiptData['receipt_details']->receipt_id
+            $receiptData['receipt_details']->receipt_id
         ];
-    
+
         if (!$isUpdate) {
-    
+
             $response['last_insert_id'] =
                 $receiptData['receipt_id'];
         }
-    
+
         return $response;
     }
 
@@ -669,22 +662,22 @@ class StudentReceiptService
     */
     public function prepareReceiptCollectionFilters()
     {
-        $post = fn($key) =>
-            $this->lib->postDataSanitize($key);
+        $post = fn ($key) =>
+        $this->lib->postDataSanitize($key);
 
         $filters = [
 
             'record_status' =>
-                $post('record_status'),
+            $post('record_status'),
 
             'course_id' =>
-                $post('course_id'),
+            $post('course_id'),
 
             'franchise_id' =>
-                $post('franchise_id'),
+            $post('franchise_id'),
 
             'stu_id' =>
-                $post('student_id')
+            $post('student_id')
         ];
 
         /*
@@ -719,11 +712,12 @@ class StudentReceiptService
         return $filters;
     }
 
-    private function formatReceiptDate($date) {
-    
+    private function formatReceiptDate($date)
+    {
+
         $date =
             str_replace('/', '-', $date);
-    
+
         return date(
             'Y-m-d',
             strtotime($date)
@@ -736,10 +730,10 @@ class StudentReceiptService
 
         if (
             !$this->permissionService
-            ->checkUserRolePermission(
-                $user_role_slug,
-                'hard'
-            )
+                ->checkUserRolePermission(
+                    $user_role_slug,
+                    'hard'
+                )
         ) {
 
             return [
@@ -747,7 +741,7 @@ class StudentReceiptService
                 'check' => 'failure',
 
                 'message' =>
-                    "You don't have the permission to perform this action!"
+                "You don't have the permission to perform this action!"
             ];
         }
 
@@ -755,31 +749,31 @@ class StudentReceiptService
             'check' => 'success'
         ];
     }
-    
-    public function fetchReceiptCollection($filters) 
+
+    public function fetchReceiptCollection($filters)
     {
-    
+
         return json_decode(
             json_encode(
                 $this->model
-                ->fetch_Receipt_Collection($filters)
+                    ->fetch_Receipt_Collection($filters)
             ),
             true
         );
     }
 
-    public function buildReceiptCollectionResponse($receiptDataArr) 
+    public function buildReceiptCollectionResponse($receiptDataArr)
     {
-    
+
         return [
-    
+
             'check' => 'success',
-    
+
             'receiptData' =>
-                $receiptDataArr,
-    
+            $receiptDataArr,
+
             'message' =>
-                'Receipt Collection was successfully fetched!'
+            'Receipt Collection was successfully fetched!'
         ];
     }
 
@@ -912,5 +906,70 @@ class StudentReceiptService
             'file_upload_dir' => $file_upload_dir,
             'file_url'        => $file_url
         ];
+    }
+
+    /*
+    |--------------------------------------------------------------------------
+    | View due Student data helper methods
+    |--------------------------------------------------------------------------
+    */
+    public function prepareDueStudentFilters($data)
+    {
+        $student_id = !empty($data['stu_id'])
+            ? trim($data['stu_id'])
+            : null;
+
+        $filters = [
+            'record_status' => $data['record_status'] ?? 'active',
+            'student_id'    => $student_id,
+            'pageNo'        => isset($data['pageNo'])
+                ? (int)$data['pageNo']
+                : 1,
+            'limit'         => 20,
+            'fetchType'     => $data['fetchType'] ?? null
+        ];
+
+        // =========================
+        // Course Filter
+        // =========================
+        if (
+            !empty($data['course_id']) &&
+            (int)$data['course_id'] > 0
+        ) {
+            $filters['course_id'] = (int)$data['course_id'];
+        }
+
+        // =========================
+        // Franchise Logic
+        // =========================
+        if ($_SESSION['user_type'] === 'franchise') {
+
+            $filters['franchise_id'] =
+                (int)$_SESSION['user_id'];
+        } elseif (
+            !empty($data['franchise_id']) &&
+            (int)$data['franchise_id'] > 0
+        ) {
+
+            $filters['franchise_id'] =
+                (int)$data['franchise_id'];
+        }
+
+        return $filters;
+    }
+
+    public function getDueStudents($filters)
+    {
+        if (
+            empty($filters['fetchType']) ||
+            $filters['fetchType'] === 'dueList'
+        ) {
+
+            return $this->model
+                ->fetch_Due_Students_Data($filters);
+        }
+
+        return $this->model
+            ->fetch_Updated_Markup_Students_Data($filters);
     }
 }

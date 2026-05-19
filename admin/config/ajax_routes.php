@@ -47,7 +47,7 @@ return [
     'manageGlobalNews' => ['CmsController', 'manage_global_news'],
 
     // Utility Routes
-    'updateGlobalStatusRecord' => ['UtilityController', 'update_global_status_status'],
+    'updateGlobalStatusRecord' => ['UtilityController', 'update_global_record_status'],
     'globalFeaturedStatusUpdate' => ['UtilityController', 'update_global_featured_status'],
     'globalVerifiedStatusUpdate' => ['UtilityController', 'update_global_verified_status'],
     'deleteGlobalData' => ['UtilityController', 'delete_global_data'],

@@ -49,14 +49,46 @@ return [
     |--------------------------------------------------------------------------
     */
 
-    'cacheService' => function ($container) {
-        return new CacheService();
-    },
-
     'permissionService' => function ($container) {
         return new PermissionService(
             $container->get('interfaceModel'),
             $container->get('lib')
+        );
+    },
+
+    'cacheService' => function ($container) {
+        return new CacheService();
+    },
+
+    'pdfService' => function ($container) {
+        return new PdfService();
+    },
+
+    'excelService' => function ($container) {
+        return new ExcelService();
+    },
+
+    'exportService' => function ($container) {
+        return new ExportService(
+            $container->get('interfaceModel'),
+            $container->get('lib'),
+            $container->get('pdfService'),
+            $container->get('excelService'),
+        );
+    },
+
+    'importService' => function ($container) {
+        return new ImportService(
+            $container->get('interfaceModel'),
+            $container->get('lib'),
+            $container->get('excelService'),
+        );
+    },
+
+    'utilityService' => function ($container) {
+        return new UtilityService(
+            $container->get('interfaceModel'),
+            $container->get('lib'),
         );
     },
 
@@ -88,11 +120,18 @@ return [
         );
     },
 
-    'ExamService' => function ($container) {
+    'examService' => function ($container) {
         return new ExamService(
             $container->get('interfaceModel'),
             $container->get('lib'),
             $container->get('permissionService'),
+        );
+    },
+
+    'cmsService' => function ($container) {
+        return new CmsService(
+            $container->get('interfaceModel'),
+            $container->get('lib')
         );
     },
 

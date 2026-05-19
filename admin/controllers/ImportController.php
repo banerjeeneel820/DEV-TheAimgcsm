@@ -6,11 +6,12 @@ class ImportController extends BaseController
     private $importService;
     private $permissionService;
 
-    public function __construct()
+    public function __construct($container)
     {   
-        parent::__construct();
-        $this->importService = new ImportService($this->model,$this->lib);
-        $this->permissionService = new PermissionService($this->model, $this->lib);
+        parent::__construct($container);
+
+        $this->importService = $container->get(ImportService::class);
+        $this->permissionService = $container->get(PermissionService::class);
     }
 
     public function handle_import_data($data)

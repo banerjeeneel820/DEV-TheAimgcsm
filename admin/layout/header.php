@@ -37,36 +37,10 @@
         <!-- <div id="preloader" class="show"></div> -->
 
         <!-- Admin Sidebar Nav Section -->
-        <nav class="navbar-default navbar-static-side sidebar-position" id="sidebar-wrapper" role="navigation">
-            <div class="sidebar-collapse">
-                <ul class="nav metismenu" id="side-menu">
-                    <li class="nav-header">
-
-                        <div class="dropdown profile-element">
-                            <a href="<?= $_SESSION['user_profile_pic'] ?>" id="logo" data-fancybox="gallery" data-caption="Company Logo"> <img alt="image" class="rounded-circle" src="<?= USER_UPLOAD_URL . 'others/' . $site_setting_data->logo ?>" style="height: 60px;width: 70px;" /></a>
-                            <a data-toggle="dropdown" class="dropdown-toggle" href="#">
-                                <span class="block m-t-xs font-bold"><?= $_SESSION['user_name'] ?></span>
-                                <span class="text-muted text-xs block"><?= ucfirst($_SESSION['user_type']) ?> <b class="caret"></b></span>
-                            </a>
-                            <ul class="dropdown-menu animated fadeInRight m-t-xs">
-                                <li><a class="dropdown-item" href="<?= SITE_URL . '?route=edit_profile' ?>">Profile</a></li>
-                                <li><a class="dropdown-item" href="<?= FRONT_SITE_URL ?>" target="_blank">Visit Site</a></li>
-                                <li class="dropdown-divider"></li>
-                                <li><a class="dropdown-item" href="<?= SITE_URL . '?route=logout' ?>" onclick="return confirm('Sure to exit from the system?');">Logout</a></li>
-                            </ul>
-                        </div>
-
-                        <div class="logo-element">
-                            TAG
-                        </div>
-                    </li>
-
-                    <?php include ROOTPATH . "/layout/sidebar.php"; ?>
-
-                    <?php //include ROOTPATH . "/layout/sidebar_old.php"; ?>
-                </ul>
-            </div>
-        </nav>
+        <?php 
+            include ROOTPATH . "/layout/sidebar.php"; 
+            //include ROOTPATH . "/layout/sidebar_old.php"; 
+        ?>
 
         <div id="page-wrapper" class="gray-bg">
             <div class="row border-bottom">

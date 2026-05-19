@@ -2,17 +2,12 @@
 
 class ImportService
 {   
-    private $model;
-    private $lib;
-    private $excelService;
 
-    public function __construct($model, $lib)
-    {
-        $this->model = $model;
-        $this->lib = $lib;
-
-        $this->excelService = new ExcelService();
-    }
+    public function __construct(
+        private GlobalInterfaceModel $model,
+        private GlobalLibraryHandler $lib,
+        private ExcelService $excelService
+    ){}
 
     public function importExamQuestions($post, $files)
     {

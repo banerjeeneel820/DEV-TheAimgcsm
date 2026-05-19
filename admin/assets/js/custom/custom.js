@@ -467,10 +467,10 @@ $(document).on("click", ".featured_action", function () {
 
   if (featured_status == "active") {
     var toastrText =
-      "This " + page_type + " has been marked as featured successfully!";
+      `This ${page_type} has been marked as featured successfully!`;
   } else {
     var toastrText =
-      "This " + page_type + " has been marked as non-featured successfully!";
+      `This ${page_type} has been marked as non-featured successfully!`;
   }
   //show toastr success
   toastr.options = {
@@ -540,6 +540,9 @@ $(document).on("click", ".changeRecordStatus", function (e) {
 
   var ids = [];
   var row_id = $(this).data("rid");
+  var type = $(this).data("type");
+  var page_type = $(this).data("ptype");
+  var record_status = $(this).data("rstatus");
 
   if (row_id == "all") {
     $(".singleCheck:checked").each(function () {
@@ -554,34 +557,21 @@ $(document).on("click", ".changeRecordStatus", function (e) {
   if (record_status == "active") {
     var action = "updateGlobalStatusRecord";
     var errorText = "Restoration failed!";
-    var alertText =
-      singular_text +
-      " " +
-      page_type +
-      " will be restored into active record list!";
+    var alertText = `${singular_text} ${page_type} will be restored into active record list!`;
     var confirmText = "Yes, Restore it!";
-    var successText =
-      page_type + " has been successfully restored into active records!";
+    var successText = `${page_type} has been successfully restored into active records!`;
   } else if (record_status == "blocked") {
     var action = "updateGlobalStatusRecord";
     var errorText = "Block failed!";
-    var alertText =
-      singular_text +
-      " " +
-      page_type +
-      " will be removed to trash;You can recover this item from trash anytime!";
+    var alertText = `${singular_text} ${page_type} will be removed to trash;You can recover this item from trash anytime!`;
     var confirmText = "Yes, Trash it!";
-    var successText = page_type + " has been successfully moved into trash!";
+    var successText = `${page_type} has been successfully moved into trash!`;
   } else {
     var action = "deleteGlobalData";
     var errorText = "Deletion failed!";
-    var alertText =
-      singular_text +
-      " " +
-      page_type +
-      " will be parmanently deleted and not recoverable!";
+    var alertText = `${singular_text} ${page_type} will be parmanently deleted and not recoverable!`;
     var confirmText = "Yes, Delete it!";
-    var successText = page_type + " has been successfully deleted!";
+    var successText =  `${page_type} has been successfully deleted!`;
   }
 
   var formData = {
@@ -672,10 +662,10 @@ $(document).on("click", ".changeVerifiedStatus", function () {
 
   if (verified_status == "active") {
     var toastrText =
-      "This " + page_type + " has been marked as featured successfully!";
+      `This ${page_type} has been marked as featured successfully!`;
   } else {
     var toastrText =
-      "This " + page_type + " has been marked as non-featured successfully!";
+      `This ${page_type} has been marked as non-featured successfully!`;
   }
   //show toastr success
   toastr.options = {

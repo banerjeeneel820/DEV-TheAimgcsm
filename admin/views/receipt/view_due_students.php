@@ -625,22 +625,6 @@ if(!empty($_GET['fetchType'])){
 
         $('#student_list_tbl').filterTable('#student_tbl_filter');
 
-        /*---Input date & time control--*/
-        var date = new Date();
-        var today = new Date(date.getFullYear(), date.getMonth(), date.getDate());
-
-        $('.datepicker').datepicker({
-            format: "dd/mm/yyyy",
-            todayBtn: "linked",
-            keyboardNavigation: true,
-            todayHighlight: true,
-            //startDate: today,
-            forceParse: false,
-            calendarWeeks: true,
-            autoclose: true
-        });
-        /*------- Ends Here ---------*/
-
         //Search student params handling
         $(document).on('click', '.serach_studen_option', function() {
             var stu_search_option = $(this).data('stusrchopt');

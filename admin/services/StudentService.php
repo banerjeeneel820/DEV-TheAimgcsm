@@ -10,8 +10,7 @@ class StudentService
         private CacheService $cacheService,
         private StudentReceiptService $studentReceiptService,
         private GlobalValidationController $validator
-    ) {
-    }
+    ) {}
 
     /*
     |--------------------------------------------------------------------------

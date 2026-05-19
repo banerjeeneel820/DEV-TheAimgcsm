@@ -141,11 +141,19 @@ return [
     ],
 
     'manage_exam_form' => [
-        'groups' => ['common', 'iCheck', 'fancybox', 'select2','datapicker']
+        'groups' => ['common', 'iCheck', 'fancybox', 'select2', 'datapicker']
     ],
 
     'manage_exam_questions' => [
         'groups' => ['common', 'iCheck']
+    ],
+
+    'due_student_list' => [
+        'groups' => ['common', 'prettycheckbox', 'fancybox', 'select2', 'tablefilter']
+    ],
+
+    'gallery_list' => [
+        'groups' => ['common', 'prettycheckbox', 'fancybox', 'select2', 'iCheck', 'datatable', 'dropzone']
     ],
 
 ];

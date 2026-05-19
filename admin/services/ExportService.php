@@ -3,19 +3,13 @@ defined('ROOTPATH') or exit('No direct script access allowed');
 
 class ExportService
 {   
-    private $model;
-    private $lib;
-    private $pdfService;
-    private $excelService;
-
-    public function __construct($model, $lib)
-    {
-        $this->model = $model;
-        $this->lib = $lib;
-
-        $this->pdfService = new PdfService(new PdfFactory());
-        $this->excelService = new ExcelService();
-    }
+    
+    public function __construct(
+        private GlobalInterfaceModel $model,
+        private GlobalLibraryHandler $lib,
+        private PdfService $pdfService,
+        private ExcelService $excelService,
+    ){}
 
     // -----------------------------
     // COMMON HELPERS
@@ -59,12 +53,12 @@ class ExportService
         }
 
         if ($input['created']) {
-            $params['created'] = $this->lib->formatDate($input['created']);
+            $params['created'] = $this->lib->formatDateDB($input['created']);
         }
 
         foreach ($dateFields as $field) {
             if ($input[$field]) {
-                $params[$field] = $this->lib->formatDate($input[$field]);
+                $params[$field] = $this->lib->formatDateDB($input[$field]);
             }
         }
 
@@ -155,7 +149,7 @@ class ExportService
 
         $exportMethod = $input['export_method'] ?? 'excel';
 
-        $result = $this->lib->getStudentData($input);
+        $result = $this->getStudentData($input);
 
         $students = $result['data'];
         $criteria = $result['filter'];
@@ -258,7 +252,7 @@ class ExportService
 
         $exportMethod = $input['export_method'] ?? 'excel';
 
-        $result = $this->lib->getReceiptData($input);
+        $result = $this->getReceiptData($input);
 
         $receipts = $result['data'];
         $criteria = $result['filter'];
@@ -358,7 +352,7 @@ class ExportService
 
         $exportMethod = $input['export_method'] ?? 'excel';
 
-        $result = $this->lib->getFranchiseData($input);
+        $result = $this->getFranchiseData($input);
 
         $franchises = $result['data'];
         $criteria = $result['filter'];

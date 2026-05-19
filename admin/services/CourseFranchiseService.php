@@ -12,9 +12,12 @@ class CourseFranchiseService
 
     public function getFranchiseData($record_status)
     {
+        
+        $paramArr['record_status'] = $record_status;
+
         // If no cache system
         if ($this->memObj == null) {
-            return $this->model->fetch_Global_Franchise($record_status);
+            return $this->model->fetch_Global_Franchise($paramArr);
         }
 
         $cacheKey = "franchise_data_{$record_status}";
@@ -25,7 +28,7 @@ class CourseFranchiseService
             return $cached;
         }
 
-        $data = $this->model->fetch_Global_Franchise($record_status);
+        $data = $this->model->fetch_Global_Franchise($paramArr);
 
         $this->memObj->set($cacheKey, $data);
 

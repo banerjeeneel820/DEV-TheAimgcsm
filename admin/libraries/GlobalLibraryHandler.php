@@ -870,25 +870,57 @@ class GlobalLibraryHandler
   // helper for sanitization
   private function inputDataSanitize($key, $method = 'post', $escape = false)
   {
-    $sources = [
-      'get' => $_GET,
-      'post' => $_POST,
-      'request' => $_REQUEST
-    ];
-
-    $data = $sources[strtolower($method)] ?? [];
-
-    if (!isset($data[$key])) {
-      return null;
-    }
-
-    $value = trim($data[$key]);
-
-    if ($escape) {
-      return mysqli_real_escape_string($this->db, $value);
-    }
-
-    return $value;
+      // =========================
+      // Prevent Invalid Key Types
+      // =========================
+      if (is_array($key) || is_object($key)) {
+          return null;
+      }
+  
+      $sources = [
+          'get'     => $_GET,
+          'post'    => $_POST,
+          'request' => $_REQUEST
+      ];
+  
+      $data = $sources[strtolower($method)] ?? [];
+  
+      if (!isset($data[$key])) {
+          return null;
+      }
+  
+      return $this->sanitizeValue(
+          $data[$key],
+          $escape
+      );
+  }
+  
+  private function sanitizeValue($value, $escape = false)
+  {
+      // =========================
+      // Recursive Array Handling
+      // =========================
+      if (is_array($value)) {
+  
+          return array_map(function ($item) use ($escape) {
+              return $this->sanitizeValue($item, $escape);
+          }, $value);
+      }
+  
+      // =========================
+      // Scalar Handling
+      // =========================
+      $value = trim((string)$value);
+  
+      if ($escape) {
+  
+          return mysqli_real_escape_string(
+              $this->db,
+              $value
+          );
+      }
+  
+      return $value;
   }
 
   public function getDataSanitize($key, $default = null)

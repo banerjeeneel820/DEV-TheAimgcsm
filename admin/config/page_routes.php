@@ -35,9 +35,12 @@ return [
     'start_exam'     => ['ExamController', 'manage_start_exam_view'],
 
     // Cms Routes
-    'view_category' => ['CmsController', 'fetch_category_data'],
     'gallery' => ['CmsController', 'fetch_gallery_data'],
+    'view_category' => ['CmsController', 'fetch_category_data'],
+    'home_sliders' => ['CmsController', 'manage_home_slider_data_view'],
+    'manage_cities' => ['CmsController', 'manage_city_data_view'],
 
+    // Email Template Routes
     'view_email_templates' => ['CmsController', 'fetch_email_template_data'],
     'add_email_template' => ['CmsController', 'manage_email_template_data_view'],
     'edit_email_template' => ['CmsController', 'manage_email_template_data_view'],
@@ -47,8 +50,7 @@ return [
     'edit_news' => ['CmsController', 'manage_news_data_view'],
 
     'view_enquiry' => ['CmsController', 'fetch_enquiry_data'],
-    'home_sliders' => ['CmsController', 'manage_home_slider_data_view'],
-    'manage_cities' => ['CmsController', 'manage_city_data_view'],
+    
     'edit_site_setting' => ['CmsController', 'manage_settings_data_view'],
 
     // Dashboard Routes

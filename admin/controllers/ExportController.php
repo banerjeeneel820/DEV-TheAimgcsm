@@ -6,12 +6,12 @@ class ExportController extends BaseController
     private $exportService;
     private $permissionService;
 
-    public function __construct()
+    public function __construct($container)
     {   
-        parent::__construct();
+        parent::__construct($container);
         
-        $this->exportService = new ExportService($this->model,$this->lib);
-        $this->permissionService = new PermissionService($this->model, $this->lib);
+        $this->exportService = $container->get(ExportService::class);
+        $this->permissionService = $container->get(PermissionService::class);
     }
 
     public function handle_export_data($data)

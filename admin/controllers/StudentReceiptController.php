@@ -528,4 +528,78 @@ class StudentReceiptController extends BaseController
         // 👉 Delegate to service
         return $this->studentReceiptService->generateTempReceiptPdf($id);
     }
+
+    /*
+    |--------------------------------------------------------------------------
+    | View due Student data methods
+    |--------------------------------------------------------------------------
+    */
+    public function fetch_due_student_Data($data = [])
+    {
+        $user_role_slug = 'view_due_students';
+
+        // =========================
+        // Assets
+        // =========================
+        $assets = Asset::load("due_student_list");
+
+        // =========================
+        // Permission
+        // =========================
+        $hasPermission = $this->permissionService
+            ->checkUserRolePermission($user_role_slug);
+
+        // =========================
+        // Fetch Static Data
+        // =========================
+        $activeData = $this->courseFranchiseService
+            ->fetch_Active_Course_Franchise_Data();
+
+        // =========================
+        // Early Return
+        // =========================
+        if (!$hasPermission) {
+
+            return $this->page(
+                [
+                    'student_data'   => [],
+                    'franchise_data' => $activeData['franchise'],
+                    'course_data'    => $activeData['course'],
+                    'page_type'      => 'due_students'
+                ],
+                'Due Students',
+                $assets,
+                false,
+                false
+            );
+        }
+
+        // =========================
+        // Prepare Filters
+        // =========================
+        $filters = $this->studentReceiptService
+            ->prepareDueStudentFilters($data);
+
+        // =========================
+        // Fetch Students
+        // =========================
+        $students = $this->studentReceiptService
+            ->getDueStudents($filters);
+
+        // =========================
+        // Final Response
+        // =========================
+        return $this->page(
+            [
+                'student_data'   => $students,
+                'franchise_data' => $activeData['franchise'],
+                'course_data'    => $activeData['course'],
+                'page_type'      => 'due_students'
+            ],
+            'Due Students',
+            $assets,
+            false,
+            true
+        );
+    }
 }

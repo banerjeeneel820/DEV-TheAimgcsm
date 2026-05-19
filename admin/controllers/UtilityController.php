@@ -4,16 +4,18 @@ defined('ROOTPATH') or exit('No direct script access allowed');
 class UtilityController extends BaseController
 {
     private $cacheService;
+    private $utilityService;
     private $permissionService;
 
-    public function __construct()
+    public function __construct($container)
     {
-        parent::__construct();
-        $this->cacheService = new CacheService($this->model, $this->lib);
-        $this->permissionService = new PermissionService($this->model, $this->lib);
+        parent::__construct($container);
+        $this->cacheService = $container->get(CacheService::class);
+        $this->permissionService = $container->get(PermissionService::class);
+        $this->utilityService = $container->get(UtilityService::class);
     }
 
-    public function update_global_status_status($data)
+    public function update_global_record_status($data)
     {
         $post = fn ($key) => $this->lib->postDataSanitize($key);
 
@@ -79,8 +81,8 @@ class UtilityController extends BaseController
         // -----------------------------
         // CALL MODEL (SINGLE CALL)
         // -----------------------------
-        $response = $this->model
-            ->update_Global_Record_Status($type, $rowIds, $recordStatus);
+        $response = $this->utilityService
+            ->updateRecordStatus($type, $rowIds, $recordStatus);
 
         if ($response['responseArr']['check'] !== 'success') {
             return ['check' => 'failure', 'message' => 'Update failed!'];
@@ -153,8 +155,8 @@ class UtilityController extends BaseController
         }
 
         // Call updated query method
-        $result = $this->model
-            ->update_Global_Featured_Status($type, $rowIds, $featured_status);
+        $result = $this->utilityService
+            ->updateFeaturedStatus($type, $rowIds, $featured_status);
 
         if ($result["responseArr"]["check"] === "success") {
             return [
@@ -227,8 +229,8 @@ class UtilityController extends BaseController
         }
 
         // Call updated query method
-        $result = $this->model
-            ->update_Global_Verified_Status($type, $rowIds, $verified_status);
+        $result = $this->utilityService
+            ->updateVerified_Status($type, $rowIds, $verified_status);
 
         if ($result["responseArr"]["check"] === "success") {
             return [
@@ -312,14 +314,14 @@ class UtilityController extends BaseController
         // -----------------------------
         // FETCH DATA BEFORE DELETE (for file removal)
         // -----------------------------
-        $allRecords = $this->model
-            ->fetch_Global_Multiple_Data($type, $rowIds);
+        $allRecords = $this->utilityService
+            ->fetchMultipleRecordData($type, $rowIds);
 
         // -----------------------------
         // BULK DELETE
         // -----------------------------
-        $response = $this->model
-            ->delete_Global_Data([
+        $response = $this->utilityService
+            ->deleteRecordData([
                 'type'   => $type,
                 'rowIds' => $rowIds
             ]);
@@ -502,8 +504,8 @@ class UtilityController extends BaseController
         // -----------------------------
         // CHECK EXISTING TASKS
         // -----------------------------
-        $hasPending = $this->model->check_Task_Status();
-        $hasRunning = $this->model->check_Task_Status("running");
+        $hasPending = $this->utilityService->checkTaskStatus();
+        $hasRunning = $this->utilityService->checkTaskStatus("running");
 
         if (!empty($hasPending) || !empty($hasRunning)) {
             return [
@@ -536,7 +538,7 @@ class UtilityController extends BaseController
             'job_type' => "site_backup_creation"
         ];
 
-        $response = $this->model->manage_Queue_Jobs($payload);
+        $response = $this->utilityService->manageQueueJobs($payload);
 
         if ($response['check'] !== "success") {
             return [
@@ -651,8 +653,8 @@ class UtilityController extends BaseController
         // -----------------------------
         // DB OPERATION
         // -----------------------------
-        $returnArr = $this->model
-            ->update_Global_Site_Setting($formDataArr);
+        $returnArr = $this->utilityService
+            ->updateSiteSetting($formDataArr);
 
         // -----------------------------
         // SESSION UPDATE (HERE)

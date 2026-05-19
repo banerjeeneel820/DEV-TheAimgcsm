@@ -2,15 +2,156 @@
 defined('ROOTPATH') or exit('No direct script access allowed');
 
 class CmsController extends BaseController
-{   
+{
     private $permissionService;
-    
-    public function __construct()
+    private $cmsService;
+
+    public function __construct($container)
     {
-        parent::__construct();
-        $this->permissionService = new PermissionService($this->model, $this->lib);
+        parent::__construct($container);
+        $this->permissionService = $container->get(PermissionService::class);
+        $this->cmsService = $container->get(CmsService::class);
     }
 
+    /*
+    |--------------------------------------------------------------------------
+    | View gallery view data methods
+    |--------------------------------------------------------------------------
+    */
+    public function fetch_gallery_data($data = [])
+    {
+        $type       = 'gallery';
+        $actionType = $data['type'] ?? '';
+        $recordStatus = $data['record_status'] ?? 'active';
+
+        // =========================
+        // Assets
+        // =========================
+        $assets = Asset::load("gallery_list");
+
+        // =========================
+        // Gallery List View
+        // =========================
+        if (empty($actionType)) {
+
+            $hasPermission = $this->permissionService
+                ->checkUserRolePermission('view_gallery');
+
+            if (!$hasPermission) {
+
+                return $this->page(
+                    [
+                        'gallery_data' => [],
+                        'page_type'    => $type
+                    ],
+                    'Gallery List',
+                    $assets,
+                    false,
+                    false
+                );
+            }
+
+            $galleryData = $this->cmsService
+                ->getGalleryList($recordStatus);
+
+            return $this->page(
+                [
+                    'gallery_data' => $galleryData,
+                    'page_type'    => $type
+                ],
+                'Gallery List',
+                $assets,
+                false,
+                true
+            );
+        }
+
+        // =========================
+        // Add Gallery View
+        // =========================
+        if ($actionType === 'add') {
+
+            $hasPermission = $this->permissionService
+                ->checkUserRolePermission('create_gallery');
+
+            if (!$hasPermission) {
+
+                return $this->page(
+                    [
+                        'category_data' => [],
+                        'page_type'     => $type
+                    ],
+                    'Add Gallery',
+                    $assets,
+                    false,
+                    false
+                );
+            }
+
+            $categoryData = $this->cmsService
+                ->getGalleryCategories($type);
+
+            return $this->page(
+                [
+                    'category_data' => $categoryData,
+                    'page_type'     => $type
+                ],
+                'Add Gallery',
+                $assets,
+                false,
+                true
+            );
+        }
+
+        // =========================
+        // Edit Gallery View
+        // =========================
+        $hasPermission = $this->permissionService
+            ->checkUserRolePermission('update_gallery');
+
+        if (!$hasPermission) {
+
+            return $this->page(
+                [
+                    'gallery_data'  => [],
+                    'category_data' => [],
+                    'page_type'     => $type
+                ],
+                'Update Gallery',
+                $assets,
+                false,
+                false
+            );
+        }
+
+        $media_id = isset($data['id'])
+            ? (int)$data['id']
+            : 0;
+
+        $galleryData = $this->cmsService
+            ->getGalleryDetails($media_id);
+
+        $categoryData = $this->cmsService
+            ->getGalleryCategories($type);
+
+        return $this->page(
+            [
+                'gallery_data'  => $galleryData,
+                'category_data' => $categoryData,
+                'page_type'     => $type
+            ],
+            'Update Gallery',
+            $assets,
+            false,
+            true
+        );
+    }
+
+    /*
+    |--------------------------------------------------------------------------
+    | Manage gallery data methods
+    |--------------------------------------------------------------------------
+    */
     public function manage_gallery($data)
     {
         $formDataArr = [];
@@ -104,8 +245,8 @@ class CmsController extends BaseController
         // -----------------------------
         // Save
         // -----------------------------
-        $returnArr = $this->model
-            ->manage_Global_Media($formDataArr);
+        $returnArr = $this->cmsService
+            ->saveGalleryData($formDataArr);
 
         if ($returnArr['check'] !== 'success') {
 
@@ -160,11 +301,11 @@ class CmsController extends BaseController
         $updateCategoryArr = [
             'post_type'   => "gallery",
             'post_id'     => $post_id,
-            'category_id' => $post(['category_id'])
+            'category_id' => $post('category_id')
         ];
 
-        $this->model
-            ->edit_Post_Category($updateCategoryArr);
+        $this->cmsService
+            ->editPostCategory($updateCategoryArr);
 
         return $returnArr;
     }
@@ -211,7 +352,7 @@ class CmsController extends BaseController
         // -----------------------------
         $categoryListArr = json_decode(
             json_encode(
-                $this->model->fetch_Single_Parent_Category($dir)
+                $this->cmsService->fetchSingleParentCategory($dir)
             ),
             true
         );
@@ -239,8 +380,8 @@ class CmsController extends BaseController
         // -----------------------------
         // Save
         // -----------------------------
-        $returnArr = $this->model
-            ->manage_Global_Media($formDataArr);
+        $returnArr = $this->cmsService
+            ->saveGalleryData($formDataArr);
 
         if ($returnArr['check'] !== 'success') {
 
@@ -255,7 +396,7 @@ class CmsController extends BaseController
         // -----------------------------
         // Category Mapping
         // -----------------------------
-        $this->model->edit_Post_Category([
+        $this->cmsService->editPostCategory([
             'post_type'   => "gallery",
             'post_id'     => $returnArr['last_insert_id'],
             'category_id' => $categoryIdArr
@@ -270,6 +411,11 @@ class CmsController extends BaseController
         ];
     }
 
+    /*
+    |--------------------------------------------------------------------------
+    | View parent category data methods
+    |--------------------------------------------------------------------------
+    */
     public function manage_parent_category($data)
     {
         // helper
@@ -316,65 +462,6 @@ class CmsController extends BaseController
 
         // call interface
         return $this->model->manage_Global_City($formDataArr);
-    }
-
-    public function manage_email_template($data)
-    {
-        $formDataArr = [];
-
-        // helper
-        $post = fn ($key) => $this->lib->postDataSanitize($key);
-
-        // -----------------------------
-        // Determine Action Type
-        // -----------------------------
-        $formDataArr['template_id'] = $post('template_id');
-        $isUpdate = !empty($formDataArr['template_id']) && $formDataArr['template_id'] > 0;
-
-        $user_role_slug = $isUpdate ? 'update_template' : 'create_template';
-
-        // -----------------------------
-        // Permission Check
-        // -----------------------------
-        if (!$this->permissionService->checkUserRolePermission($user_role_slug, "hard")) {
-            return ['check' => 'failure', 'message' => "You don't have the permission to perform this action!"];
-        }
-
-        // -----------------------------
-        // Collect Data
-        // -----------------------------
-        $formDataArr['subject']      = $post('subject');
-        $formDataArr['code']         = $post('code');
-        $formDataArr['email_for']    = $post('email_for');
-        $formDataArr['record_status'] = $post('record_status');
-        $formDataArr['variables']    = $post('variables');
-        $formDataArr['from_email']   = $post('from_email');
-        $formDataArr['from_name']    = $post('from_name');
-        $formDataArr['cc_email']     = $post('cc_email');
-        $formDataArr['template']     = $post('template');
-
-        // -----------------------------
-        // Slug (Code) Validation
-        // -----------------------------
-        $existingId = $this->model
-            ->check_Slug_Availibility('email_template', 'code', $formDataArr['code'])
-            ->id ?? null;
-
-        if (
-            ($isUpdate && !empty($existingId) && $existingId != $formDataArr['template_id']) ||
-            (!$isUpdate && !empty($existingId))
-        ) {
-            return [
-                'check'   => 'failure',
-                'message' => 'This code is already available; Please try another.'
-            ];
-        }
-
-        // -----------------------------
-        // DB Operation
-        // -----------------------------
-        return $this->model
-            ->manage_Global_Email_Template($formDataArr);
     }
 
     public function manage_home_slider($data)
@@ -471,6 +558,66 @@ class CmsController extends BaseController
         }
 
         return $returnArr;
+    }
+
+    // Separate Controller
+    public function manage_email_template($data)
+    {
+        $formDataArr = [];
+
+        // helper
+        $post = fn ($key) => $this->lib->postDataSanitize($key);
+
+        // -----------------------------
+        // Determine Action Type
+        // -----------------------------
+        $formDataArr['template_id'] = $post('template_id');
+        $isUpdate = !empty($formDataArr['template_id']) && $formDataArr['template_id'] > 0;
+
+        $user_role_slug = $isUpdate ? 'update_template' : 'create_template';
+
+        // -----------------------------
+        // Permission Check
+        // -----------------------------
+        if (!$this->permissionService->checkUserRolePermission($user_role_slug, "hard")) {
+            return ['check' => 'failure', 'message' => "You don't have the permission to perform this action!"];
+        }
+
+        // -----------------------------
+        // Collect Data
+        // -----------------------------
+        $formDataArr['subject']      = $post('subject');
+        $formDataArr['code']         = $post('code');
+        $formDataArr['email_for']    = $post('email_for');
+        $formDataArr['record_status'] = $post('record_status');
+        $formDataArr['variables']    = $post('variables');
+        $formDataArr['from_email']   = $post('from_email');
+        $formDataArr['from_name']    = $post('from_name');
+        $formDataArr['cc_email']     = $post('cc_email');
+        $formDataArr['template']     = $post('template');
+
+        // -----------------------------
+        // Slug (Code) Validation
+        // -----------------------------
+        $existingId = $this->model
+            ->check_Slug_Availibility('email_template', 'code', $formDataArr['code'])
+            ->id ?? null;
+
+        if (
+            ($isUpdate && !empty($existingId) && $existingId != $formDataArr['template_id']) ||
+            (!$isUpdate && !empty($existingId))
+        ) {
+            return [
+                'check'   => 'failure',
+                'message' => 'This code is already available; Please try another.'
+            ];
+        }
+
+        // -----------------------------
+        // DB Operation
+        // -----------------------------
+        return $this->model
+            ->manage_Global_Email_Template($formDataArr);
     }
 
     public function manage_global_news($data)

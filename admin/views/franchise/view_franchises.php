@@ -47,7 +47,7 @@ $deletePermission = $this->permissionService->checkUserRolePermission("delete_fr
                   <option value="blocked" <?= ($record_status == 'blocked' ? 'selected' : '') ?>>Blocked</option>
                 </select>
               </div>
-              <input type="hidden" name="page_route" id="page_route" value="<?= $_GET['route'] . "&stu_id=" . $_GET['stu_id'] ?>">
+              <input type="hidden" name="page_route" id="page_route" value="<?= $_GET['route']?>">
 
               <div class="col-sm-6">
                 <button class="btn btn-primary" type="submit" id="fetch_item_data"><i class="fa fa-search"></i>&nbsp;Fetch Data</button>
@@ -331,12 +331,6 @@ $deletePermission = $this->permissionService->checkUserRolePermission("delete_fr
   $(document).on('click', '#export_data_submit', function(event) {
     event.preventDefault();
     var record_status = $('#record_status').val();
-
-    var course_id = $('#course_id').val();
-    var franchise_id = $('#franchise_id').val();
-
-    var student_id = "<?= $_GET['stu_id'] ?>";
-
     var export_method = $("#export_method").val();
 
     //console.log(typeof(export_method));
@@ -397,74 +391,6 @@ $deletePermission = $this->permissionService->checkUserRolePermission("delete_fr
         }
       });
 
-    });
-  });
-
-  //Send re-verification email to student
-  $(document).on('click', '#sendUserVerificationMail', function(e) {
-    e.preventDefault();
-
-    var row_id = $(this).data('rid');
-    var user_type = $(this).data('utype');
-    var user_email = $(this).data('uemail');
-    var page_route = $('#page_route').val();
-
-    var formData = {
-      action: "resendUserVerificationLink",
-      row_id: row_id,
-      user_type: user_type,
-      user_email: user_email
-    };
-
-    swal({
-      title: "Are you sure?",
-      text: "Are you sure to send a verification mail to this student?",
-      type: "warning",
-      showCancelButton: true,
-      confirmButtonColor: "#DD6B55",
-      confirmButtonText: "Yes, Go ahead!",
-      closeOnConfirm: true
-    }, function() {
-
-      $.ajax({
-        url: ajaxControllerHandler,
-        method: 'POST',
-        data: formData,
-        beforeSend: function() {
-          $('#student_div_loader').addClass('sk-loading');
-        },
-        success: function(responseData) {
-          var data = JSON.parse(responseData);
-          //console.log(responseData);
-          if (data.check == 'success') {
-            $('#student_div_loader').removeClass('sk-loading');
-            //show sweetalert success
-            setTimeout(function() {
-              swal({
-                title: "Success!",
-                text: data.msg,
-                type: "success"
-              }, function() {
-                //window.location = "<?= SITE_URL ?>?route="+page_route;
-              });
-            }, 1000);
-            return true;
-          } else {
-            //show sweetalert success
-            if (data.message.length > 0) {
-              var message = data.message;
-            } else {
-              var message = "Something went wrong";
-            }
-            swal({
-              title: "Oops!",
-              text: message,
-              type: "error"
-            });
-            return false;
-          }
-        }
-      });
     });
   });
 </script>
