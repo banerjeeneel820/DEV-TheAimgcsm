@@ -156,4 +156,8 @@ return [
         'groups' => ['common', 'prettycheckbox', 'fancybox', 'select2', 'iCheck', 'datatable', 'dropzone']
     ],
 
+    'category_list' => [
+        'groups' => ['common', 'datatable', 'prettycheckbox', 'iCheck']
+    ],
+
 ];

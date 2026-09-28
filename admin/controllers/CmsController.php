@@ -416,31 +416,95 @@ class CmsController extends BaseController
     | View parent category data methods
     |--------------------------------------------------------------------------
     */
-    public function manage_parent_category($data)
+    public function fetch_category_data($data)
     {
-        // helper
-        $post = fn ($key) => $this->lib->postDataSanitize($key);
+        $user_role_slug = 'view_category';
 
-        $formDataArr = [];
+        // Load assets
+        $assets = Asset::load("category_list");
 
-        // basic fields
-        $formDataArr['row_id'] = $post('row_id');
+        // Permission check (centralized)
+        $hasPermission = $this->permissionService->checkUserRolePermission($user_role_slug);
 
-        $isUpdate = !empty($formDataArr['row_id']) && $formDataArr['row_id'] > 0;
-        $user_role_slug = $isUpdate ? 'update_category' : 'create_category';
-
-        // permission check (early return)
-        if (!$this->permissionService->checkUserRolePermission($user_role_slug, "hard")) {
-            return ['check' => 'failure', 'message' => "You don't have the permission to perform this action!"];
+        if (!$hasPermission) {
+            return $this->page(
+                [
+                    'category_data' => [],
+                    'page_type' => 'parent_category'
+                ],
+                'Category List',
+                $assets,
+                false,
+                false // page_permission
+            );
         }
 
-        // assign remaining fields
-        $formDataArr['category'] = $post('category');
-        $formDataArr['parent_category'] = $post('parent_category');
-        $formDataArr['record_status'] = $post('record_status');
+        // Get filter safely
+        $record_status = $data['record_status'] ?? 'active';
 
-        // call interface
-        return $this->model->manage_Parent_Category($formDataArr);
+        // Fetch category data through service
+        $categories = $this->cmsService->getParentCategoryData($record_status);
+
+        //var_dump($categories);exit;
+
+        return $this->page(
+            [
+                'category_data' => $categories,
+                'page_type' => 'parent_category'
+            ],
+            'Category List',
+            $assets,
+            false,
+            true
+        );
+    }
+
+    /*
+    |--------------------------------------------------------------------------
+    | Manage parent category data methods
+    |--------------------------------------------------------------------------
+    */
+
+    public function manage_parent_category($data)
+    {
+        $formDataArr = [];
+
+        // Helper
+        $post = fn ($key) => $this->lib->postDataSanitize($key);
+
+        // -----------------------------
+        // Basic Data & Permission
+        // -----------------------------
+
+        $formDataArr['row_id'] = $post('row_id');
+
+        $isUpdate = (int) $formDataArr['row_id'] > 0;
+
+        $user_role_slug = $isUpdate
+            ? 'update_category'
+            : 'create_category';
+
+        if (!$this->permissionService->checkUserRolePermission($user_role_slug, "hard")) {
+            return [
+                'check' => 'failure',
+                'message' => "You don't have the permission to perform this action!"
+            ];
+        }
+
+        // -----------------------------
+        // Category Fields
+        // -----------------------------
+
+        $formDataArr['category']        = $post('category');
+        $formDataArr['parent_category'] = $post('parent_category');
+        $formDataArr['record_status']   = $post('record_status');
+
+        // -----------------------------
+        // Save
+        // -----------------------------
+
+        return $this->cmsService
+            ->manageParentCategory($formDataArr);
     }
 
     public function manage_global_city($data)

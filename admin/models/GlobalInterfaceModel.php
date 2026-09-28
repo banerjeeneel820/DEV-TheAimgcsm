@@ -9,28 +9,6 @@ class GlobalInterfaceModel extends BaseModel
       parent::__construct($database);
    }
 
-   private function debugQuery($sql, $params = [])
-   {
-      if (!empty($params)) {
-         foreach ($params as $param) {
-            if (is_null($param)) {
-               $value = "NULL";
-            } elseif (is_numeric($param)) {
-               $value = $param;
-            } else {
-               $value = "'" . addslashes($param) . "'";
-            }
-
-            $sql = preg_replace('/\?/', $value, $sql, 1);
-         }
-      }
-
-      echo "<pre>";
-      echo $sql;
-      echo "</pre>";
-      exit; // stop execution after debug
-   }
-
    public function check_User_Login($paramArr = array())
    {
       $user_type = $paramArr['user_type'];
@@ -2082,18 +2060,57 @@ class GlobalInterfaceModel extends BaseModel
       return $resultArr;
    }
 
-   public function fetch_Parent_Category($record_status = 'active')
+
+   public function fetch_Parent_Category($params = [])
    {
-
-      //$sql = "SELECT * FROM ".DB_AIMGCSM.".".TABLEPREFIX."parent_category ORDER BY id DESC";
-
-      $sql = "SELECT pc.id,pc.parent_category,pc.name,pc.record_status,pc.created_at FROM " . DB_AIMGCSM . "." . TABLEPREFIX . "parent_category pc WHERE pc.record_status = '$record_status' ORDER BY pc.id DESC";
-
-      //echo $sql;exit();
-
-      $resultArr = $this->global_Fetch_All_DB($sql);
-
-      return $resultArr;
+       $queryParams = [];
+       $where = [];
+   
+       // -----------------------------
+       // DEFAULT FILTER
+       // -----------------------------
+       $recordStatus = $params['record_status'] ?? 'active';
+   
+       $where[] = "pc.record_status = ?";
+       $queryParams[] = $recordStatus;
+   
+       // -----------------------------
+       // OPTIONAL FILTERS (FUTURE READY)
+       // -----------------------------
+       if (!empty($params['search_string'])) {
+           $where[] = "pc.name LIKE ?";
+           $queryParams[] = '%' . $params['search_string'] . '%';
+       }
+   
+       // -----------------------------
+       // WHERE CLAUSE
+       // -----------------------------
+       $whereSql = !empty($where)
+           ? "WHERE " . implode(" AND ", $where)
+           : "";
+   
+       // -----------------------------
+       // MAIN QUERY
+       // -----------------------------
+       $sql = "
+           SELECT
+               pc.id,
+               pc.parent_category,
+               pc.name,
+               pc.record_status,
+               pc.created_at
+   
+           FROM " . DB_AIMGCSM . "." . TABLEPREFIX . "parent_category pc
+   
+           $whereSql
+   
+           ORDER BY pc.id DESC
+       ";
+   
+       // Debug
+       // $this->debugQuery($sql, $queryParams);
+   
+       return $this->global_Fetch_All_DB($sql, $queryParams);
    }
 
    public function fetch_Global_Cities($record_status = 'active')

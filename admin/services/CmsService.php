@@ -52,4 +52,29 @@ class CmsService
         return $this->model->fetch_Single_Parent_Category($type);
     }
 
+    /*
+    |--------------------------------------------------------------------------
+    | View category data helper methods
+    |--------------------------------------------------------------------------
+    */
+    public function getParentCategoryData($recordStatus)
+    {
+        $params = [];
+        $params['record_status'] = $recordStatus;
+
+        return $this->model
+            ->fetch_Parent_Category($params);
+    }
+
+    /*
+    |--------------------------------------------------------------------------
+    | Manage category data helper methods
+    |--------------------------------------------------------------------------
+    */
+    public function manageParentCategory($formDataArr)
+    {
+        // Refactor model method first
+        return $this->model->manage_Parent_Category($formDataArr);
+    }
+
 }

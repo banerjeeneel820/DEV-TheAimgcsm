@@ -1,15 +1,40 @@
 <?php
-defined('ROOTPATH') OR exit('No direct script access allowed');
+defined('ROOTPATH') or exit('No direct script access allowed');
 
-class BaseModel {
+class BaseModel
+{
 
     protected $db;
 
-    public function __construct(Database $database){
+    public function __construct(Database $database)
+    {
         $this->db = $database->getConnection();
     }
 
-    private function getTypes($params){
+    protected function debugQuery($sql, $params = [])
+    {
+        if (!empty($params)) {
+            foreach ($params as $param) {
+                if (is_null($param)) {
+                    $value = "NULL";
+                } elseif (is_numeric($param)) {
+                    $value = $param;
+                } else {
+                    $value = "'" . addslashes($param) . "'";
+                }
+
+                $sql = preg_replace('/\?/', $value, $sql, 1);
+            }
+        }
+
+        echo "<pre>";
+        echo $sql;
+        echo "</pre>";
+        exit; // stop execution after debug
+    }
+
+    private function getTypes($params)
+    {
         $types = '';
         foreach ($params as $p) {
             if (is_int($p)) $types .= 'i';
@@ -19,7 +44,8 @@ class BaseModel {
         return $types;
     }
 
-    protected function global_Fetch_All_DB($sql, $params = []){
+    protected function global_Fetch_All_DB($sql, $params = [])
+    {
         $rows = [];
 
         if (!empty($params)) {
@@ -32,13 +58,14 @@ class BaseModel {
             $result = $this->db->query($sql);
         }
 
-        while($row = $result->fetch_object()) {
+        while ($row = $result->fetch_object()) {
             $rows[] = $row;
         }
         return $rows;
     }
 
-    protected function global_Fetch_Single_DB($sql, $params = []){
+    protected function global_Fetch_Single_DB($sql, $params = [])
+    {
         if (!empty($params)) {
             $stmt = $this->db->prepare($sql);
             $types = $this->getTypes($params);
@@ -52,7 +79,8 @@ class BaseModel {
         return $result->fetch_object();
     }
 
-    protected function global_Rows_Count_DB($sql, $params = []){
+    protected function global_Rows_Count_DB($sql, $params = [])
+    {
         if (!empty($params)) {
             $stmt = $this->db->prepare($sql);
             $types = $this->getTypes($params);
@@ -70,25 +98,26 @@ class BaseModel {
     {
         if (!empty($params)) {
             $stmt = $this->db->prepare($sql);
-    
+
             $types = $this->getTypes($params);
             $stmt->bind_param($types, ...$params);
-    
+
             $stmt->execute();
             $result = $stmt->get_result();
         } else {
             $result = $this->db->query($sql);
         }
-    
+
         if ($result) {
             $row = $result->fetch_assoc();
             return (int) ($row ? reset($row) : 0);
         }
-    
+
         return 0;
     }
 
-    protected function global_CRUD_DB($sql, $params = []){
+    protected function global_CRUD_DB($sql, $params = [])
+    {
         if (!empty($params)) {
             $stmt = $this->db->prepare($sql);
             $types = $this->getTypes($params);
@@ -98,7 +127,7 @@ class BaseModel {
             $result = $this->db->query($sql);
         }
 
-        if($result){
+        if ($result) {
             return [
                 "check" => "success",
                 "last_insert_id" => $this->db->insert_id
@@ -110,6 +139,6 @@ class BaseModel {
 
     protected function escape($value)
     {
-       return mysqli_real_escape_string($this->db, trim($value));
+        return mysqli_real_escape_string($this->db, trim($value));
     }
 }
