@@ -507,121 +507,258 @@ class CmsController extends BaseController
             ->manageParentCategory($formDataArr);
     }
 
-    public function manage_global_city($data)
+    /*
+    |--------------------------------------------------------------------------
+    | View home slider data methods
+    |--------------------------------------------------------------------------
+    */
+    public function manage_home_slider_data_view($data)
     {
-        // helper
-        $post = fn ($key) => $this->lib->postDataSanitize($key);
+        $user_role_slug = 'manage_home_slider';
 
-        $formDataArr = [];
+        // Load assets
+        $assets = Asset::load("home_sliders");
 
-        // permission check (early return)
-        if (!$this->permissionService->checkUserRolePermission('manage_city_db', "hard")) {
-            return ['check' => 'failure', 'message' => "You don't have the permission to perform this action!"];
+        // Get request parameters safely
+        $type = $data['type'] ?? null;
+        $record_status = $data['record_status'] ?? 'active';
+        $slider_type = $data['slider_type'] ?? null;
+
+        // Permission check (centralized)
+        $hasPermission = $this->permissionService->checkUserRolePermission($user_role_slug);
+
+        // Common page data
+        $pageData = [
+            'page_type' => 'home_sliders',
+            'type' => $type
+        ];
+
+        // Handle unauthorized access
+        if (!$hasPermission) {
+            $pageData['slider_data'] = [];
+
+            return $this->page(
+                $pageData,
+                'Home Sliders',
+                $assets,
+                false,
+                false
+            );
         }
 
-        // assign fields
-        $formDataArr['row_id'] = $post('row_id');
-        $formDataArr['name'] = $post('city');
-        $formDataArr['record_status'] = $post('record_status');
+        // Handle slider listing
+        if (empty($type)) {
 
-        // call interface
-        return $this->model->manage_Global_City($formDataArr);
+            $pageData['slider_data'] = $this->cmsService->getSliderData([
+                'record_status' => $record_status,
+                'slider_type' => $slider_type
+            ]);
+        }
+
+        // Handle adding a new slider
+        elseif ($type === 'add') {
+
+            // No existing slider data required
+
+        }
+
+        // Handle editing an existing slider
+        else {
+
+            $slider_id = $data['id'] ?? null;
+
+            $pageData['slider_data'] = $slider_id
+                ? $this->cmsService->getSliderDetail($slider_id)
+                : [];
+        }
+
+        return $this->page(
+            $pageData,
+            'Home Sliders',
+            $assets,
+            false,
+            true
+        );
     }
 
+    /*
+    |--------------------------------------------------------------------------
+    | Manage home slider data methods
+    |--------------------------------------------------------------------------
+    */
     public function manage_home_slider($data)
     {
         $formDataArr = [];
         $dir = 'home_sliders';
 
-        // helper
+        // Helper
         $post = fn ($key) => $this->lib->postDataSanitize($key);
 
         // -----------------------------
         // Permission Check
         // -----------------------------
+
         $user_role_slug = 'manage_home_slider';
 
         if (!$this->permissionService->checkUserRolePermission($user_role_slug, "hard")) {
-            return ['check' => 'failure', 'message' => "You don't have the permission to perform this action!"];
+            return [
+                'check' => 'failure',
+                'message' => "You don't have the permission to perform this action!"
+            ];
         }
 
         // -----------------------------
-        // Collect Data
+        // Basic Data
         // -----------------------------
-        $formDataArr['slider_id']    = $post('slider_id');
-        $formDataArr['slider_type']  = $post('slider_type');
-        $formDataArr['banner_title'] = $post('banner_title');
-        $formDataArr['banner_text']  = $post('banner_text');
-        $formDataArr['banner_link']  = $post('banner_link');
+
+        $formDataArr['slider_id']        = $post('slider_id');
+        $formDataArr['slider_type']      = $post('slider_type');
+        $formDataArr['banner_title']     = $post('banner_title');
+        $formDataArr['banner_text']      = $post('banner_text');
+        $formDataArr['banner_link']      = $post('banner_link');
         $formDataArr['file_upload_type'] = $post('file_upload_type');
         $formDataArr['record_status']    = $post('record_status');
 
-        $isUpdate = !empty($formDataArr['slider_id']) && $formDataArr['slider_id'] > 0;
+        $isUpdate = (int) $formDataArr['slider_id'] > 0;
 
         // -----------------------------
         // File Handling
         // -----------------------------
+
+        $hiddenBannerImage = $post('hidden_banner_image');
+
         $uploadReturnArr = ['check' => 'skip'];
 
-        if ($formDataArr['file_upload_type'] === "local") {
+        if ($formDataArr['file_upload_type'] === 'local') {
 
-            $validation = $this->lib->validateFile($_FILES['banner_image_local'], 'image');
+            $file = $_FILES['banner_image_local'] ?? null;
 
-            if ($validation['check'] !== 'success') {
-                return $validation;
-            }
+            if (!empty($file['size'])) {
 
-            if (!empty($_FILES["banner_image_local"]["size"])) {
+                // Validate image
+                $validation = $this->lib->validateFile($file, 'image');
 
-                $uploadReturnArr = $this->lib->upload_file('banner_image_local', $dir);
+                if ($validation['check'] !== 'success') {
+                    return $validation;
+                }
+
+                // Upload image
+                $uploadReturnArr = $this->lib->upload_file(
+                    'banner_image_local',
+                    $dir
+                );
 
                 if ($uploadReturnArr['check'] !== 'success') {
-                    return ['check' => 'failure', 'msg' => "File upload failed!"];
+                    return [
+                        'check' => 'failure',
+                        'message' => "File upload failed!"
+                    ];
                 }
 
                 $formDataArr['banner_image'] = $uploadReturnArr['fileName'];
             } else {
-                $formDataArr['banner_image'] = $post('hidden_banner_image');
+
+                // Retain existing image
+                $formDataArr['banner_image'] = $hiddenBannerImage;
             }
         } else {
+
+            // CDN image
             $formDataArr['banner_image'] = $post('banner_image_cdn');
         }
 
         // -----------------------------
-        // DB Operation
+        // Save & Post-Save Operations
         // -----------------------------
-        $returnArr = $this->model->manage_Home_Slider($formDataArr);
 
-        // -----------------------------
-        // Post Operation (File Cleanup)
-        // -----------------------------
-        if ($returnArr['check'] === 'success') {
+        return $this->cmsService->manageHomeSlider(
+            $formDataArr,
+            $uploadReturnArr,
+            $hiddenBannerImage,
+            $isUpdate
+        );
+    }
 
-            if ($isUpdate) {
+    /*
+    |--------------------------------------------------------------------------
+    | View cities data methods
+    |--------------------------------------------------------------------------
+    */
+    public function manage_city_data_view($data)
+    {
+        $user_role_slug = 'manage_city_db';
 
-                // delete old file if new upload OR switched to CDN
-                if (
-                    ($formDataArr['file_upload_type'] === 'local' && $uploadReturnArr['check'] === 'success') ||
-                    ($formDataArr['file_upload_type'] === 'cdn')
-                ) {
-                    $oldFile = $post('hidden_banner_image');
+        // Load assets
+        $assets = Asset::load("city_list");
 
-                    if (!empty($oldFile)) {
-                        @unlink(USER_UPLOAD_DIR . $dir . '/' . $oldFile);
-                    }
-                }
-            }
-        } else {
+        // Permission check (centralized)
+        $hasPermission = $this->permissionService->checkUserRolePermission($user_role_slug);
 
-            // rollback uploaded file
-            if ($uploadReturnArr['check'] === 'success') {
-                @unlink(USER_UPLOAD_DIR . $dir . '/' . $formDataArr['banner_image']);
-            }
-
-            return ['check' => 'failure', 'message' => "Something went wrong!"];
+        if (!$hasPermission) {
+            return $this->page(
+                ['city_data' => []],
+                'City List',
+                $assets,
+                false,
+                false // page_permission
+            );
         }
 
-        return $returnArr;
+        // Get filter safely
+        $record_status = $data['record_status'] ?? 'active';
+
+        // Fetch city data through service
+        $cities = $this->cmsService->getCityData($record_status);
+
+        return $this->page(
+            [
+                'city_data' => $cities,
+                'page_type' => 'cities'
+            ],
+            'City List',
+            $assets,
+            false,
+            true
+        );
+    }
+
+    /*
+    |--------------------------------------------------------------------------
+    | Manage cities data methods
+    |--------------------------------------------------------------------------
+    */
+    public function manage_global_city($data)
+    {
+        $formDataArr = [];
+
+        // Helper
+        $post = fn ($key) => $this->lib->postDataSanitize($key);
+
+        // -----------------------------
+        // Permission Check
+        // -----------------------------
+
+        if (!$this->permissionService->checkUserRolePermission('manage_city_db', "hard")) {
+            return [
+                'check' => 'failure',
+                'message' => "You don't have the permission to perform this action!"
+            ];
+        }
+
+        // -----------------------------
+        // City Data
+        // -----------------------------
+
+        $formDataArr['row_id']        = $post('row_id');
+        $formDataArr['name']          = $post('city');
+        $formDataArr['record_status'] = $post('record_status');
+
+        // -----------------------------
+        // Save
+        // -----------------------------
+
+        return $this->cmsService
+            ->manageGlobalCity($formDataArr);
     }
 
     // Separate Controller

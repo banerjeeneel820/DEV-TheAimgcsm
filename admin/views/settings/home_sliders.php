@@ -503,10 +503,6 @@
                     }
                  });
 
-                 //Multiple select category
-                 $(".category").select2();
-                 $('.category').select2({width: "94%"});
-
                  $(document).on('ifChanged', '.i-checks.content_type input', function (e) {
                      var checked = $(this).val();
                      

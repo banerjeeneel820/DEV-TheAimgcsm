@@ -17,7 +17,7 @@ class Asset
 
         $item = self::$config[$key];
 
-        // 🔥 If grouped assets
+        // If grouped assets
         if (isset($item['groups'])) {
             return self::mergeGroups($item['groups']);
         }

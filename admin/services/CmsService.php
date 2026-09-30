@@ -77,4 +77,120 @@ class CmsService
         return $this->model->manage_Parent_Category($formDataArr);
     }
 
+    /*
+    |--------------------------------------------------------------------------
+    | View category data helper methods
+    |--------------------------------------------------------------------------
+    */
+    public function getSliderData($params)
+    {
+        // Refactor model method first
+        return $this->model
+            ->fetch_Slider_Arr($params);
+    }
+
+    public function getSliderDetail($id)
+    {
+        // Refactor model method first
+        return $this->model
+            ->fetch_Slider_Detail($id);
+    }
+
+    /*
+    |--------------------------------------------------------------------------
+    | Manage home slider helper methods
+    |--------------------------------------------------------------------------
+    */
+    public function manageHomeSlider(
+        array $formDataArr,
+        array $uploadReturnArr,
+        $hiddenBannerImage,
+        bool $isUpdate
+    ) {
+        $dir = 'home_sliders';
+
+        // -----------------------------
+        // Save Slider
+        // -----------------------------
+
+        $returnArr = $this->model->manage_Home_Slider($formDataArr);
+
+        // -----------------------------
+        // Handle Save Failure
+        // -----------------------------
+
+        if ($returnArr['check'] !== 'success') {
+
+            // Rollback newly uploaded image
+            if (
+                $uploadReturnArr['check'] === 'success' &&
+                !empty($formDataArr['banner_image'])
+            ) {
+                $newFilePath = USER_UPLOAD_DIR
+                    . $dir . '/'
+                    . $formDataArr['banner_image'];
+
+                if (file_exists($newFilePath)) {
+                    unlink($newFilePath);
+                }
+            }
+
+            return [
+                'check' => 'failure',
+                'message' => "Something went wrong!"
+            ];
+        }
+
+        // -----------------------------
+        // Cleanup Old Image
+        // -----------------------------
+
+        if ($isUpdate && !empty($hiddenBannerImage)) {
+
+            $shouldDeleteOldImage =
+                ($formDataArr['file_upload_type'] === 'local' &&
+                    $uploadReturnArr['check'] === 'success'
+                ) ||
+                $formDataArr['file_upload_type'] === 'cdn';
+
+            if ($shouldDeleteOldImage) {
+
+                $oldFilePath = USER_UPLOAD_DIR
+                    . $dir . '/'
+                    . $hiddenBannerImage;
+
+                if (file_exists($oldFilePath)) {
+                    unlink($oldFilePath);
+                }
+            }
+        }
+
+        // -----------------------------
+        // Return Result
+        // -----------------------------
+
+        return $returnArr;
+    }
+
+    /*
+    |--------------------------------------------------------------------------
+    | View cities data helper methods
+    |--------------------------------------------------------------------------
+    */
+    public function getCityData($recordStatus)
+    {
+        return $this->model
+            ->fetch_Global_Cities($recordStatus);
+    }
+
+    /*
+    |--------------------------------------------------------------------------
+    | Manage home slider helper methods
+    |--------------------------------------------------------------------------
+    */
+    public function manageGlobalCity(array $formDataArr)
+    {
+        return $this->model->manage_Global_City($formDataArr);
+    }
+
 }

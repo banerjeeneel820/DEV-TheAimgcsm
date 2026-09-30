@@ -200,6 +200,7 @@ return [
         'icon' => 'fa fa-pencil-square-o',
         'routes' => [
             'gallery',
+            'view_category',
             'home_sliders',
             'manage_cities',
         ],

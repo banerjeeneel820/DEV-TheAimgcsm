@@ -2063,36 +2063,36 @@ class GlobalInterfaceModel extends BaseModel
 
    public function fetch_Parent_Category($params = [])
    {
-       $queryParams = [];
-       $where = [];
-   
-       // -----------------------------
-       // DEFAULT FILTER
-       // -----------------------------
-       $recordStatus = $params['record_status'] ?? 'active';
-   
-       $where[] = "pc.record_status = ?";
-       $queryParams[] = $recordStatus;
-   
-       // -----------------------------
-       // OPTIONAL FILTERS (FUTURE READY)
-       // -----------------------------
-       if (!empty($params['search_string'])) {
-           $where[] = "pc.name LIKE ?";
-           $queryParams[] = '%' . $params['search_string'] . '%';
-       }
-   
-       // -----------------------------
-       // WHERE CLAUSE
-       // -----------------------------
-       $whereSql = !empty($where)
-           ? "WHERE " . implode(" AND ", $where)
-           : "";
-   
-       // -----------------------------
-       // MAIN QUERY
-       // -----------------------------
-       $sql = "
+      $queryParams = [];
+      $where = [];
+
+      // -----------------------------
+      // DEFAULT FILTER
+      // -----------------------------
+      $recordStatus = $params['record_status'] ?? 'active';
+
+      $where[] = "pc.record_status = ?";
+      $queryParams[] = $recordStatus;
+
+      // -----------------------------
+      // OPTIONAL FILTERS (FUTURE READY)
+      // -----------------------------
+      if (!empty($params['search_string'])) {
+         $where[] = "pc.name LIKE ?";
+         $queryParams[] = '%' . $params['search_string'] . '%';
+      }
+
+      // -----------------------------
+      // WHERE CLAUSE
+      // -----------------------------
+      $whereSql = !empty($where)
+         ? "WHERE " . implode(" AND ", $where)
+         : "";
+
+      // -----------------------------
+      // MAIN QUERY
+      // -----------------------------
+      $sql = "
            SELECT
                pc.id,
                pc.parent_category,
@@ -2106,25 +2106,51 @@ class GlobalInterfaceModel extends BaseModel
    
            ORDER BY pc.id DESC
        ";
-   
-       // Debug
-       // $this->debugQuery($sql, $queryParams);
-   
-       return $this->global_Fetch_All_DB($sql, $queryParams);
+
+      // Debug
+      // $this->debugQuery($sql, $queryParams);
+
+      return $this->global_Fetch_All_DB($sql, $queryParams);
    }
 
-   public function fetch_Global_Cities($record_status = 'active')
+   public function fetch_Global_Cities($params = [])
    {
+      $queryParams = [];
+      $where = [];
 
-      //$sql = "SELECT * FROM ".DB_AIMGCSM.".".TABLEPREFIX."parent_category ORDER BY id DESC";
+      // -----------------------------
+      // DEFAULT FILTER
+      // -----------------------------
+      $recordStatus = $params['record_status'] ?? 'active';
 
-      $sql = "SELECT c.* FROM " . DB_AIMGCSM . "." . TABLEPREFIX . "cities c WHERE c.record_status = '$record_status' ORDER BY c.id DESC";
+      $where[] = "c.record_status = ?";
+      $queryParams[] = $recordStatus;
 
-      //echo $sql;exit();
+      // -----------------------------
+      // WHERE CLAUSE
+      // -----------------------------
+      $whereSql = !empty($where)
+         ? "WHERE " . implode(" AND ", $where)
+         : "";
 
-      $resultArr = $this->global_Fetch_All_DB($sql);
+      // -----------------------------
+      // MAIN QUERY
+      // -----------------------------
+      $sql = "
+        SELECT
+            c.*
 
-      return $resultArr;
+        FROM " . DB_AIMGCSM . "." . TABLEPREFIX . "cities c
+
+        $whereSql
+
+        ORDER BY c.id DESC
+    ";
+
+      // Debug
+      // $this->debugQuery($sql, $queryParams);
+
+      return $this->global_Fetch_All_DB($sql, $queryParams);
    }
 
    public function fetch_Global_Enquiry($dataArr)
@@ -3353,7 +3379,7 @@ class GlobalInterfaceModel extends BaseModel
       return $resultArr;
    }
 
-   
+
    public function manage_Parent_Category($params = [])
    {
       $queryParams = [];
@@ -3382,12 +3408,11 @@ class GlobalInterfaceModel extends BaseModel
          ";
 
          $queryParams = [
-               $category,
-               $parentCategory,
-               $recordStatus,
-               $rowId
+            $category,
+            $parentCategory,
+            $recordStatus,
+            $rowId
          ];
-
       } else {
 
          // -----------------------------
@@ -3403,9 +3428,9 @@ class GlobalInterfaceModel extends BaseModel
          ";
 
          $queryParams = [
-               $category,
-               $parentCategory,
-               $recordStatus
+            $category,
+            $parentCategory,
+            $recordStatus
          ];
       }
 
@@ -3415,24 +3440,58 @@ class GlobalInterfaceModel extends BaseModel
       return $this->global_CRUD_DB($sql, $queryParams);
    }
 
-   public function manage_Global_City($updateDataArr)
+   public function manage_Global_City($params = [])
    {
-
-      $row_id = $updateDataArr['row_id'];
-      $name = $updateDataArr['name'];
-      $record_status = $updateDataArr['record_status'];
-
-      if ($row_id > 0) {
-         $sql = "UPDATE " . DB_AIMGCSM . "." . TABLEPREFIX . "cities SET `name` = '$name', `record_status` = '$record_status',`updated_at` = now() WHERE `id`='$row_id'";
-      } else {
-         $sql = "INSERT INTO " . DB_AIMGCSM . "." . TABLEPREFIX . "cities SET `name` = '$name',`record_status` = '$record_status',`created_at` = now()";
-      }
-
-      //echo $sql;exit();
-
-      $resultArr = $this->global_CRUD_DB($sql);
-
-      return $resultArr;
+       // -----------------------------
+       // INPUT PARAMETERS
+       // -----------------------------
+       $rowId = (int) ($params['row_id'] ?? 0);
+       $name = $params['name'] ?? '';
+       $recordStatus = $params['record_status'] ?? 'active';
+   
+       // -----------------------------
+       // UPDATE EXISTING CITY
+       // -----------------------------
+       if ($rowId > 0) {
+   
+           $sql = "
+               UPDATE " . DB_AIMGCSM . "." . TABLEPREFIX . "cities
+               SET
+                   `name` = ?,
+                   `record_status` = ?,
+                   `updated_at` = NOW()
+               WHERE `id` = ?
+           ";
+   
+           $queryParams = [
+               $name,
+               $recordStatus,
+               $rowId
+           ];
+   
+       } else {
+   
+           // -----------------------------
+           // INSERT NEW CITY
+           // -----------------------------
+           $sql = "
+               INSERT INTO " . DB_AIMGCSM . "." . TABLEPREFIX . "cities
+               SET
+                   `name` = ?,
+                   `record_status` = ?,
+                   `created_at` = NOW()
+           ";
+   
+           $queryParams = [
+               $name,
+               $recordStatus
+           ];
+       }
+   
+       // Debug
+       // $this->debugQuery($sql, $queryParams);
+   
+       return $this->global_CRUD_DB($sql, $queryParams);
    }
 
    public function import_Global_City($paramArr)
@@ -3542,7 +3601,7 @@ class GlobalInterfaceModel extends BaseModel
    
                WHERE $where_clause
                LIMIT 1";
-               
+
       // Debug
       //$this->debugQuery($sql, $params);         
 
@@ -4164,37 +4223,83 @@ class GlobalInterfaceModel extends BaseModel
       return $resultArr;
    }
 
-   public function fetch_Slider_Arr($paramArr)
+
+   public function fetch_Slider_Arr($params = [])
    {
+      $queryParams = [];
+      $where = [];
 
-      $record_status = $paramArr['record_status'];
-      $where_Clause = "WHERE s.record_status = '$record_status'";
+      // -----------------------------
+      // DEFAULT FILTER
+      // -----------------------------
+      $recordStatus = $params['record_status'] ?? 'active';
 
-      if (!empty($paramArr['slider_type'])) {
-         $slider_type = $paramArr['slider_type'];
-         $where_Clause .= " AND s.slider_type = '$slider_type'";
+      $where[] = "s.record_status = ?";
+      $queryParams[] = $recordStatus;
+
+      // -----------------------------
+      // OPTIONAL FILTERS
+      // -----------------------------
+      if (!empty($params['slider_type'])) {
+         $where[] = "s.slider_type = ?";
+         $queryParams[] = $params['slider_type'];
       }
 
-      $sql = "SELECT s.* FROM " . DB_AIMGCSM . "." . TABLEPREFIX . "home_sliders s " . $where_Clause . " ORDER BY s.id";
+      // -----------------------------
+      // WHERE CLAUSE
+      // -----------------------------
+      $whereSql = !empty($where)
+         ? "WHERE " . implode(" AND ", $where)
+         : "";
 
-      //echo $sql;exit;
+      // -----------------------------
+      // MAIN QUERY
+      // -----------------------------
+      $sql = "
+           SELECT
+               s.*
+   
+           FROM " . DB_AIMGCSM . "." . TABLEPREFIX . "home_sliders s
+   
+           $whereSql
+   
+           ORDER BY s.id ASC
+       ";
 
-      $resultArr = $this->global_Fetch_All_DB($sql);
+      // Debug
+      // $this->debugQuery($sql, $queryParams);
 
-      return $resultArr;
+      return $this->global_Fetch_All_DB($sql, $queryParams);
    }
 
-   public function fetch_Slider_Detail($slider_id)
+
+   public function fetch_Slider_Detail($params = [])
    {
+      $queryParams = [];
 
-      //Inserting institute general meta info
-      $sql = "SELECT * FROM " . DB_AIMGCSM . "." . TABLEPREFIX . "home_sliders s WHERE s.id= '$slider_id'";
+      // -----------------------------
+      // INPUT PARAMETERS
+      // -----------------------------
+      $sliderId = (int) ($params['slider_id'] ?? 0);
 
-      //echo $sql;exit;
+      // -----------------------------
+      // MAIN QUERY
+      // -----------------------------
+      $sql = "
+        SELECT
+            s.*
 
-      $resultArr = $this->global_Fetch_Single_DB($sql);
+        FROM " . DB_AIMGCSM . "." . TABLEPREFIX . "home_sliders s
 
-      return $resultArr;
+        WHERE s.id = ?
+    ";
+
+      $queryParams[] = $sliderId;
+
+      // Debug
+      // $this->debugQuery($sql, $queryParams);
+
+      return $this->global_Fetch_Single_DB($sql, $queryParams);
    }
 
    public function fetch_Global_Single_Account($username)

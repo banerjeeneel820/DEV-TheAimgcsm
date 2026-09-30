@@ -164,4 +164,8 @@ return [
         'groups' => ['common', 'datatable', 'fancybox', 'prettycheckbox', 'iCheck']
     ],
 
+    'city_list' => [
+        'groups' => ['common', 'datatable', 'prettycheckbox', 'iCheck']
+    ],
+
 ];
