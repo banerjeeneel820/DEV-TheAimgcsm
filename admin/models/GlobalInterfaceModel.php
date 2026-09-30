@@ -2189,16 +2189,44 @@ class GlobalInterfaceModel extends BaseModel
       return $resultArr;
    }
 
-   public function fetch_Email_Templates($record_status = 'active')
+   public function fetch_Email_Templates($params = [])
    {
-
-      $sql = "SELECT * FROM " . DB_AIMGCSM . "." . TABLEPREFIX . "email_template et WHERE et.record_status='$record_status' ORDER BY id DESC";
-
-      //echo $sql;exit();
-
-      $resultArr = $this->global_Fetch_All_DB($sql);
-
-      return $resultArr;
+       $queryParams = [];
+       $where = [];
+   
+       // -----------------------------
+       // DEFAULT FILTER
+       // -----------------------------
+       $recordStatus = $params['record_status'] ?? 'active';
+   
+       $where[] = "et.record_status = ?";
+       $queryParams[] = $recordStatus;
+   
+       // -----------------------------
+       // WHERE CLAUSE
+       // -----------------------------
+       $whereSql = !empty($where)
+           ? "WHERE " . implode(" AND ", $where)
+           : "";
+   
+       // -----------------------------
+       // MAIN QUERY
+       // -----------------------------
+       $sql = "
+           SELECT
+               et.*
+   
+           FROM " . DB_AIMGCSM . "." . TABLEPREFIX . "email_template et
+   
+           $whereSql
+   
+           ORDER BY et.id DESC
+       ";
+   
+       // Debug
+       // $this->debugQuery($sql, $queryParams);
+   
+       return $this->global_Fetch_All_DB($sql, $queryParams);
    }
 
    public function fetch_Global_News($dataArr = array())
@@ -2359,16 +2387,33 @@ class GlobalInterfaceModel extends BaseModel
       return $resultArr;
    }
 
-   public function fetch_Global_Email_Template_Detail($template_id)
+   public function fetch_Global_Email_Template_Detail($template_id = null)
    {
-
-      $sql = "SELECT * FROM " . DB_AIMGCSM . "." . TABLEPREFIX . "email_template WHERE `id` = '$template_id'";
-
-      //echo $sql;exit();
-
-      $resultArr = $this->global_Fetch_Single_DB($sql);
-
-      return $resultArr;
+       // -----------------------------
+       // INPUT PARAMETERS
+       // -----------------------------
+       $templateId = (int) ($template_id ?? 0);
+   
+       // -----------------------------
+       // MAIN QUERY
+       // -----------------------------
+       $sql = "
+           SELECT
+               et.*
+   
+           FROM " . DB_AIMGCSM . "." . TABLEPREFIX . "email_template et
+   
+           WHERE et.id = ?
+       ";
+   
+       $queryParams = [
+           $templateId
+       ];
+   
+       // Debug
+       // $this->debugQuery($sql, $queryParams);
+   
+       return $this->global_Fetch_Single_DB($sql, $queryParams);
    }
 
    public function fetch_Global_News_Detail($news_id)
@@ -3142,7 +3187,6 @@ class GlobalInterfaceModel extends BaseModel
 
       return $resultArr;
    }
-
 
    public function manage_Home_Slider($sliderDataArr)
    {

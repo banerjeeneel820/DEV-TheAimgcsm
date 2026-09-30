@@ -168,4 +168,12 @@ return [
         'groups' => ['common', 'datatable', 'prettycheckbox', 'iCheck']
     ],
 
+    'email_templates' => [
+        'groups' => ['common', 'datatable', 'prettycheckbox']
+    ],
+
+    'email_template' => [
+        'groups' => ['common', 'iCheck']
+    ],
+
 ];
