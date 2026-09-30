@@ -3353,25 +3353,66 @@ class GlobalInterfaceModel extends BaseModel
       return $resultArr;
    }
 
-   public function manage_Parent_Category($updateDataArr)
+   
+   public function manage_Parent_Category($params = [])
    {
+      $queryParams = [];
 
-      $row_id = $updateDataArr['row_id'];
-      $category = $updateDataArr['category'];
-      $parent_category = $updateDataArr['parent_category'];
-      $record_status = $updateDataArr['record_status'];
+      // -----------------------------
+      // INPUT PARAMETERS
+      // -----------------------------
+      $rowId = (int) ($params['row_id'] ?? 0);
+      $category = $params['category'] ?? '';
+      $parentCategory = $params['parent_category'] ?? '';
+      $recordStatus = $params['record_status'] ?? 'active';
 
-      if ($row_id > 0) {
-         $sql = "UPDATE " . DB_AIMGCSM . "." . TABLEPREFIX . "parent_category SET `name` = '$category', `parent_category` = '$parent_category', `record_status` = '$record_status',`updated_at` = now() WHERE `id`='$row_id'";
+      // -----------------------------
+      // UPDATE EXISTING CATEGORY
+      // -----------------------------
+      if ($rowId > 0) {
+
+         $sql = "
+               UPDATE " . DB_AIMGCSM . "." . TABLEPREFIX . "parent_category
+               SET
+                  `name` = ?,
+                  `parent_category` = ?,
+                  `record_status` = ?,
+                  `updated_at` = NOW()
+               WHERE `id` = ?
+         ";
+
+         $queryParams = [
+               $category,
+               $parentCategory,
+               $recordStatus,
+               $rowId
+         ];
+
       } else {
-         $sql = "INSERT INTO " . DB_AIMGCSM . "." . TABLEPREFIX . "parent_category SET `name` = '$category', `parent_category` = '$parent_category', `record_status` = '$record_status',`created_at` = now()";
+
+         // -----------------------------
+         // INSERT NEW CATEGORY
+         // -----------------------------
+         $sql = "
+               INSERT INTO " . DB_AIMGCSM . "." . TABLEPREFIX . "parent_category
+               SET
+                  `name` = ?,
+                  `parent_category` = ?,
+                  `record_status` = ?,
+                  `created_at` = NOW()
+         ";
+
+         $queryParams = [
+               $category,
+               $parentCategory,
+               $recordStatus
+         ];
       }
 
-      //echo $sql;exit();
+      // Debug
+      // $this->debugQuery($sql, $queryParams);
 
-      $resultArr = $this->global_CRUD_DB($sql);
-
-      return $resultArr;
+      return $this->global_CRUD_DB($sql, $queryParams);
    }
 
    public function manage_Global_City($updateDataArr)

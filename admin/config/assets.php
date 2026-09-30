@@ -160,4 +160,8 @@ return [
         'groups' => ['common', 'datatable', 'prettycheckbox', 'iCheck']
     ],
 
+    'home_sliders' => [
+        'groups' => ['common', 'datatable', 'fancybox', 'prettycheckbox', 'iCheck']
+    ],
+
 ];
