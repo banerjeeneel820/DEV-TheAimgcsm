@@ -3155,37 +3155,125 @@ class GlobalInterfaceModel extends BaseModel
       }
    }
 
-   public function manage_Global_Email_Template($templateDataArr)
+   public function manage_Global_Email_Template($params = [])
    {
+      // -----------------------------
+      // INPUT PARAMETERS
+      // -----------------------------
+      $templateId = (int) ($params['template_id'] ?? 0);
 
-      $template_id = $templateDataArr['template_id'];
-      $subject = $templateDataArr['subject'];
-      $code = $templateDataArr['code'];
-      $email_for = $templateDataArr['email_for'];
+      $subject   = $params['subject'] ?? '';
+      $code      = $params['code'] ?? '';
+      $emailFor  = $params['email_for'] ?? '';
+      $variables = $params['variables'] ?? '';
+      $fromEmail = $params['from_email'] ?? '';
+      $fromName  = $params['from_name'] ?? '';
+      $ccEmail   = $params['cc_email'] ?? '';
+      $template  = $params['template'] ?? '';
 
-      //Constructing status variable
-      if (isset($templateDataArr['record_status'])) {
-         $record_status = $templateDataArr['record_status'];
-         $record_status .= "`record_status` = '$record_status',";
-      }
+      // -----------------------------
+      // UPDATE EXISTING TEMPLATE
+      // -----------------------------
+      if ($templateId > 0) {
 
-      $variables = $templateDataArr['variables'];
-      $from_email = $templateDataArr['from_email'];
-      $from_name = $templateDataArr['from_name'];
-      $cc_email =  $templateDataArr['cc_email'];
-      $template = $templateDataArr['template'];
+         $set = [
+            "`subject` = ?",
+            "`code` = ?",
+            "`email_for` = ?",
+            "`variables` = ?",
+            "`from_email` = ?",
+            "`from_name` = ?",
+            "`cc_email` = ?",
+            "`template` = ?",
+            "`updated_at` = NOW()"
+         ];
 
-      if ($template_id > 0) {
-         $sql = "UPDATE " . DB_AIMGCSM . "." . TABLEPREFIX . "email_template SET `subject` = '$subject', `code` = '$code', `email_for` = '$email_for',`variables` = '$variables', `from_email` = '$from_email', `from_name` = '$from_name',`cc_email`='$cc_email', `template` = '$template',`updated_at`=now() WHERE `id`='$template_id'";
+         $queryParams = [
+            $subject,
+            $code,
+            $emailFor,
+            $variables,
+            $fromEmail,
+            $fromName,
+            $ccEmail,
+            $template
+         ];
+
+         // -----------------------------
+         // OPTIONAL RECORD STATUS
+         // -----------------------------
+         if (array_key_exists('record_status', $params)) {
+            $set[] = "`record_status` = ?";
+            $queryParams[] = $params['record_status'];
+         }
+
+         $sql = "
+               UPDATE " . DB_AIMGCSM . "." . TABLEPREFIX . "email_template
+               SET " . implode(", ", $set) . "
+               WHERE `id` = ?
+           ";
+
+         $queryParams[] = $templateId;
       } else {
-         $sql = "INSERT INTO " . DB_AIMGCSM . "." . TABLEPREFIX . "email_template SET `subject` = '$subject', `code` = '$code', `email_for` = '$email_for',`variables` = '$variables', `from_email` = '$from_email', `from_name` = '$from_name',`cc_email`='$cc_email',`template` = '$template', `created_at` = now()";
+
+         // -----------------------------
+         // INSERT NEW TEMPLATE
+         // -----------------------------
+         $columns = [
+            "`subject`",
+            "`code`",
+            "`email_for`",
+            "`variables`",
+            "`from_email`",
+            "`from_name`",
+            "`cc_email`",
+            "`template`",
+            "`created_at`"
+         ];
+
+         $values = [
+            "?",
+            "?",
+            "?",
+            "?",
+            "?",
+            "?",
+            "?",
+            "?",
+            "NOW()"
+         ];
+
+         $queryParams = [
+            $subject,
+            $code,
+            $emailFor,
+            $variables,
+            $fromEmail,
+            $fromName,
+            $ccEmail,
+            $template
+         ];
+
+         // -----------------------------
+         // OPTIONAL RECORD STATUS
+         // -----------------------------
+         if (array_key_exists('record_status', $params)) {
+            $columns[] = "`record_status`";
+            $values[] = "?";
+            $queryParams[] = $params['record_status'];
+         }
+
+         $sql = "
+               INSERT INTO " . DB_AIMGCSM . "." . TABLEPREFIX . "email_template
+               (" . implode(", ", $columns) . ")
+               VALUES (" . implode(", ", $values) . ")
+           ";
       }
 
-      //echo $sql;exit;
+      // Debug
+      // $this->debugQuery($sql, $queryParams);
 
-      $resultArr = $this->global_CRUD_DB($sql);
-
-      return $resultArr;
+      return $this->global_CRUD_DB($sql, $queryParams);
    }
 
    public function manage_Home_Slider($sliderDataArr)

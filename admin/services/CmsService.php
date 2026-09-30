@@ -252,6 +252,29 @@ class CmsService
         }
 
         // -----------------------------
+        // Normalize email template 
+        // before passing to model
+        // -----------------------------
+
+        $template = $formDataArr['template'] ?? '';
+        
+        // Convert escaped quotes to normal HTML quotes
+        $template = str_replace(
+            ['\\"', "\\'"],
+            ['"', "'"],
+            $template
+        );
+
+        // Convert literal escaped line endings to actual line breaks
+        $template = str_replace(
+            ['\\r\\n', '\\n', '\\r'],
+            ["\r\n", "\n", "\r"],
+            $template
+        );
+
+        $formDataArr['template'] = $template;
+
+        // -----------------------------
         // Save Template
         // -----------------------------
 
