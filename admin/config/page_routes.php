@@ -45,9 +45,9 @@ return [
     'add_email_template' => ['CmsController', 'manage_email_template_data_view'],
     'edit_email_template' => ['CmsController', 'manage_email_template_data_view'],
 
-    'view_news' => ['CmsController', 'fetch_news_data'],
-    'add_news' => ['CmsController', 'manage_news_data_view'],
-    'edit_news' => ['CmsController', 'manage_news_data_view'],
+    'view_news' => ['NewsController', 'fetch_news_data'],
+    'add_news' => ['NewsController', 'manage_news_data_view'],
+    'edit_news' => ['NewsController', 'manage_news_data_view'],
 
     'view_enquiry' => ['CmsController', 'fetch_enquiry_data'],
     

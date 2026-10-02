@@ -172,7 +172,15 @@ return [
         'groups' => ['common', 'datatable', 'prettycheckbox']
     ],
 
-    'email_template' => [
+    'email_template_form' => [
+        'groups' => ['common', 'iCheck']
+    ],
+
+    'news_list' => [
+        'groups' => ['common', 'datatable', 'prettycheckbox']
+    ],
+
+    'news_form' => [
         'groups' => ['common', 'iCheck']
     ],
 

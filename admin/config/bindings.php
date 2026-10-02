@@ -142,4 +142,11 @@ return [
         );
     },
 
+    'newsService' => function ($container) {
+        return new Newservice(
+            $container->get('interfaceModel'),
+            $container->get('lib')
+        );
+    },
+
 ];

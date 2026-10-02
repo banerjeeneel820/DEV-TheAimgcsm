@@ -91,9 +91,12 @@ class CmsService
 
     public function getSliderDetail($id)
     {
+        $params = [];
+        $params['slider_id'] = $id;
+
         // Refactor model method first
         return $this->model
-            ->fetch_Slider_Detail($id);
+            ->fetch_Slider_Detail($params);
     }
 
     /*
@@ -257,22 +260,8 @@ class CmsService
         // -----------------------------
 
         $template = $formDataArr['template'] ?? '';
-        
-        // Convert escaped quotes to normal HTML quotes
-        $template = str_replace(
-            ['\\"', "\\'"],
-            ['"', "'"],
-            $template
-        );
 
-        // Convert literal escaped line endings to actual line breaks
-        $template = str_replace(
-            ['\\r\\n', '\\n', '\\r'],
-            ["\r\n", "\n", "\r"],
-            $template
-        );
-
-        $formDataArr['template'] = $template;
+        $formDataArr['template'] = $this->lib->formatEscapedHtmlContent($template);
 
         // -----------------------------
         // Save Template

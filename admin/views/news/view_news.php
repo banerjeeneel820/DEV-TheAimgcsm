@@ -64,7 +64,7 @@
                                      <a href="<?=SITE_URL?>?route=add_news" class="table-action-primary" data-toggle="tooltip" data-placement="bottom" title="Add New News"><i class="fa fa-plus-circle"></i></a>
                                  <?php }?>
 
-                                  <a href="<?=SITE_URL?>?route=view_newss" class="table-action-info"  data-toggle="tooltip" data-placement="bottom" title="Refresh News Data"><i class="fa fa-refresh"></i></a>
+                                  <a href="<?=SITE_URL?>?route=view_news" class="table-action-info"  data-toggle="tooltip" data-placement="bottom" title="Refresh News Data"><i class="fa fa-refresh"></i></a>
                               
                                  <?php if($record_status == 'active'){ ?>
                                    <?php if($updatePermission){ ?>

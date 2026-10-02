@@ -945,6 +945,29 @@ class GlobalLibraryHandler
     return $this->postDataSanitize($key);
   }
 
+  public function formatEscapedHtmlContent($content = '')
+  {
+      if ($content === '') {
+          return $content;
+      }
+
+      // Convert escaped quotes to normal quotes
+      $content = str_replace(
+          ['\\"', "\\'"],
+          ['"', "'"],
+          $content
+      );
+
+      // Convert literal escaped line endings to actual line breaks
+      $content = str_replace(
+          ['\\r\\n', '\\n', '\\r'],
+          ["\r\n", "\n", "\r"],
+          $content
+      );
+
+      return $content;
+  }
+
   public function formatDateDB($date)
   {
     if (empty($date)) return null;

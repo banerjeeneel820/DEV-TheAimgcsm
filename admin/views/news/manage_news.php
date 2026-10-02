@@ -71,7 +71,7 @@
                                    <div class="row pl-1 pt-1 pb-2">
                                      <div class="col-sm-12">
                                        <?php if(isset($_GET['id'])){ ?>
-                                          <a href="<?=$news_pdf?>" data-fancybox="gallery" data-caption="<?=$newsDetailArr->title?>">   
+                                          <a href="<?=$news_pdf?>" data-fancybox="gallery" data-caption="<?=$newsDetailArr->title?>" target="_blank">   
                                           View Current PDF
                                           </a> 
                                        <?php } ?>   

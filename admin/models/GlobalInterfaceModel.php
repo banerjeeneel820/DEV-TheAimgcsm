@@ -2229,20 +2229,44 @@ class GlobalInterfaceModel extends BaseModel
        return $this->global_Fetch_All_DB($sql, $queryParams);
    }
 
-   public function fetch_Global_News($dataArr = array())
+   public function fetch_Global_News($params = [])
    {
-
-      $record_status = $dataArr['record_status'];
-
-      $where_Clause = "WHERE nws.record_status = '$record_status'";
-
-      $sql = "SELECT * FROM " . DB_AIMGCSM . "." . TABLEPREFIX . "news nws " . $where_Clause . " ORDER BY nws.id DESC";
-
-      //echo $sql;exit();
-
-      $resultArr = $this->global_Fetch_All_DB($sql);
-
-      return $resultArr;
+       $queryParams = [];
+       $where = [];
+   
+       // -----------------------------
+       // DEFAULT FILTER
+       // -----------------------------
+       $recordStatus = $params['record_status'] ?? 'active';
+   
+       $where[] = "nws.record_status = ?";
+       $queryParams[] = $recordStatus;
+   
+       // -----------------------------
+       // WHERE CLAUSE
+       // -----------------------------
+       $whereSql = !empty($where)
+           ? "WHERE " . implode(" AND ", $where)
+           : "";
+   
+       // -----------------------------
+       // MAIN QUERY
+       // -----------------------------
+       $sql = "
+           SELECT
+               nws.*
+   
+           FROM " . DB_AIMGCSM . "." . TABLEPREFIX . "news nws
+   
+           $whereSql
+   
+           ORDER BY nws.id DESC
+       ";
+   
+       // Debug
+       // $this->debugQuery($sql, $queryParams);
+   
+       return $this->global_Fetch_All_DB($sql, $queryParams);
    }
 
    public function fetch_Global_Single_Data($type, $row_id)
@@ -2418,14 +2442,37 @@ class GlobalInterfaceModel extends BaseModel
 
    public function fetch_Global_News_Detail($news_id)
    {
-
-      $sql = "SELECT * FROM " . DB_AIMGCSM . "." . TABLEPREFIX . "news WHERE `id` = '$news_id'";
-
-      //echo $sql;exit();
-
-      $resultArr = $this->global_Fetch_Single_DB($sql);
-
-      return $resultArr;
+       $queryParams = [];
+       $where = [];
+   
+       // -----------------------------
+       // WHERE CLAUSE
+       // -----------------------------
+       $where[] = "nws.id = ?";
+       $queryParams[] = $news_id;
+   
+       $whereSql = !empty($where)
+           ? "WHERE " . implode(" AND ", $where)
+           : "";
+   
+       // -----------------------------
+       // MAIN QUERY
+       // -----------------------------
+       $sql = "
+           SELECT
+               nws.*
+   
+           FROM " . DB_AIMGCSM . "." . TABLEPREFIX . "news nws
+   
+           $whereSql
+   
+           LIMIT 1
+       ";
+   
+       // Debug
+       // $this->debugQuery($sql, $queryParams);
+   
+       return $this->global_Fetch_Single_DB($sql, $queryParams);
    }
 
    public function manage_Global_Franchise($franDataArr)
@@ -3305,31 +3352,63 @@ class GlobalInterfaceModel extends BaseModel
       return $resultArr;
    }
 
-   public function manage_Global_News($newsDataArr)
+   public function manage_Global_News($params = [])
    {
-
-      $news_id = $newsDataArr['news_id'];
-      $title = $newsDataArr['title'];
-
-      //Constructing status variable
-      $record_status = $newsDataArr['record_status'];
-      $featured_status = $newsDataArr['featured_status'];
-
-      $optional_pdf = $newsDataArr['optional_pdf'];
-
-      $description = $newsDataArr['description'];
-
-      if ($news_id > 0) {
-         $sql = "UPDATE " . DB_AIMGCSM . "." . TABLEPREFIX . "news SET `title` = '$title',`description` = '$description',`optional_pdf` = '$optional_pdf',`record_status` = '$record_status',`featured_status` = '$featured_status',`updated_at`=now() WHERE `id`='$news_id'";
-      } else {
-         $sql = "INSERT INTO " . DB_AIMGCSM . "." . TABLEPREFIX . "news SET `title` = '$title',`description` = '$description',`optional_pdf` = '$optional_pdf',`record_status` = '$record_status',`featured_status` = '$featured_status',`created_at` = now()";
-      }
-
-      //echo $sql;exit;
-
-      $resultArr = $this->global_CRUD_DB($sql);
-
-      return $resultArr;
+       $newsId         = (int) ($params['news_id'] ?? 0);
+       $title          = $params['title'] ?? '';
+       $description    = $params['description'] ?? '';
+       $optionalPdf    = $params['optional_pdf'] ?? '';
+       $recordStatus   = $params['record_status'] ?? 'active';
+       $featuredStatus = $params['featured_status'] ?? 'n';
+   
+       if ($newsId > 0) {
+   
+           $sql = "
+               UPDATE " . DB_AIMGCSM . "." . TABLEPREFIX . "news
+               SET
+                   `title` = ?,
+                   `description` = ?,
+                   `optional_pdf` = ?,
+                   `record_status` = ?,
+                   `featured_status` = ?,
+                   `updated_at` = NOW()
+               WHERE `id` = ?
+           ";
+   
+           $queryParams = [
+               $title,
+               $description,
+               $optionalPdf,
+               $recordStatus,
+               $featuredStatus,
+               $newsId
+           ];
+   
+       } else {
+   
+           $sql = "
+               INSERT INTO " . DB_AIMGCSM . "." . TABLEPREFIX . "news
+               (
+                   `title`,
+                   `description`,
+                   `optional_pdf`,
+                   `record_status`,
+                   `featured_status`,
+                   `created_at`
+               )
+               VALUES (?, ?, ?, ?, ?, NOW())
+           ";
+   
+           $queryParams = [
+               $title,
+               $description,
+               $optionalPdf,
+               $recordStatus,
+               $featuredStatus
+           ];
+       }
+   
+       return $this->global_CRUD_DB($sql, $queryParams);
    }
 
    public function manage_Student_Receipt($receiptDataArr)

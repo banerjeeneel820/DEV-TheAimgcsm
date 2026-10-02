@@ -812,7 +812,7 @@ class CmsController extends BaseController
     public function manage_email_template_data_view($data)
     {
         // Load assets
-        $assets = Asset::load("email_template");
+        $assets = Asset::load("email_template_form");
 
         // Get template ID safely
         $template_id = (int) ($data['id'] ?? 0);
@@ -917,97 +917,4 @@ class CmsController extends BaseController
             ->manageEmailTemplate($formDataArr);
     }
 
-    public function manage_global_news($data)
-    {
-        $formDataArr = [];
-        $dir = 'news';
-
-        // helper
-        $post = fn ($key) => $this->lib->postDataSanitize($key);
-
-        // -----------------------------
-        // Determine Action Type
-        // -----------------------------
-        $formDataArr['news_id'] = $post('news_id');
-        $isUpdate = !empty($formDataArr['news_id']) && $formDataArr['news_id'] > 0;
-
-        $user_role_slug = $isUpdate ? 'update_news' : 'create_news';
-
-        // -----------------------------
-        // Permission Check
-        // -----------------------------
-        if (!$this->permissionService->checkUserRolePermission($user_role_slug, "hard")) {
-            return ['check' => 'failure', 'message' => "You don't have the permission to perform this action!"];
-        }
-
-        // -----------------------------
-        // Collect Data
-        // -----------------------------
-        $formDataArr['title']           = $post('title');
-        $formDataArr['record_status']   = $post('record_status');
-        $formDataArr['featured_status'] = $post('featured_status');
-        $formDataArr['description']     = $post('description');
-
-        // -----------------------------
-        // File Handling (PDF)
-        // -----------------------------
-        $uploadReturnArr = ['check' => 'skip'];
-
-        if (!empty($_FILES["local_news_pdf"]["size"])) {
-
-            // validate file (using your new helper)
-            $validation = $this->lib
-                ->validateFile($_FILES['local_news_pdf'], 'pdf');
-
-            if ($validation['check'] !== 'success') {
-                return $validation;
-            }
-
-            $uploadReturnArr = $this->lib
-                ->upload_file('local_news_pdf', $dir);
-
-            if ($uploadReturnArr['check'] !== 'success') {
-                return ['check' => 'failure', 'msg' => "News PDF upload failed!"];
-            }
-
-            $formDataArr['optional_pdf'] = $uploadReturnArr['fileName'];
-        } else {
-            $formDataArr['optional_pdf'] = $isUpdate
-                ? $post('hidden_optional_pdf')
-                : null;
-        }
-
-        // -----------------------------
-        // DB Operation
-        // -----------------------------
-        $returnArr = $this->model
-            ->manage_Global_News($formDataArr);
-
-        // -----------------------------
-        // Post Operation (File Cleanup)
-        // -----------------------------
-        if ($returnArr['check'] === 'success') {
-
-            if (
-                $isUpdate &&
-                $uploadReturnArr['check'] === 'success'
-            ) {
-                $oldFile = $post('hidden_optional_pdf');
-
-                if (!empty($oldFile)) {
-                    @unlink(USER_UPLOAD_DIR . $dir . '/' . $oldFile);
-                }
-            }
-        } else {
-
-            // rollback uploaded file
-            if ($uploadReturnArr['check'] === 'success') {
-                @unlink(USER_UPLOAD_DIR . $dir . '/' . $formDataArr['optional_pdf']);
-            }
-
-            return ['check' => 'failure', 'message' => "Something went wrong!"];
-        }
-
-        return $returnArr;
-    }
 }

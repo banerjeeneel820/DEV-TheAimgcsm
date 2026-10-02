@@ -44,7 +44,7 @@ return [
     'manageGlobalCity' => ['CmsController', 'manage_global_city'],
     'manageEmailTemplate' => ['CmsController', 'manage_email_template'],
     'manageHomeSlider' => ['CmsController', 'manage_home_slider'],
-    'manageGlobalNews' => ['CmsController', 'manage_global_news'],
+    'manageGlobalNews' => ['NewsController', 'manage_global_news'],
 
     // Utility Routes
     'updateGlobalStatusRecord' => ['UtilityController', 'update_global_record_status'],
