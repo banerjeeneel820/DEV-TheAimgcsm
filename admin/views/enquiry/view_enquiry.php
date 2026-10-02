@@ -170,7 +170,17 @@ $deletePermission = $this->permissionService->checkUserRolePermission("delete_en
       </div>
       <div class="table-responsive project-list">
 
-        <table class="table table-striped table-bordered table-hover dataTables-example text-center">
+        <input type="text" class="form-control form-control-sm m-b-xs" id="enquiry_tbl_filter" placeholder="Search anything in enquiry for current page...">
+
+        <div class="mt-2">
+          <?php if (count($enquiryListArr) > 0) { ?>
+            <strong>Showing <?= $offset + 1 ?> to <?= (count($enquiryListArr) == $limit ? $limit * $pageNo : count($enquiryListArr)) ?> of <?= $rowCount ?> entries</strong>
+          <?php } else { ?>
+            <strong>No Data Found!</strong>
+          <?php } ?>
+        </div>
+
+        <table class="table table-striped table-bordered table-hover dataTables-example text-center mt-3" id="enquiry_list_tbl">
           <thead class="cursor-pointer">
             <tr>
               <th class="notexport">
@@ -418,26 +428,32 @@ $deletePermission = $this->permissionService->checkUserRolePermission("delete_en
       placeholder: "Select a status to proceed...",
       allowClear: true
     });
+
     $('.enquiry_type').select2({
       width: "88%",
       placeholder: "Select a enquiry type to proceed...",
       allowClear: true
     });
+
     $('.record_limit').select2({
       width: "88%",
       placeholder: "Select data limi per page...",
       allowClear: true
     });
+
     $('.pageNo').select2({
       width: "70%",
       placeholder: "Select a page no...",
       allowClear: true
     });
+
     $('.course').select2({
       width: "88%",
       placeholder: "Select a course to proceed...",
       allowClear: true
     });
+
+    $('#enquiry_list_tbl').filterTable('#enquiry_tbl_filter');
 
     //Handling show user message 
     $(document).on('click', '#view_user_message', function() {

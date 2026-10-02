@@ -1,7 +1,7 @@
 <?php
 defined('ROOTPATH') or exit('No direct script access allowed');
 
-class Newservice
+class NewsService
 {
     public function __construct(
         private GlobalInterfaceModel $model,

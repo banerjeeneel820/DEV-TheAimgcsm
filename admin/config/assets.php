@@ -185,7 +185,7 @@ return [
     ],
 
     'enquiry_list' => [
-        'groups' => ['common', 'prettycheckbox', 'select2']
+        'groups' => ['common', 'prettycheckbox', 'select2', 'tablefilter']
     ],
 
 ];

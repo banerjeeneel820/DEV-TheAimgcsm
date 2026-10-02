@@ -64,7 +64,7 @@
                                      <a href="<?=SITE_URL?>?route=add_email_template" class="table-action-primary" data-toggle="tooltip" data-placement="bottom" title="Add New Template"><i class="fa fa-plus-circle"></i></a>
                                  <?php }?>
 
-                                  <a href="<?=SITE_URL?>?route=view_Template" class="table-action-info"  data-toggle="tooltip" data-placement="bottom" title="Refresh Template Data"><i class="fa fa-refresh"></i></a>
+                                  <a href="<?=SITE_URL?>?route=view_email_templates" class="table-action-info"  data-toggle="tooltip" data-placement="bottom" title="Refresh Template Data"><i class="fa fa-refresh"></i></a>
                               
                                  <?php if($record_status == 'active'){ ?>
                                    <?php if($updatePermission){ ?>

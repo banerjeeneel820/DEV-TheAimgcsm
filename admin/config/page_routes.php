@@ -41,9 +41,9 @@ return [
     'manage_cities' => ['CmsController', 'manage_city_data_view'],
 
     // Email Template Routes
-    'view_email_templates' => ['CmsController', 'fetch_email_template_data'],
-    'add_email_template' => ['CmsController', 'manage_email_template_data_view'],
-    'edit_email_template' => ['CmsController', 'manage_email_template_data_view'],
+    'view_email_templates' => ['TemplateController', 'fetch_email_template_data'],
+    'add_email_template' => ['TemplateController', 'manage_email_template_data_view'],
+    'edit_email_template' => ['TemplateController', 'manage_email_template_data_view'],
 
     'view_news' => ['NewsController', 'fetch_news_data'],
     'add_news' => ['NewsController', 'manage_news_data_view'],

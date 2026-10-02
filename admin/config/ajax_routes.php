@@ -42,7 +42,7 @@ return [
     'galleryBulkUploader' => ['CmsController', 'gallery_bulk_uploader'],
     'manageParentCategory' => ['CmsController', 'manage_parent_category'],
     'manageGlobalCity' => ['CmsController', 'manage_global_city'],
-    'manageEmailTemplate' => ['CmsController', 'manage_email_template'],
+    'manageEmailTemplate' => ['TemplateController', 'manage_email_template'],
     'manageHomeSlider' => ['CmsController', 'manage_home_slider'],
     'manageGlobalNews' => ['NewsController', 'manage_global_news'],
 

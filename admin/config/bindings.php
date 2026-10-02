@@ -143,7 +143,14 @@ return [
     },
 
     'newsService' => function ($container) {
-        return new Newservice(
+        return new NewsService(
+            $container->get('interfaceModel'),
+            $container->get('lib')
+        );
+    },
+
+    'templateService' => function ($container) {
+        return new TemplateService(
             $container->get('interfaceModel'),
             $container->get('lib')
         );

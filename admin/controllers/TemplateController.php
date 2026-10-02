@@ -1,40 +1,37 @@
 <?php
 defined('ROOTPATH') or exit('No direct script access allowed');
 
-class NewsController extends BaseController
+class TemplateController extends BaseController
 {
     private $permissionService;
-    private $newsService;
+    private $templateService;
 
     public function __construct($container)
     {
         parent::__construct($container);
         $this->permissionService = $container->get(PermissionService::class);
-        $this->newsService = $container->get(NewsService::class);
+        $this->templateService = $container->get(TemplateService::class);
     }
 
     /*
     |--------------------------------------------------------------------------
-    | View news view data methods
+    | View email template data methods
     |--------------------------------------------------------------------------
     */
-    public function fetch_news_data($data)
+    public function fetch_email_template_data($data)
     {
-        $user_role_slug = 'view_news';
+        $user_role_slug = 'view_template';
 
         // Load assets
-        $assets = Asset::load("news_list");
+        $assets = Asset::load("email_templates");
 
         // Permission check (centralized)
         $hasPermission = $this->permissionService->checkUserRolePermission($user_role_slug);
 
         if (!$hasPermission) {
             return $this->page(
-                [
-                    'news_data' => [],
-                    'page_type' => 'news'
-                ],
-                'News List',
+                ['email_template_data' => []],
+                'Email Templates',
                 $assets,
                 false,
                 false // page_permission
@@ -44,17 +41,15 @@ class NewsController extends BaseController
         // Get filter safely
         $record_status = $data['record_status'] ?? 'active';
 
-        // Fetch news through CMS service
-        $news = $this->newsService->getNewsData([
-            'record_status' => $record_status
-        ]);
+        // Fetch email templates through service
+        $emailTemplates = $this->templateService->getEmailTemplates($record_status);
 
         return $this->page(
             [
-                'news_data' => $news,
-                'page_type' => 'news'
+                'email_template_data' => $emailTemplates,
+                'page_type' => 'email_template'
             ],
-            'News List',
+            'Email Templates',
             $assets,
             false,
             true
@@ -63,33 +58,34 @@ class NewsController extends BaseController
 
     /*
     |--------------------------------------------------------------------------
-    | View news details data methods
+    | Manage email template data view methods
     |--------------------------------------------------------------------------
     */
-    public function manage_news_data_view($data)
+    public function manage_email_template_data_view($data)
     {
         // Load assets
-        $assets = Asset::load("news_form");
+        $assets = Asset::load("email_template_form");
 
-        // Get news ID safely
-        $news_id = (int) ($data['id'] ?? 0);
+        // Get template ID safely
+        $template_id = (int) ($data['id'] ?? 0);
 
         // Determine permission based on create/edit mode
-        $user_role_slug = $news_id > 0
-            ? 'update_news'
-            : 'create_news';
+        if ($template_id > 0) {
+            $user_role_slug = 'update_template';
+        } else {
+            $user_role_slug = 'create_template';
+        }
 
         // Permission check (centralized)
         $hasPermission = $this->permissionService->checkUserRolePermission($user_role_slug);
 
-        // Handle unauthorized access
         if (!$hasPermission) {
             return $this->page(
                 [
-                    'news_details' => [],
-                    'page_type' => 'news'
+                    'email_template_details' => [],
+                    'page_type' => 'email_template'
                 ],
-                'Manage News',
+                'Email Template',
                 $assets,
                 false,
                 false // page_permission
@@ -97,19 +93,19 @@ class NewsController extends BaseController
         }
 
         // Default data for create mode
-        $newsDetails = [];
+        $templateDetails = [];
 
-        // Fetch existing news details for edit mode
-        if ($news_id > 0) {
-            $newsDetails = $this->newsService->getNewsDetail($news_id);
+        // Fetch existing template for edit mode
+        if ($template_id > 0) {
+            $templateDetails = $this->templateService->getEmailTemplateDetail($template_id);
         }
 
         return $this->page(
             [
-                'news_details' => $newsDetails,
-                'page_type' => 'news'
+                'email_template_details' => $templateDetails,
+                'page_type' => 'email_template'
             ],
-            'Manage News',
+            'Email Template',
             $assets,
             true,
             true
@@ -118,10 +114,10 @@ class NewsController extends BaseController
 
     /*
     |--------------------------------------------------------------------------
-    | Manage news data methods
+    | Manage email template data methods
     |--------------------------------------------------------------------------
     */
-    public function manage_global_news($data)
+    public function manage_email_template($data)
     {
         $formDataArr = [];
 
@@ -129,24 +125,20 @@ class NewsController extends BaseController
         $post = fn ($key) => $this->lib->postDataSanitize($key);
 
         // -----------------------------
-        // Basic Data
+        // Determine Action Type
         // -----------------------------
 
-        $formDataArr['news_id']        = $post('news_id');
-        $formDataArr['title']          = $post('title');
-        $formDataArr['record_status']  = $post('record_status');
-        $formDataArr['featured_status'] = $post('featured_status');
-        $formDataArr['description']    = $post('description');
+        $formDataArr['template_id'] = $post('template_id');
+
+        $isUpdate = (int) $formDataArr['template_id'] > 0;
+
+        $user_role_slug = $isUpdate
+            ? 'update_template'
+            : 'create_template';
 
         // -----------------------------
         // Permission Check
         // -----------------------------
-
-        $isUpdate = (int) $formDataArr['news_id'] > 0;
-
-        $user_role_slug = $isUpdate
-            ? 'update_news'
-            : 'create_news';
 
         if (!$this->permissionService->checkUserRolePermission($user_role_slug, "hard")) {
             return [
@@ -156,15 +148,24 @@ class NewsController extends BaseController
         }
 
         // -----------------------------
-        // Existing PDF
+        // Template Data
         // -----------------------------
 
-        $formDataArr['hidden_optional_pdf'] = $post('hidden_optional_pdf');
+        $formDataArr['subject']       = $post('subject');
+        $formDataArr['code']          = $post('code');
+        $formDataArr['email_for']     = $post('email_for');
+        $formDataArr['record_status'] = $post('record_status');
+        $formDataArr['variables']     = $post('variables');
+        $formDataArr['from_email']    = $post('from_email');
+        $formDataArr['from_name']     = $post('from_name');
+        $formDataArr['cc_email']      = $post('cc_email');
+        $formDataArr['template']      = $post('template');
 
         // -----------------------------
         // Save
         // -----------------------------
 
-        return $this->newsService->manageGlobalNews($formDataArr);
+        return $this->templateService
+            ->manageEmailTemplate($formDataArr);
     }
 }
