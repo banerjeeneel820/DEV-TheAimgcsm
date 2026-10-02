@@ -25,7 +25,7 @@ $limit = $studentPagedData['limit'];
 $offset = ($pageNo - 1) * $limit;
 $totalPageNo = ceil($rowCount / $limit);
 
-//Constructing receipt cancel url
+//Constructing student form back url
 $queries = array();
 parse_str($_SERVER['QUERY_STRING'], $queries);
 
@@ -682,11 +682,16 @@ foreach ($queries as $key => $query_val) {
                 } else {
                   $pervious_link = SITE_URL . '?route=view_students' . $extra_query_str . '&pageNo=' . ($pageNo - 1);
                 }
-                $next_link = SITE_URL . '?route=view_students' . $extra_query_str . '&pageNo=' . ($pageNo + 1);
+
+                if($pageNo < $totalPageNo){
+                  $next_link = SITE_URL . '?route=view_students' . $extra_query_str . '&pageNo=' . ($pageNo + 1);
+                }else{
+                  $next_link = "javascript:void(0);";
+                }  
               }
               ?>
 
-              <li class="page-item <?= ($pageNo == 1 ? 'disabled' : '') ?>">
+              <li class="page-item <?php //echo ($pageNo == 1 ? 'disabled' : ''); ?>">
                 <a class="page-link" href="<?= $pervious_link ?>" tabindex="-1">Previous</a>
               </li>
 

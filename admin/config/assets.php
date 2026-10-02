@@ -184,4 +184,8 @@ return [
         'groups' => ['common', 'iCheck']
     ],
 
+    'enquiry_list' => [
+        'groups' => ['common', 'prettycheckbox', 'select2']
+    ],
+
 ];

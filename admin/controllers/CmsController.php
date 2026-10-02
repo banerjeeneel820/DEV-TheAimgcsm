@@ -5,12 +5,14 @@ class CmsController extends BaseController
 {
     private $permissionService;
     private $cmsService;
+    private $courseFranchiseService;
 
     public function __construct($container)
     {
         parent::__construct($container);
         $this->permissionService = $container->get(PermissionService::class);
         $this->cmsService = $container->get(CmsService::class);
+        $this->courseFranchiseService = $container->get(CourseFranchiseService::class);
     }
 
     /*
@@ -917,4 +919,68 @@ class CmsController extends BaseController
             ->manageEmailTemplate($formDataArr);
     }
 
+    /*
+    |--------------------------------------------------------------------------
+    | View email template data methods
+    |--------------------------------------------------------------------------
+    */
+    public function fetch_enquiry_data($data)
+    {
+        $user_role_slug = 'view_enquiry';
+
+        // Load assets
+        $assets = Asset::load("enquiry_list");
+
+        // Permission check (centralized)
+        $hasPermission = $this->permissionService->checkUserRolePermission($user_role_slug);
+
+        if (!$hasPermission) {
+            return $this->page(
+                [
+                    'enquiry_data' => [],
+                    'course_data' => [],
+                    'page_type' => 'enquiry'
+                ],
+                'Enquiry List',
+                $assets,
+                false,
+                false // page_permission
+            );
+        }
+
+        // Get filters safely
+        $params = [
+            'record_status' => $data['record_status'] ?? 'active',
+            'pageNo'        => (int) ($data['pageNo'] ?? 1),
+            'limit'         => (int) ($data['limit'] ?? 10)
+        ];
+
+        // Optional enquiry type filter
+        if (!empty($data['enquiry_type'])) {
+            $params['enquiry_type'] = $data['enquiry_type'];
+        }
+
+        // Optional course filter
+        if (!empty($data['course_id']) && (int) $data['course_id'] > 0) {
+            $params['course_id'] = (int) $data['course_id'];
+        }
+
+        // Fetch active course/franchise data through service
+        $courseFranchiseData = $this->courseFranchiseService->fetch_Active_Course_Franchise_Data();
+
+        // Fetch enquiry data through CMS service
+        $enquiries = $this->cmsService->getEnquiryData($params);
+
+        return $this->page(
+            [
+                'enquiry_data'        => $enquiries,
+                'course_data' => $courseFranchiseData['course'] ?? [],
+                'page_type'   => 'enquiry'
+            ],
+            'Enquiry List',
+            $assets,
+            false,
+            true
+        );
+    }
 }

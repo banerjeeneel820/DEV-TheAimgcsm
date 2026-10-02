@@ -73,7 +73,6 @@ class CmsService
     */
     public function manageParentCategory($formDataArr)
     {
-        // Refactor model method first
         return $this->model->manage_Parent_Category($formDataArr);
     }
 
@@ -269,5 +268,15 @@ class CmsService
 
         return $this->model
             ->manage_Global_Email_Template($formDataArr);
+    }
+
+    /*
+    |--------------------------------------------------------------------------
+    | View enquiry data helper methods
+    |--------------------------------------------------------------------------
+    */
+    public function getEnquiryData($params = [])
+    {
+        return $this->model->fetch_Global_Enquiry($params);
     }
 }

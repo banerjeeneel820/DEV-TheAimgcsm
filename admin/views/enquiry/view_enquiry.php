@@ -10,10 +10,25 @@ if (isset($_GET['record_status'])) {
 }
 
 $enquiryListArr = $pageContent['pageData']['enquiry_data']['data'];
-$total_records = $pageContent['pageData']['enquiry_data']['row_count'];
-$record_limit = $pageContent['pageData']['enquiry_data']['limit'];
-$total_pages = ceil($total_records / $record_limit);
-$current_page_no = $pageContent['pageData']['enquiry_data']['pageNo'];
+
+$rowCount = $pageContent['pageData']['enquiry_data']['row_count'];
+$limit = $pageContent['pageData']['enquiry_data']['limit'];
+$totalPageNo = ceil($rowCount / $limit);
+$pageNo = $pageContent['pageData']['enquiry_data']['pageNo'];
+$offset = ($pageNo - 1) * $limit;
+
+//Constructing student form back url
+$queries = array();
+parse_str($_SERVER['QUERY_STRING'], $queries);
+
+$extra_query_str = '';
+
+foreach ($queries as $key => $query_val) {
+  if ($key != "route" && $key != 'actionType' && $key != 'rcpt_id') {
+    $extra_query_str .= "&" . $key . "=" . $query_val;
+  }
+}
+
 //Course data
 $courseArr = $pageContent['pageData']['course_data'];
 
@@ -51,12 +66,12 @@ $deletePermission = $this->permissionService->checkUserRolePermission("delete_en
               </div>
 
               <div class="col-lg-3 m-b-xs pl-1">
-                <select class="form-control-sm form-control input-s-sm inline record_limit" name="record_limit" id="record_limit" required>
+                <select class="form-control-sm form-control input-s-sm inline record_limit" name="record_limit" id="record_limit">
                   <option selected disabled value>Select Data Limit Per Page</option>
-                  <option value="200" <?= (($record_limit == '200') ? 'selected' : '') ?>>200</option>
-                  <option value="400" <?= ($record_limit == '400' ? 'selected' : '') ?>>400</option>
-                  <option value="600" <?= ($record_limit == '600' ? 'selected' : '') ?>>600</option>
-                  <option value="<?= $total_records ?>" <?= ($record_limit == $total_records ? 'selected' : '') ?>>Fetch All Records</option>
+                  <option value="10" <?= (($limit == '10') ? 'selected' : '') ?>>10</option>
+                  <option value="20" <?= ($limit == '20' ? 'selected' : '') ?>>20</option>
+                  <option value="30" <?= ($limit == '30' ? 'selected' : '') ?>>30</option>
+                  <option value="<?= $rowCount ?>" <?= ($limit == $rowCount ? 'selected' : '') ?>>Fetch All Records</option>
                 </select>
 
                 <span class="cursor-pointer pl-2" data-toggle="tooltip" data-placement="bottom" title="Choose Record Limit Per Page"><i class="fa fa-question-circle"></i></span>
@@ -64,13 +79,13 @@ $deletePermission = $this->permissionService->checkUserRolePermission("delete_en
 
 
               <div class="col-lg-3 m-b-xs">
-                <select class="form-control-sm form-control input-s-sm inline pageNo" name="pageNo" id="pageNo" required>
+                <select class="form-control-sm form-control input-s-sm inline pageNo" name="pageNo" id="pageNo">
                   <option selected disabled value>Select Page No</option>
                   <?php
-                  if ($total_pages >= 1) {
-                    for ($pi = 1; $pi <= $total_pages; $pi++) {
+                  if ($totalPageNo >= 1) {
+                    for ($pi = 1; $pi <= $totalPageNo; $pi++) {
                   ?>
-                      <option value="<?= $pi ?>" <?= ($current_page_no == $pi ? 'selected' : '') ?>><?= $pi ?>
+                      <option value="<?= $pi ?>" <?= ($pageNo == $pi ? 'selected' : '') ?>><?= $pi ?>
                       </option>
                     <?php }
                   } else { ?>
@@ -273,6 +288,107 @@ $deletePermission = $this->permissionService->checkUserRolePermission("delete_en
           </tbody>
         </table>
       </div>
+
+      <nav aria-label="Enquiry Page navigation">
+        <ul class="pagination">
+
+          <?php
+          if ($totalPageNo > 1) {
+            if ($pageNo == 1) {
+              $pervious_link = "javascript:void(0);";
+            } else {
+              $pervious_link = SITE_URL . '?route=view_enquiry' . $extra_query_str . '&pageNo=' . ($pageNo - 1);
+            }
+
+            if ($pageNo < $totalPageNo) {
+              $next_link = SITE_URL . '?route=view_enquiry' . $extra_query_str . '&pageNo=' . ($pageNo + 1);
+            } else {
+              $next_link = "javascript:void(0);";
+            }
+          }
+          ?>
+
+          <li class="page-item <?php //echo ($pageNo == 1 ? 'disabled' : ''); 
+                                ?>">
+            <a class="page-link" href="<?= $pervious_link ?>" tabindex="-1">Previous</a>
+          </li>
+
+          <?php
+          for ($page = 1; $page <= $totalPageNo; $page++) {
+            if ($page < 6 && $pageNo < 5) {
+          ?>
+
+              <li class="page-item <?= ($page == $pageNo ? 'active' : '') ?>">
+                <a class="page-link" href="<?= SITE_URL . '?route=view_enquiry' . $extra_query_str . '&pageNo=' . $page ?>"><?= $page ?></a>
+              </li>
+
+              <?php
+            } elseif ($pageNo >= 5 && $page != $totalPageNo) {
+              if ($page == 1) {
+              ?>
+
+                <li class="page-item <?= ($page == $pageNo ? 'active' : '') ?>">
+                  <a class="page-link" href="<?= SITE_URL . '?route=view_enquiry' . $extra_query_str . '&pageNo=1' ?>"><?= $page ?></a>
+                </li>
+
+              <?php } elseif ($page == $pageNo - 2) { ?>
+
+                <li class="page-item">
+                  <a class="page-link" href="javascript:void(0);">...</a>
+                </li>
+
+              <?php } elseif ($page == $pageNo - 1 || $page == $pageNo || $page == $pageNo + 1) { ?>
+
+                <li class="page-item <?= ($page == $pageNo ? 'active' : '') ?>">
+                  <a class="page-link" href="<?= SITE_URL . '?route=view_enquiry' . $extra_query_str . '&pageNo=' . $page ?>"><?= $page ?></a>
+                </li>
+
+              <?php } elseif ($page == $pageNo + 2) { ?>
+
+                <li class="page-item">
+                  <a class="page-link" href="javascript:void(0);">...</a>
+                </li>
+
+              <?php
+              }
+            } elseif ($pageNo == $totalPageNo) {
+              if ($page == 1) {
+              ?>
+
+                <li class="page-item <?= ($page == $pageNo ? 'active' : '') ?>">
+                  <a class="page-link" href="<?= SITE_URL . '?route=view_enquiry' . $extra_query_str . '&pageNo=1' ?>"><?= $page ?></a>
+                </li>
+
+              <?php } elseif ($page >= $totalPageNo - 4) { ?>
+
+                <li class="page-item <?= ($page == $pageNo ? 'active' : '') ?>">
+                  <a class="page-link" href="<?= SITE_URL . '?route=view_enquiry' . $extra_query_str . '&pageNo=1' ?>"><?= $page ?></a>
+                </li>
+
+              <?php
+              }
+            } elseif ($page == 6 && $pageNo < 5) {
+              ?>
+
+              <li class="page-item">
+                <a class="page-link" href="javascript:void(0);">...</a>
+              </li>
+
+            <?php } elseif ($page == $totalPageNo) { ?>
+
+              <li class="page-item <?= ($page == $pageNo ? 'active' : '') ?>">
+                <a class="page-link" href="<?= SITE_URL . '?route=view_enquiry' . $extra_query_str . '&pageNo=' . $page ?>"><?= $page ?></a>
+              </li>
+
+          <?php }
+          } ?>
+
+          <li class="page-item">
+            <a class="page-link" href="<?= $next_link ?>">Next</a>
+          </li>
+        </ul>
+      </nav>
+
     </div>
   </div>
 </div>
@@ -334,44 +450,95 @@ $deletePermission = $this->permissionService->checkUserRolePermission("delete_en
     //Configuring fetching all page records fetching params
     $(document).on('submit', '#fetch_all_enquiry_records', function(event) {
       event.preventDefault();
-      var record_status = $('#record_status').val();
-      var record_limit = $('#record_limit').val();
-      var pageNo = $('#pageNo').val();
-      var page_route = $('#page_route').val();
 
-      var course_id = $('#course_id').val();
-      var enquiry_type = $('#enquiry_type').val();
+      const $fetchButton = $('#fetch_item_data');
 
-      if (record_status === null) {
-        window.location = SITE_URL + "?route=" + page_route;
-      } else {
-        $('#fetch_item_data').html('<i class="fa fa-spinner fa-spin"></i>&nbsp;Fetching').attr('disabled', true);
-        setTimeout(function() {
-          $('#fetch_item_data').html('<i class="fa fa-search"></i>&nbsp;Fetch Data').attr('disabled', false);
-          //show sweetalert success
-          swal({
-            title: "Great!",
-            text: "Data has been successfully fetched!",
-            type: "success",
-            allowEscapeKey: false,
-            allowOutsideClick: false
-          }, function() {
-            var redirect_url = SITE_URL + "?route=" + page_route + "&limit=" + record_limit +
-              "&pageNo=" + pageNo + "&record_status=" + record_status;
-            if (course_id > 0) {
-              redirect_url += "&course_id=" + course_id;
-            }
+      const pageRoute = $('#page_route').val();
+      const recordStatus = $('#record_status').val();
+      const pageNo = $('#pageNo').val();
 
-            if (enquiry_type) {
-              redirect_url += "&enquiry_type=" + enquiry_type;
-            }
+      const recordLimit = $('#record_limit').val();
+      const courseId = $('#course_id').val();
+      const enquiryType = $('#enquiry_type').val();
 
-            window.location = redirect_url;
+      // -----------------------------------------
+      // Required fields
+      // -----------------------------------------
 
-          });
-        }, 500);
-        return true;
+      if (!pageRoute) {
+        return;
       }
+
+      if (!recordStatus) {
+        swal({
+          title: 'Error!',
+          text: 'Please select record status.',
+          type: 'error'
+        });
+        return;
+      }
+
+      if (!pageNo || !/^[1-9]\d*$/.test(pageNo)) {
+        swal({
+          title: 'Invalid Page!',
+          text: 'Please enter a valid page number.',
+          type: 'warning'
+        });
+        return;
+      }
+
+      // -----------------------------------------
+      // Build URL parameters
+      // -----------------------------------------
+
+      const params = new URLSearchParams();
+
+      params.set('route', pageRoute);
+      params.set('pageNo', pageNo);
+      params.set('record_status', recordStatus);
+
+      // Optional: record limit
+      if (recordLimit && /^[1-9]\d*$/.test(recordLimit)) {
+        params.set('limit', recordLimit);
+      }
+
+      // Optional: course
+      if (courseId && Number(courseId) > 0) {
+        params.set('course_id', courseId);
+      }
+
+      // Optional: enquiry type
+      if (enquiryType && enquiryType.trim() !== '') {
+        params.set('enquiry_type', enquiryType);
+      }
+
+      // -----------------------------------------
+      // Fetch data
+      // -----------------------------------------
+
+      $fetchButton
+        .html('<i class="fa fa-spinner fa-spin"></i>&nbsp;Fetching')
+        .prop('disabled', true);
+
+      setTimeout(function() {
+
+        $fetchButton
+          .html('<i class="fa fa-search"></i>&nbsp;Fetch Data')
+          .prop('disabled', false);
+
+        swal({
+          title: 'Great!',
+          text: 'Data has been successfully fetched!',
+          type: 'success',
+          allowEscapeKey: false,
+          allowOutsideClick: false
+        }, function() {
+
+          window.location.href = SITE_URL + '?' + params.toString();
+
+        });
+
+      }, 500);
     });
   });
 </script>
