@@ -1,6 +1,6 @@
 <?php
   
-  $franDetailArr = $pageContent['pageData']['frnachise_data'];
+  $franDetailArr = $pageContent['pageData']['profile_data'];
 
   /*print"<pre>";
   print_r($franDetailArr);

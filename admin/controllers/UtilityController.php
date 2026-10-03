@@ -60,8 +60,8 @@ class UtilityController extends BaseController
             return ['check' => 'failure', 'message' => "No data selected!"];
         }
 
-         // Normalize to array
-         if (!is_array($idData)) {
+        // Normalize to array
+        if (!is_array($idData)) {
             // Handle comma-separated string OR single value
             $idData = explode(',', $idData);
         }
@@ -561,6 +561,56 @@ class UtilityController extends BaseController
         ];
     }
 
+    /*
+    |--------------------------------------------------------------------------
+    | View site settings data methods
+    |--------------------------------------------------------------------------
+    */
+    public function manage_settings_data_view($data)
+    {
+        $user_role_slug = 'update_site_setting';
+
+        // Load assets
+        $assets = Asset::load("site_settings");
+
+        // Permission check (centralized)
+        $hasPermission = $this->permissionService->checkUserRolePermission($user_role_slug);
+
+        if (!$hasPermission) {
+            return $this->page(
+                [
+                    'site_settings' => [],
+                    'page_type' => 'site_setting'
+                ],
+                'Manage Site Settings',
+                $assets,
+                false,
+                false // page_permission
+            );
+        }
+
+        // Fetch category data through service
+        $settings = $this->utilityService->getSiteSettings();
+
+        //var_dump($categories);exit;
+
+        return $this->page(
+            [
+                'site_settings' => $settings,
+                'page_type' => 'site_setting'
+            ],
+            'Manage Site Settings',
+            $assets,
+            false,
+            true
+        );
+    }
+
+    /*
+    |--------------------------------------------------------------------------
+    | Save site settings data methods
+    |--------------------------------------------------------------------------
+    */
     public function update_site_setting($data)
     {
         $formDataArr = [];

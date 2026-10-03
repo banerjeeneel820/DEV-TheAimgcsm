@@ -153,7 +153,7 @@ return [
     ],
 
     'gallery_list' => [
-        'groups' => ['common', 'prettycheckbox', 'fancybox', 'select2', 'iCheck', 'datatable', 'dropzone']
+        'groups' => ['common', 'prettycheckbox', 'fancybox', 'select2', 'iCheck', 'tablefilter', 'dropzone']
     ],
 
     'category_list' => [
@@ -165,7 +165,7 @@ return [
     ],
 
     'city_list' => [
-        'groups' => ['common', 'datatable', 'prettycheckbox', 'iCheck']
+        'groups' => ['common', 'tablefilter', 'prettycheckbox', 'iCheck']
     ],
 
     'email_templates' => [
@@ -186,6 +186,14 @@ return [
 
     'enquiry_list' => [
         'groups' => ['common', 'prettycheckbox', 'select2', 'tablefilter']
+    ],
+
+    'site_settings' => [
+        'groups' => ['common', 'prettycheckbox', 'iCheck', 'fancybox']
+    ],
+
+    'user_profile' => [
+        'groups' => ['common', 'iCheck']
     ],
 
 ];

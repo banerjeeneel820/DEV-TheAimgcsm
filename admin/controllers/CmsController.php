@@ -53,8 +53,15 @@ class CmsController extends BaseController
                 );
             }
 
+            // Get filters safely
+            $params = [
+                'record_status' => $data['record_status'] ?? 'active',
+                'pageNo'        => (int) ($data['pageNo'] ?? 1),
+                'limit'         => (int) ($data['limit'] ?? 10)
+            ];
+
             $galleryData = $this->cmsService
-                ->getGalleryList($recordStatus);
+                ->getGalleryList($params);
 
             return $this->page(
                 [
@@ -707,10 +714,18 @@ class CmsController extends BaseController
         }
 
         // Get filter safely
-        $record_status = $data['record_status'] ?? 'active';
+        $params = [
+            'record_status' => $data['record_status'] ?? 'active',
+            'pageNo'        => (int) ($data['pageNo'] ?? 1),
+            'limit'         => (int) ($data['limit'] ?? 10)
+        ];
 
         // Fetch city data through service
-        $cities = $this->cmsService->getCityData($record_status);
+        $cities = $this->cmsService->getCityData($params);
+
+        // print"<pre>";
+        // print_r($cities); 
+        // print"</pre>";exit;
 
         return $this->page(
             [

@@ -11,6 +11,7 @@ if (isset($_GET['record_status'])) {
 
 $enquiryListArr = $pageContent['pageData']['enquiry_data']['data'];
 
+// Pagination variable construction
 $rowCount = $pageContent['pageData']['enquiry_data']['row_count'];
 $limit = $pageContent['pageData']['enquiry_data']['limit'];
 $totalPageNo = ceil($rowCount / $limit);
@@ -24,7 +25,7 @@ parse_str($_SERVER['QUERY_STRING'], $queries);
 $extra_query_str = '';
 
 foreach ($queries as $key => $query_val) {
-  if ($key != "route" && $key != 'actionType' && $key != 'rcpt_id') {
+  if ($key != "route" && $key != 'pageNo') {
     $extra_query_str .= "&" . $key . "=" . $query_val;
   }
 }
@@ -453,6 +454,7 @@ $deletePermission = $this->permissionService->checkUserRolePermission("delete_en
       allowClear: true
     });
 
+    // Table filter initialization
     $('#enquiry_list_tbl').filterTable('#enquiry_tbl_filter');
 
     //Handling show user message 

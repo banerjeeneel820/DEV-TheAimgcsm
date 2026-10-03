@@ -1,20 +1,41 @@
 <?php
-  if(isset($_GET['record_status'])){
-    if($_GET['record_status'] == 'active'){
-       $record_status = 'active'; 
-    }else{
-       $record_status = 'blocked'; 
-    }
+if(isset($_GET['record_status'])){
+  if($_GET['record_status'] == 'active'){
+      $record_status = 'active'; 
   }else{
-    $record_status = 'active'; 
+      $record_status = 'blocked'; 
   }
+}else{
+  $record_status = 'active'; 
+}
 
-  //Fetching page action permission
-  $pagePermission = $this->permissionService->checkUserRolePermission("manage_city_db"); 
+$cities = $pageContent['pageData']['city_data']['data'];
 
-  /* print"<pre>";
-  print_r($pageContent['pageData']); 
-  print"</pre>"; */
+// Pagination variable construction
+$rowCount = $pageContent['pageData']['city_data']['row_count'];
+$limit = $pageContent['pageData']['city_data']['limit'];
+$totalPageNo = ceil($rowCount / $limit);
+$pageNo = $pageContent['pageData']['city_data']['pageNo'];
+$offset = ($pageNo - 1) * $limit;
+
+//Constructing student form back url
+$queries = array();
+parse_str($_SERVER['QUERY_STRING'], $queries);
+
+$extra_query_str = '';
+
+foreach ($queries as $key => $query_val) {
+  if ($key != "route" && $key != 'pageNo') {
+    $extra_query_str .= "&" . $key . "=" . $query_val;
+  }
+}
+
+//Fetching page action permission
+$pagePermission = $this->permissionService->checkUserRolePermission("manage_city_db"); 
+
+// print"<pre>";
+// print_r($pageContent['pageData']['city_data']); 
+// print"</pre>";
 ?>
 
      <div class="wrapper wrapper-content fadeInRight">  
@@ -142,9 +163,19 @@
                                 <div class="sk-rect5"></div>
                             </div>
 
-                            <div class="project-list">
+                            <div class="table-responsive project-list">
+                                
+                                <input type="text" class="form-control form-control-sm m-b-xs" id="city_tbl_filter" placeholder="Search anything in city for current page...">
 
-                                <table class="table table-striped table-bordered table-hover dataTables-example text-center">
+                                <div class="mt-2">
+                                  <?php if (count($cities) > 0) { ?>
+                                    <strong>Showing <?= $offset + 1 ?> to <?= (count($cities) == $limit ? $limit * $pageNo : count($cities)) ?> of <?= $rowCount ?> entries</strong>
+                                  <?php } else { ?>
+                                    <strong>No Data Found!</strong>
+                                  <?php } ?>
+                                </div>    
+
+                                <table class="table table-striped table-bordered table-hover dataTables-example text-center" id="city_list_tbl">
                                     <thead class="cursor-pointer">
                                         <tr>
                                            <th class="notexport">
@@ -164,14 +195,14 @@
                                         </tr>
                                     </thead>
                                     <tbody>
-                                      <?php foreach($pageContent['pageData']['city_data'] as $index => $content){?> 
+                                      <?php foreach($cities as $index => $city){?> 
                                             <tr>
                                                 <td>
                                                    <div class="pretty p-image p-plain selectAllItem ml-2">
-                                                       <input type="checkbox" class="singleCheck" id="<?=$content->id?>" value="<?=$content->id?>"/>
+                                                       <input type="checkbox" class="singleCheck" id="<?=$city->id?>" value="<?=$city->id?>"/>
                                                        <div class="state">
                                                           <img class="image" src="<?=RESOURCE_URL?>images/checkbox.png">
-                                                          <label class="cursor-pointer selectAllItem" for="<?=$content->id?>"></label>
+                                                          <label class="cursor-pointer selectAllItem" for="<?=$city->id?>"></label>
                                                        </div>
                                                     </div>   
                                                 </td>
@@ -179,26 +210,26 @@
                                                 <td class="project-title"><?=$index+1?></td>
                                                 
                                                 <td class="project-title">
-                                                    <a href="javascript:void(0);" data-toggle="tooltip" id="category_name" data-placement="bottom" title="City Name: <?=$content->name?>"><?=$content->name?></a>
+                                                    <a href="javascript:void(0);" data-toggle="tooltip" id="category_name" data-placement="bottom" title="City Name: <?=$city->name?>"><?=$city->name?></a>
                                                     <br/>
                                                 </td>
 
-                                                <td>Created: <?=date('jS F, Y',strtotime($content->created_at))?></td>
+                                                <td>Created: <?=date('jS F, Y',strtotime($city->created_at))?></td>
 
                                                
                                                 <td class="project-status">
-                                                   <span class="label label-<?=($content->record_status == 'active'?'primary':'danger')?> cursor-pointer" data-toggle="tooltip" data-placement="bottom" title="City status: <?=ucfirst($content->record_status)?>"><?=ucfirst($content->record_status)?></span>   
+                                                   <span class="label label-<?=($city->record_status == 'active'?'primary':'danger')?> cursor-pointer" data-toggle="tooltip" data-placement="bottom" title="City status: <?=ucfirst($city->record_status)?>"><?=ucfirst($city->record_status)?></span>   
                                                 </td>
 
                                                 <td >
                                                    <?php if($pagePermission){ ?>  
-                                                      <a href="javascript:void(0);" data-excution="update" data-status="<?=$content->record_status?>" data-rid="<?=$content->id?>" data-cname="<?=$content->name?>" class="btn btn-success btn-xs mt-1 excution" data-toggle="tooltip" data-placement="bottom" title="Edit this City"><i class="fa fa-pencil"></i> Edit City</a>
+                                                      <a href="javascript:void(0);" data-excution="update" data-status="<?=$city->record_status?>" data-rid="<?=$city->id?>" data-cname="<?=$city->name?>" class="btn btn-success btn-xs mt-1 excution" data-toggle="tooltip" data-placement="bottom" title="Edit this City"><i class="fa fa-pencil"></i> Edit City</a>
                                                     <?php } ?>  
 
-                                                    <?php if($content->record_status == 'active'){?>
+                                                    <?php if($city->record_status == 'active'){?>
 
                                                        <?php if($pagePermission){ ?> 
-                                                         <a href="javascript:void(0);" class="btn btn-warning btn-xs mt-1 changeRecordStatus" data-rid = "<?=$content->id?>" data-type="cities" data-ptype="City" data-rstatus="blocked" data-toggle="tooltip" data-placement="bottom" title="Block this City"><i class="fa fa-trash"></i> Block City</a>
+                                                         <a href="javascript:void(0);" class="btn btn-warning btn-xs mt-1 changeRecordStatus" data-rid = "<?=$city->id?>" data-type="cities" data-ptype="City" data-rstatus="blocked" data-toggle="tooltip" data-placement="bottom" title="Block this City"><i class="fa fa-trash"></i> Block City</a>
                                                        <?php } ?> 
 
                                                         <?php if(!$pagePermission){ ?>
@@ -208,11 +239,11 @@
                                                     <?php }else{ ?> 
 
                                                        <?php if($pagePermission){ ?>  
-                                                         <a href="javascript:void(0);" class="btn btn-info btn-xs mt-1 changeRecordStatus" data-rid = "<?=$content->id?>" data-type="cities" data-ptype="City" data-rstatus="active" data-toggle="tooltip" data-placement="bottom" title="Restore this City"><i class="fa fa-refresh"></i> Restore City</a>
+                                                         <a href="javascript:void(0);" class="btn btn-info btn-xs mt-1 changeRecordStatus" data-rid = "<?=$city->id?>" data-type="cities" data-ptype="City" data-rstatus="active" data-toggle="tooltip" data-placement="bottom" title="Restore this City"><i class="fa fa-refresh"></i> Restore City</a>
                                                        <?php } ?>  
 
                                                        <?php if($pagePermission){ ?>
-                                                          <a href="javascript:void(0);" class="btn btn-danger btn-xs mt-1 changeRecordStatus" data-rid = "<?=$content->id?>" data-type="cities" data-ptype="City" data-rstatus="delete" data-toggle="tooltip" data-placement="bottom" title="Delete this City"><i class="fa fa-times"></i> Delete City</a>
+                                                          <a href="javascript:void(0);" class="btn btn-danger btn-xs mt-1 changeRecordStatus" data-rid = "<?=$city->id?>" data-type="cities" data-ptype="City" data-rstatus="delete" data-toggle="tooltip" data-placement="bottom" title="Delete this City"><i class="fa fa-times"></i> Delete City</a>
                                                         <?php } ?>
 
                                                          <?php if(!$pagePermission && !$pagePermission){ ?>
@@ -226,6 +257,105 @@
                                     </tbody>
                                 </table>
                             </div>
+                            <nav aria-label="Enquiry Page navigation">
+                              <ul class="pagination">
+
+                                <?php
+                                if ($totalPageNo > 1) {
+                                  if ($pageNo == 1) {
+                                    $pervious_link = "javascript:void(0);";
+                                  } else {
+                                    $pervious_link = SITE_URL . '?route=manage_cities' . $extra_query_str . '&pageNo=' . ($pageNo - 1);
+                                  }
+
+                                  if ($pageNo < $totalPageNo) {
+                                    $next_link = SITE_URL . '?route=manage_cities' . $extra_query_str . '&pageNo=' . ($pageNo + 1);
+                                  } else {
+                                    $next_link = "javascript:void(0);";
+                                  }
+                                }
+                                ?>
+
+                                <li class="page-item <?php //echo ($pageNo == 1 ? 'disabled' : ''); 
+                                                      ?>">
+                                  <a class="page-link" href="<?= $pervious_link ?>" tabindex="-1">Previous</a>
+                                </li>
+
+                                <?php
+                                for ($page = 1; $page <= $totalPageNo; $page++) {
+                                  if ($page < 6 && $pageNo < 5) {
+                                ?>
+
+                                    <li class="page-item <?= ($page == $pageNo ? 'active' : '') ?>">
+                                      <a class="page-link" href="<?= SITE_URL . '?route=manage_cities' . $extra_query_str . '&pageNo=' . $page ?>"><?= $page ?></a>
+                                    </li>
+
+                                    <?php
+                                  } elseif ($pageNo >= 5 && $page != $totalPageNo) {
+                                    if ($page == 1) {
+                                    ?>
+
+                                      <li class="page-item <?= ($page == $pageNo ? 'active' : '') ?>">
+                                        <a class="page-link" href="<?= SITE_URL . '?route=manage_cities' . $extra_query_str . '&pageNo=1' ?>"><?= $page ?></a>
+                                      </li>
+
+                                    <?php } elseif ($page == $pageNo - 2) { ?>
+
+                                      <li class="page-item">
+                                        <a class="page-link" href="javascript:void(0);">...</a>
+                                      </li>
+
+                                    <?php } elseif ($page == $pageNo - 1 || $page == $pageNo || $page == $pageNo + 1) { ?>
+
+                                      <li class="page-item <?= ($page == $pageNo ? 'active' : '') ?>">
+                                        <a class="page-link" href="<?= SITE_URL . '?route=manage_cities' . $extra_query_str . '&pageNo=' . $page ?>"><?= $page ?></a>
+                                      </li>
+
+                                    <?php } elseif ($page == $pageNo + 2) { ?>
+
+                                      <li class="page-item">
+                                        <a class="page-link" href="javascript:void(0);">...</a>
+                                      </li>
+
+                                    <?php
+                                    }
+                                  } elseif ($pageNo == $totalPageNo) {
+                                    if ($page == 1) {
+                                    ?>
+
+                                      <li class="page-item <?= ($page == $pageNo ? 'active' : '') ?>">
+                                        <a class="page-link" href="<?= SITE_URL . '?route=manage_cities' . $extra_query_str . '&pageNo=1' ?>"><?= $page ?></a>
+                                      </li>
+
+                                    <?php } elseif ($page >= $totalPageNo - 4) { ?>
+
+                                      <li class="page-item <?= ($page == $pageNo ? 'active' : '') ?>">
+                                        <a class="page-link" href="<?= SITE_URL . '?route=manage_cities' . $extra_query_str . '&pageNo=1' ?>"><?= $page ?></a>
+                                      </li>
+
+                                    <?php
+                                    }
+                                  } elseif ($page == 6 && $pageNo < 5) {
+                                    ?>
+
+                                    <li class="page-item">
+                                      <a class="page-link" href="javascript:void(0);">...</a>
+                                    </li>
+
+                                  <?php } elseif ($page == $totalPageNo) { ?>
+
+                                    <li class="page-item <?= ($page == $pageNo ? 'active' : '') ?>">
+                                      <a class="page-link" href="<?= SITE_URL . '?route=manage_cities' . $extra_query_str . '&pageNo=' . $page ?>"><?= $page ?></a>
+                                    </li>
+
+                                <?php }
+                                } ?>
+
+                                <li class="page-item">
+                                  <a class="page-link" href="<?= $next_link ?>">Next</a>
+                                </li>
+                              </ul>
+                            </nav>
                         </div>
                     </div>
                 </div>
@@ -272,6 +402,9 @@
         <script>
            
            $(document).ready(function () {
+
+               // Table filter initialization
+               $('#city_list_tbl').filterTable('#city_tbl_filter'); 
 
                $(document).on('click', '.excution', function(event){
 

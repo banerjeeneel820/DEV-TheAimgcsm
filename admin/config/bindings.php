@@ -156,4 +156,11 @@ return [
         );
     },
 
+    'authService' => function ($container) {
+        return new AuthService(
+            $container->get('interfaceModel'),
+            $container->get('lib')
+        );
+    },
+
 ];

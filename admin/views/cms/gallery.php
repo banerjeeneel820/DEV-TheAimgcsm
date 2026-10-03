@@ -19,7 +19,26 @@ if ($_GET['type'] == 'edit') {
   }
 }
 if (empty($_GET['type'])) {
-  $itemArr = $pageContent['pageData']['gallery_data'];
+  $itemArr = $pageContent['pageData']['gallery_data']['data'];
+
+  // Pagination variable construction
+  $rowCount = $pageContent['pageData']['gallery_data']['row_count'];
+  $limit = $pageContent['pageData']['gallery_data']['limit'];
+  $totalPageNo = ceil($rowCount / $limit);
+  $pageNo = $pageContent['pageData']['gallery_data']['pageNo'];
+  $offset = ($pageNo - 1) * $limit;
+
+  //Constructing student form back url
+  $queries = array();
+  parse_str($_SERVER['QUERY_STRING'], $queries);
+
+  $extra_query_str = '';
+
+  foreach ($queries as $key => $query_val) {
+    if ($key != "route" && $key != 'pageNo') {
+      $extra_query_str .= "&" . $key . "=" . $query_val;
+    }
+  }
 }
 
 if (isset($_GET['record_status'])) {
@@ -39,9 +58,9 @@ $createPermission = $this->permissionService->checkUserRolePermission("create_ga
 $updatePermission = $this->permissionService->checkUserRolePermission("update_gallery");
 $deletePermission = $this->permissionService->checkUserRolePermission("delete_gallery");
 
-/*print"<pre>";
-  print_r($itemArr);
-  print"</pre>";*/
+// print "<pre>";
+// print_r($itemArr);
+// print "</pre>";
 ?>
 
 
@@ -316,8 +335,19 @@ $deletePermission = $this->permissionService->checkUserRolePermission("delete_ga
               <div class="sk-rect4"></div>
               <div class="sk-rect5"></div>
             </div>
-            <div class="project-list">
-              <table class="table table-striped dataTables-example text-center">
+            <div class="table-responsive project-list">
+
+              <input type="text" class="form-control form-control-sm m-b-xs" id="gallery_tbl_filter" placeholder="Search anything in gallery for current page...">
+
+              <div class="mt-2">
+                <?php if (count($itemArr) > 0) { ?>
+                  <strong>Showing <?= $offset + 1 ?> to <?= (count($itemArr) == $limit ? $limit * $pageNo : count($itemArr)) ?> of <?= $rowCount ?> entries</strong>
+                <?php } else { ?>
+                  <strong>No Data Found!</strong>
+                <?php } ?>
+              </div>
+
+              <table class="table table-striped dataTables-example text-center" id="gallery_list_tbl">
                 <thead class="cursor-pointer">
                   <tr>
                     <th class="notexport">
@@ -468,6 +498,107 @@ $deletePermission = $this->permissionService->checkUserRolePermission("delete_ga
                 </tbody>
               </table>
             </div>
+
+            <nav aria-label="Enquiry Page navigation">
+              <ul class="pagination">
+
+                <?php
+                if ($totalPageNo > 1) {
+                  if ($pageNo == 1) {
+                    $pervious_link = "javascript:void(0);";
+                  } else {
+                    $pervious_link = SITE_URL . '?route=gallery' . $extra_query_str . '&pageNo=' . ($pageNo - 1);
+                  }
+
+                  if ($pageNo < $totalPageNo) {
+                    $next_link = SITE_URL . '?route=gallery' . $extra_query_str . '&pageNo=' . ($pageNo + 1);
+                  } else {
+                    $next_link = "javascript:void(0);";
+                  }
+                }
+                ?>
+
+                <li class="page-item <?php //echo ($pageNo == 1 ? 'disabled' : ''); 
+                                      ?>">
+                  <a class="page-link" href="<?= $pervious_link ?>" tabindex="-1">Previous</a>
+                </li>
+
+                <?php
+                for ($page = 1; $page <= $totalPageNo; $page++) {
+                  if ($page < 6 && $pageNo < 5) {
+                ?>
+
+                    <li class="page-item <?= ($page == $pageNo ? 'active' : '') ?>">
+                      <a class="page-link" href="<?= SITE_URL . '?route=gallery' . $extra_query_str . '&pageNo=' . $page ?>"><?= $page ?></a>
+                    </li>
+
+                    <?php
+                  } elseif ($pageNo >= 5 && $page != $totalPageNo) {
+                    if ($page == 1) {
+                    ?>
+
+                      <li class="page-item <?= ($page == $pageNo ? 'active' : '') ?>">
+                        <a class="page-link" href="<?= SITE_URL . '?route=gallery' . $extra_query_str . '&pageNo=1' ?>"><?= $page ?></a>
+                      </li>
+
+                    <?php } elseif ($page == $pageNo - 2) { ?>
+
+                      <li class="page-item">
+                        <a class="page-link" href="javascript:void(0);">...</a>
+                      </li>
+
+                    <?php } elseif ($page == $pageNo - 1 || $page == $pageNo || $page == $pageNo + 1) { ?>
+
+                      <li class="page-item <?= ($page == $pageNo ? 'active' : '') ?>">
+                        <a class="page-link" href="<?= SITE_URL . '?route=gallery' . $extra_query_str . '&pageNo=' . $page ?>"><?= $page ?></a>
+                      </li>
+
+                    <?php } elseif ($page == $pageNo + 2) { ?>
+
+                      <li class="page-item">
+                        <a class="page-link" href="javascript:void(0);">...</a>
+                      </li>
+
+                    <?php
+                    }
+                  } elseif ($pageNo == $totalPageNo) {
+                    if ($page == 1) {
+                    ?>
+
+                      <li class="page-item <?= ($page == $pageNo ? 'active' : '') ?>">
+                        <a class="page-link" href="<?= SITE_URL . '?route=gallery' . $extra_query_str . '&pageNo=1' ?>"><?= $page ?></a>
+                      </li>
+
+                    <?php } elseif ($page >= $totalPageNo - 4) { ?>
+
+                      <li class="page-item <?= ($page == $pageNo ? 'active' : '') ?>">
+                        <a class="page-link" href="<?= SITE_URL . '?route=gallery' . $extra_query_str . '&pageNo=1' ?>"><?= $page ?></a>
+                      </li>
+
+                    <?php
+                    }
+                  } elseif ($page == 6 && $pageNo < 5) {
+                    ?>
+
+                    <li class="page-item">
+                      <a class="page-link" href="javascript:void(0);">...</a>
+                    </li>
+
+                  <?php } elseif ($page == $totalPageNo) { ?>
+
+                    <li class="page-item <?= ($page == $pageNo ? 'active' : '') ?>">
+                      <a class="page-link" href="<?= SITE_URL . '?route=gallery' . $extra_query_str . '&pageNo=' . $page ?>"><?= $page ?></a>
+                    </li>
+
+                <?php }
+                } ?>
+
+                <li class="page-item">
+                  <a class="page-link" href="<?= $next_link ?>">Next</a>
+                </li>
+              </ul>
+            </nav>
+
           </div>
         </div>
       </div>
@@ -504,6 +635,9 @@ $deletePermission = $this->permissionService->checkUserRolePermission("delete_ga
       checkboxClass: 'icheckbox_square-green',
       radioClass: 'iradio_square-green',
     });
+
+    // Table filter initialization
+    $('#gallery_list_tbl').filterTable('#gallery_tbl_filter');
 
     //Handling file upload type checkbox
     $(document).on('ifChanged', '.i-checks.file_upload_type input', function(e) {

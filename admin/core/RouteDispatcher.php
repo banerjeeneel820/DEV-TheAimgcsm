@@ -51,7 +51,7 @@ class RouteDispatcher extends BaseController
                // Call domain controller
                $pageData = $controller->$method($data);
 
-               //$this->dd($pageData);
+               //dd($pageData);
 
                return $this->mergeWithGlobal($pageData);
           }else{

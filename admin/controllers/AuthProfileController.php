@@ -3,15 +3,14 @@ defined('ROOTPATH') or exit('No direct script access allowed');
 
 class AuthProfileController extends BaseController
 {   
-    private $globalViewObj;
-    private $globalReturnArr;
     private $permissionService;
+    private $authService;
 
-    public function __construct($containe)
+    public function __construct($container)
     {
-        parent::__construct($containe);
-        $this->globalViewObj = new GlobalViewDataController();
-        $this->permissionService = new PermissionService($this->model, $this->lib);
+        parent::__construct($container);
+        $this->permissionService = $container->get(PermissionService::class);
+        $this->authService = $container->get(AuthService::class);
     }
 
     public function check_user_login($data)
@@ -31,7 +30,7 @@ class AuthProfileController extends BaseController
         $validate_captcha = true; //$this->lib->checkCaptchaResponse($recaptcha_response);
 
         if ($validate_captcha) {
-            $returnArr = $this->model->check_User_Login($paramArr);
+            $returnArr = $this->authService->checkUserLogin($paramArr);
 
             if ($returnArr['check'] == 'success') {
                 //Setting cookies for browser
@@ -50,26 +49,217 @@ class AuthProfileController extends BaseController
         return $returnArr;
     }
 
-    public function manage_profile_data()
+    public function manage_profile_data($data)
     {
         if ($_SESSION['user_type'] == 'developer') {
-            $this->globalReturnArr['pageData'] = $this->globalViewObj->edit_Developer_Profile_Required_Data();
+            $profileData =  $this->edit_Developer_Profile_Data($data);
        } elseif ($_SESSION['user_type'] == 'admin') {
-            $this->globalReturnArr['pageData'] = $this->globalViewObj->edit_Admin_Profile_Required_Data();
+            $profileData =  $this->edit_Admin_Profile_Data($data);
        } elseif ($_SESSION['user_type'] == 'franchise') {
-            $fetch_type = 'edit_profile';
-            $this->globalReturnArr['pageData'] = $this->globalViewObj->edit_Franchise_Profile_Data($fetch_type);
+            $data['fetch_type'] = 'edit_profile';
+            $profileData =  $this->edit_Franchise_Profile_Data($data);
        }
 
-       $this->globalReturnArr['pageData']['page_title'] = "Manage My Profile";
+       return $profileData;
+    }
 
-       $this->globalReturnArr['pageData']['tiny_allowed'] = false;
+    /*
+    |--------------------------------------------------------------------------
+    | Edit developer profile data methods
+    |--------------------------------------------------------------------------
+    */
+    public function edit_Developer_Profile_Data($data)
+    {
+        $user_role_slug = 'manage_profile';
 
-       $this->globalReturnArr['assetData']['css'] = array('toastr/toastr.min', 'sweetalert/sweetalert', 'iCheck/custom');
+        // Load assets
+        $assets = Asset::load("user_profile");
 
-       $this->globalReturnArr['assetData']['js'] = array('toastr/toastr.min', 'sweetalert/sweetalert.min', 'iCheck/icheck.min');
+        // Permission check (centralized)
+        $hasPermission = $this->permissionService->checkUserRolePermission($user_role_slug);
 
-       return $this->globalReturnArr;
+        if (!$hasPermission) {
+            return $this->page(
+                [
+                    'profile_data' => [],
+                    'page_type' => 'edit_profile'
+                ],
+                'Manage My Profile',
+                $assets,
+                false,
+                false // page_permission
+            );
+        }
+
+        // Get filters safely
+        $user_id = (int) $_SESSION['user_id'];
+
+        // Fetch category data through service
+        $profileData = $this->authService->getDevProfileData($user_id);
+
+        //var_dump($profileData);exit;
+
+        return $this->page(
+            [
+                'profile_data' => $profileData,
+                'page_type' => 'edit_profile'
+            ],
+            'Manage My Profile',
+            $assets,
+            false,
+            true
+        );
+    }
+
+    /*
+    |--------------------------------------------------------------------------
+    | Edit admin profile data methods
+    |--------------------------------------------------------------------------
+    */
+    public function edit_Admin_Profile_Data($data)
+    {
+        $user_role_slug = 'manage_profile';
+
+        // Load assets
+        $assets = Asset::load("user_profile");
+
+        // Permission check (centralized)
+        $hasPermission = $this->permissionService->checkUserRolePermission($user_role_slug);
+
+        if (!$hasPermission) {
+            return $this->page(
+                [
+                    'profile_data' => [],
+                    'page_type' => 'edit_profile'
+                ],
+                'Manage My Profile',
+                $assets,
+                false,
+                false // page_permission
+            );
+        }
+
+        // Get filters safely
+        $user_id = (int) $_SESSION['user_id'];
+
+        // Fetch category data through service
+        $profileData = $this->authService->getAdminProfileData($user_id);
+
+        //var_dump($profileData);exit;
+
+        return $this->page(
+            [
+                'profile_data' => $profileData,
+                'page_type' => 'edit_profile'
+            ],
+            'Manage My Profile',
+            $assets,
+            false,
+            true
+        );
+    }
+
+    /*
+    |--------------------------------------------------------------------------
+    | Edit franchise profile data methods
+    |--------------------------------------------------------------------------
+    */
+    public function edit_Franchise_Profile_Data()
+    {
+        $user_role_slug = 'manage_profile';
+
+        // Load assets
+        $assets = Asset::load("user_profile");
+
+        // Permission check (centralized)
+        $hasPermission = $this->permissionService->checkUserRolePermission($user_role_slug);
+
+        if (!$hasPermission) {
+            return $this->page(
+                [
+                    'profile_data' => [],
+                    'page_type' => 'edit_profile'
+                ],
+                'Manage My Profile',
+                $assets,
+                false,
+                false // page_permission
+            );
+        }
+
+        // Get filters safely
+        $user_id = (int) $_SESSION['user_id'];
+
+        // Fetch category data through service
+        $profileData = $this->authService->getFranchiseProfileData($user_id);
+
+        //var_dump($profileData);exit;
+
+        return $this->page(
+            [
+                'profile_data' => $profileData,
+                'page_type' => 'edit_profile'
+            ],
+            'Manage My Profile',
+            $assets,
+            false,
+            true
+        );
+    }
+
+     /*
+    |--------------------------------------------------------------------------
+    | Edit admin profile data from dev session methods
+    |--------------------------------------------------------------------------
+    */
+    public function manage_admin_profile_data($data)
+    {
+        $user_role_slug = 'manage_profile';
+
+        // Load assets
+        $assets = Asset::load("user_profile");
+
+        // Permission check (centralized)
+        $hasPermission = $this->permissionService->checkUserRolePermission($user_role_slug);
+
+        if (!$hasPermission) {
+            return $this->page(
+                [
+                    'profile_data' => [],
+                    'page_type' => 'edit_profile'
+                ],
+                'Manage My Profile',
+                $assets,
+                false,
+                false // page_permission
+            );
+        }
+
+        // Get filters safely
+        $user_id = (int) $_SESSION['user_id'];
+
+        if ($user_id > 0) {
+        //Fetching franchise detail
+            $profileData = $this->authService->getAdminProfileData($user_id);
+        } else {
+            $profileData = array();
+        }
+
+        // Fetch category data through service
+        $profileData = $this->authService->getAdminProfileData($user_id);
+
+        //var_dump($profileData);exit;
+
+        return $this->page(
+            [
+                'profile_data' => $profileData,
+                'page_type' => 'edit_profile'
+            ],
+            'Manage My Profile',
+            $assets,
+            false,
+            true
+        );
     }
 
     public function manage_user_profile($data)
@@ -130,7 +320,7 @@ class AuthProfileController extends BaseController
         // -----------------------------
         // DB Operation
         // -----------------------------
-        return $this->model->manage_Profile_Data($formDataArr);
+        return $this->authService->manageProfileData($formDataArr);
     }
 
     public function manage_franchise_profile($data)
@@ -200,8 +390,8 @@ class AuthProfileController extends BaseController
         // -----------------------------
         // DB CALL
         // -----------------------------
-        return $this->model
-            ->edit_Franchise_Profile($formDataArr);
+        return $this->authService
+            ->editFranchiseProfile($formDataArr);
     }
 
     public function check_user_email_availability($data)
@@ -230,8 +420,8 @@ class AuthProfileController extends BaseController
         // -----------------------------
         // CALL MODEL
         // -----------------------------
-        return $this->model
-            ->check_User_Email_Availability($payload);
+        return $this->authService
+            ->checkUserEmailAvailability($payload);
     }
 
     public function destroy_session_data()

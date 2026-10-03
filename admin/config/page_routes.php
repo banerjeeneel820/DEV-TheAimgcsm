@@ -51,7 +51,7 @@ return [
 
     'view_enquiry' => ['CmsController', 'fetch_enquiry_data'],
     
-    'edit_site_setting' => ['CmsController', 'manage_settings_data_view'],
+    'edit_site_setting' => ['UtilityController', 'manage_settings_data_view'],
 
     // Dashboard Routes
     'home' => ['DashboardController', 'fetch_dashboard_data'],

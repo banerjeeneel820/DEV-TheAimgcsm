@@ -51,16 +51,18 @@ return [
     'edit_email_template'  => 'email_template/manage_email_template.php',
 
     // CMS Routes
-    'view_category'   => 'category/view_category.php',
+    'gallery'   => 'cms/gallery.php',
+    'view_category'   => 'cms/view_category.php',
+    'home_sliders'   => 'cms/home_sliders.php',
+    'manage_cities'   => 'cms/manage_cities.php',
+
+    // Enquiry Routes
     'view_enquiry'   => 'enquiry/view_enquiry.php',
-    'gallery'   => 'gallery/gallery.php',
-    'home_sliders'   => 'settings/home_sliders.php',
-    'manage_cities'   => 'settings/manage_cities.php',
-    'edit_site_setting'   => 'settings/edit_site_setting.php',
     
     // Auth Profile Routes
     'edit_profile'   => 'settings/edit_profile.php',
     'edit_admin_profile'   => 'settings/edit_profile.php',
+    'edit_site_setting'   => 'settings/edit_site_setting.php',
 
     // Utility Routes
     'no_access'        => 'utility/no_access.php',

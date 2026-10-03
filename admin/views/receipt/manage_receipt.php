@@ -12,7 +12,7 @@ parse_str($_SERVER['QUERY_STRING'], $queries);
 $extra_query_str = '';
 
 foreach ($queries as $key => $query_val) {
-  if ($key != "route" && $key != 'actionType' && $key != 'rcpt_id') {
+  if ($key != "route" && $key != 'pageNo' && $key != 'actionType' && $key != 'rcpt_id') {
     $extra_query_str .= "&" . $key . "=" . $query_val;
   }
 }

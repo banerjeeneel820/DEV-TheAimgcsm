@@ -292,7 +292,7 @@ class GlobalInterfaceModel extends BaseModel
       return $resultArr;
    }
 
-   public function fetch_Admin_Profile_Data($user_id)
+   public function fetch_Admin_Profile_Data($user_id = null)
    {
 
       if ($_SESSION['user_type'] == 'developer') {
@@ -2118,6 +2118,11 @@ class GlobalInterfaceModel extends BaseModel
       $queryParams = [];
       $where = [];
 
+      // Pagination
+      $limit = max(1, (int) ($params['limit'] ?? 10));
+      $pageNo = max(1, (int) ($params['pageNo'] ?? 1));
+      $offset = ($pageNo - 1) * $limit;
+
       // -----------------------------
       // DEFAULT FILTER
       // -----------------------------
@@ -2136,21 +2141,44 @@ class GlobalInterfaceModel extends BaseModel
       // -----------------------------
       // MAIN QUERY
       // -----------------------------
-      $sql = "
-        SELECT
-            c.*
-
+      $sqlBase = "
         FROM " . DB_AIMGCSM . "." . TABLEPREFIX . "cities c
 
         $whereSql
+      ";
 
+      // Fetch paginated enquiry records
+      $sqlFetch = "
+        SELECT
+        c.*
+        $sqlBase
         ORDER BY c.id DESC
-    ";
+        LIMIT $offset, $limit
+      ";
+
+      $resultArr['data'] = $this->global_Fetch_All_DB(
+         $sqlFetch,
+         $queryParams
+      );
+
+      // Count total matching records
+      $sqlRowCount = "
+      SELECT c.id
+      $sqlBase
+      ";
 
       // Debug
-      // $this->debugQuery($sql, $queryParams);
+      // $this->debugQuery($sqlFetch, $queryParams);
 
-      return $this->global_Fetch_All_DB($sql, $queryParams);
+      $resultArr['row_count'] = $this->global_Rows_Count_DB(
+         $sqlRowCount,
+         $queryParams
+      );
+
+      $resultArr['pageNo'] = $pageNo;
+      $resultArr['limit'] = $limit;
+
+      return $resultArr;
    }
 
    public function fetch_Global_Enquiry($params = [])
@@ -4503,6 +4531,12 @@ class GlobalInterfaceModel extends BaseModel
       $queryParams = [];
       $where = [];
 
+       // Pagination
+      $limit = max(1, (int) ($params['limit'] ?? 10));
+      $pageNo = max(1, (int) ($params['pageNo'] ?? 1));
+      $offset = ($pageNo - 1) * $limit;
+
+      // Record status
       $recordStatus = $params['record_status'] ?? 'active';
 
       $where[] = "g.record_status = ?";
@@ -4521,10 +4555,7 @@ class GlobalInterfaceModel extends BaseModel
          ? "WHERE " . implode(" AND ", $where)
          : "";
 
-      $sql = "
-           SELECT
-               g.*,
-               GROUP_CONCAT(DISTINCT pc.name) AS category_string
+      $sqlBase = "
            FROM " . DB_AIMGCSM . "." . TABLEPREFIX . "gallery g
    
            LEFT JOIN " . DB_AIMGCSM . "." . TABLEPREFIX . "post_category poc
@@ -4535,12 +4566,47 @@ class GlobalInterfaceModel extends BaseModel
                ON poc.category_id = pc.id
    
            $whereSql
-   
-           GROUP BY g.id
-           ORDER BY g.id DESC
        ";
+      
+       // Fetch paginated enquiry records
+       $sqlFetch = "
+         SELECT
+            g.*,
+            GROUP_CONCAT(DISTINCT pc.name) AS category_string
+         $sqlBase
+         GROUP BY g.id
+         ORDER BY g.id DESC
+         LIMIT $offset, $limit
+      "; 
+      
+      $resultArr['data'] = $this->global_Fetch_All_DB(
+         $sqlFetch,
+         $queryParams
+      ); 
 
-      return $this->global_Fetch_All_DB($sql, $queryParams);
+       // Count total matching records
+      $sqlRowCount = "
+      SELECT g.id
+      $sqlBase
+      GROUP BY g.id
+      ";
+
+      // Debug
+      // $this->debugQuery($sqlRowCount, $queryParams);
+
+      $resultArr['row_count'] = $this->global_Rows_Count_DB(
+         $sqlRowCount,
+         $queryParams
+      );
+
+      $resultArr['pageNo'] = $pageNo;
+      $resultArr['limit'] = $limit;
+
+      // print"<pre>";
+      // print_r($resultArr);
+      // print"</pre>";exit;
+
+      return $resultArr;
    }
 
    public function fetch_Gallery_Item_Detail($params = [])

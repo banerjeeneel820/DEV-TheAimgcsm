@@ -14,10 +14,10 @@ class CmsService
     | View gallery data helper methods
     |--------------------------------------------------------------------------
     */
-    public function getGalleryList($recordStatus)
+    public function getGalleryList($params)
     {
         return $this->model
-            ->fetch_Gallery_Arr($recordStatus);
+            ->fetch_Gallery_Arr($params);
     }
 
     public function getGalleryCategories($type)
@@ -182,10 +182,10 @@ class CmsService
     | View cities data helper methods
     |--------------------------------------------------------------------------
     */
-    public function getCityData($recordStatus)
+    public function getCityData($params = [])
     {
         return $this->model
-            ->fetch_Global_Cities($recordStatus);
+            ->fetch_Global_Cities($params);
     }
 
     /*
