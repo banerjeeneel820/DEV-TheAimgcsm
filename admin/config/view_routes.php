@@ -60,7 +60,11 @@ return [
     'view_enquiry'   => 'enquiry/view_enquiry.php',
     
     // Auth Profile Routes
-    'edit_profile'   => 'settings/edit_profile.php',
+    'edit_profile'   => (
+                            $_SESSION['user_type'] != 'franchise'? 
+                            'settings/edit_profile.php': 
+                            'franchise/edit_franchise_profile.php'
+                        ),
     'edit_admin_profile'   => 'settings/edit_profile.php',
     'edit_site_setting'   => 'settings/edit_site_setting.php',
 

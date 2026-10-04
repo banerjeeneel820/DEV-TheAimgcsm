@@ -138,7 +138,7 @@
                  radioClass: 'iradio_square-green',
              });
              
-             /*Summernote HTML5 Text Editor*/
+             /*Tinymce HTML5 Text Editor*/
              tinyMCE.init({
                 selector: 'textarea.tinymce',
                 height: 300,

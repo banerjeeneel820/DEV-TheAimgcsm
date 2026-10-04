@@ -202,7 +202,7 @@ class AuthProfileController extends BaseController
             ],
             'Manage My Profile',
             $assets,
-            false,
+            true,
             true
         );
     }

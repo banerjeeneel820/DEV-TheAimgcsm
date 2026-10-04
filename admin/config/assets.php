@@ -193,7 +193,7 @@ return [
     ],
 
     'user_profile' => [
-        'groups' => ['common', 'iCheck']
+        'groups' => ['common', 'iCheck','fancybox']
     ],
 
 ];

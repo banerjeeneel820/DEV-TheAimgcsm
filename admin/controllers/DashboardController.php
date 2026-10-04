@@ -6,10 +6,10 @@ class DashboardController extends BaseController
     private $permissionService;
     private $globalReturnArr = [];
     
-    public function __construct()
+    public function __construct($container)
     {
-        parent::__construct();
-        $this->permissionService = new PermissionService($this->model, $this->lib);
+        parent::__construct($container);
+        $this->permissionService = $container->get(PermissionService::class);
     }
 
     public function fetch_dashboard_data()

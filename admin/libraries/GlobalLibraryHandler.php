@@ -429,35 +429,43 @@ class GlobalLibraryHandler
 
   public function handleFileUpload($config)
   {
-    $input   = $config['input'];
-    $hidden  = $config['hidden'] ?? '';
-    $default = $config['default'] ?? null;
-    $dir     = $config['dir'];
-    $isUpdate = $config['isUpdate'] ?? false;
-
-    if (!empty($_FILES[$input]['size'])) {
-
-      $upload = $this->upload_file($input, $dir);
-
-      if ($upload['check'] === 'success') {
-
-        // delete old file only if updating
-        if ($isUpdate && !empty($hidden) && file_exists(USER_UPLOAD_DIR . $dir . '/' . $hidden)) {
-          unlink(USER_UPLOAD_DIR . $dir . '/' . $hidden);
-        }
-
-        return $upload['fileName'];
+      $input    = $config['input'];
+      $hidden   = $config['hidden'] ?? '';
+      $default  = $config['default'] ?? null;
+      $dir      = $config['dir'];
+      $isUpdate = $config['isUpdate'] ?? false;
+  
+      // New file uploaded
+      if (!empty($_FILES[$input]['size'])) {
+  
+          $upload = $this->upload_file($input, $dir);
+  
+          if ($upload['check'] === 'success') {
+  
+              // Delete old file only when updating
+              if (
+                  $isUpdate &&
+                  !empty($hidden) &&
+                  file_exists(USER_UPLOAD_DIR . $dir . '/' . $hidden)
+              ) {
+                  unlink(USER_UPLOAD_DIR . $dir . '/' . $hidden);
+              }
+  
+              return $upload['fileName'];
+          }
+  
+          // Upload was attempted but failed
+          return $default;
       }
-
+  
+      // No new file uploaded:
+      // Keep the existing/hidden file if one exists
+      if (!empty($hidden)) {
+          return $hidden;
+      }
+  
+      // No new file and no existing file
       return $default;
-    }
-
-    // fallback
-    if ($isUpdate && !empty($hidden)) {
-      return $hidden;
-    }
-
-    return $default;
   }
 
   public function upload_file($file_name, $dir)

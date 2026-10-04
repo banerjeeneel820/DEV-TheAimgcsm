@@ -179,7 +179,7 @@
 
                                 <div class="form-group row"><label class="col-sm-2 col-form-label text-right">Franchise Description <span class="cursor-pointer" data-toggle="tooltip" data-placement="bottom" title="Enter a event details"><i class="fa fa-question-circle"></i></span></label>
                                         <div class="col-sm-10">
-                                            <textarea class="summernote" name="fran_description">
+                                            <textarea class="tinymce" name="fran_description">
                                                <?=(isset($franDetailArr)?$franDetailArr->fran_description:'')?>
                                           </textarea>
                                       </div>
@@ -248,8 +248,23 @@
                  radioClass: 'iradio_square-green',
              });
              
-             /*Summernote HTML5 Text Editor*/
-             $('.summernote').summernote();
+              /*Tinymce HTML5 Text Editor*/
+              tinyMCE.init({
+                selector: 'textarea.tinymce',
+                height: 300,
+                plugins: "link image media code",
+                toolbar: 'undo redo | styleselect | forecolor | bold italic | alignleft aligncenter alignright alignjustify | '+
+                         'outdent indent | media | link image | code',
+                setup : function(ed){
+                     ed.on('NodeChange', function(e){
+                         tinyMCE.triggerSave();
+                         $("#" + ed.id).valid();
+                         //console.log('the event object ' + e);
+                         //console.log('the editor object ' + ed);
+                         //console.log('the content ' + ed.getContent());
+                     });
+                }
+            });
             /*------- Ends Here ---------*/
 
             //function to check unique email id for user  
