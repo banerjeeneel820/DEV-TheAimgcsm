@@ -49,7 +49,7 @@ class UtilityService
     | Manage queue jobs helper methods
     |--------------------------------------------------------------------------
     */ 
-    public function checkTaskStatus($job_type)
+    public function checkTaskStatus($job_type = null)
     {
         return $this->model->check_Task_Status($job_type);
     }

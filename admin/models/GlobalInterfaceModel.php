@@ -4609,6 +4609,47 @@ class GlobalInterfaceModel extends BaseModel
       return $resultArr;
    }
 
+   public function fetch_Gallery_Count($params = [])
+   {
+      $queryParams = [];
+      $where = [];
+
+      // Record status
+      $recordStatus = $params['record_status'] ?? 'active';
+
+      $where[] = "g.record_status = ?";
+      $queryParams[] = $recordStatus;
+
+      $whereSql = !empty($where)
+         ? "WHERE " . implode(" AND ", $where)
+         : "";
+
+      $sqlBase = "
+           FROM " . DB_AIMGCSM . "." . TABLEPREFIX . "gallery g
+   
+           LEFT JOIN " . DB_AIMGCSM . "." . TABLEPREFIX . "post_category poc
+               ON g.id = poc.post_id
+               AND poc.post_type = 'gallery'
+   
+           LEFT JOIN " . DB_AIMGCSM . "." . TABLEPREFIX . "parent_category pc
+               ON poc.category_id = pc.id
+   
+           $whereSql
+       ";
+      
+      // Count total matching records
+      $sqlRowCount = "
+      SELECT g.id
+      $sqlBase
+      GROUP BY g.id
+      ";
+
+      // Debug
+      // $this->debugQuery($sqlRowCount, $queryParams);
+
+      return $this->global_Rows_Count_DB($sqlRowCount, $queryParams);
+   }
+
    public function fetch_Gallery_Item_Detail($params = [])
    {
       $mediaId = (int) ($params['media_id'] ?? 0);

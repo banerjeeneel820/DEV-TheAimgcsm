@@ -163,4 +163,11 @@ return [
         );
     },
 
+    'dashboardService' => function ($container) {
+        return new DashboardService(
+            $container->get('interfaceModel'),
+            $container->get('lib')
+        );
+    },
+
 ];

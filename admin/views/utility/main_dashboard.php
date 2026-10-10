@@ -816,8 +816,8 @@ $backupLimit = $_SESSION['user_type'] == "developer" ? true : ($_COOKIE["backupC
               data: formData,
               beforeSend: function() {
                 //$('.tooltip').hide();
-                $("#createServerBackup").prop("disabled", true);
-                $('.content_div_loader').addClass('sk-loading');
+                //$("#createServerBackup").prop("disabled", true);
+                //$('.content_div_loader').addClass('sk-loading');
               },
               success: function(responseData) {
                 var result = JSON.parse(responseData);

@@ -59,9 +59,13 @@ class RouteDispatcher extends BaseController
           }
      }
 
-     private function mergeWithGlobal($pageData)
+     private function mergeWithGlobal($pageData = [])
      {
-          return array_merge($this->globalReturnArr, $pageData);
+          if(!empty($pageData)){
+               return array_merge($this->globalReturnArr, $pageData);
+          }else{
+               return $this->globalReturnArr;
+          }
      }
 
      private function errorPage($status = 404)

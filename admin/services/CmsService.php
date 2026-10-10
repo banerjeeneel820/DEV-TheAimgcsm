@@ -20,6 +20,12 @@ class CmsService
             ->fetch_Gallery_Arr($params);
     }
 
+    public function fetchGalleryCount($params)
+    {
+        return $this->model
+            ->fetch_Gallery_Count($params);
+    }
+
     public function getGalleryCategories($type)
     {
         return $this->model

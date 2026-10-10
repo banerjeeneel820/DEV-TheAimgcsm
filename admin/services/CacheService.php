@@ -15,20 +15,27 @@ class CacheService
         }
     }
 
-    public function get($key, callable $callback)
+
+    public function get($key, callable $callback, $ttl = 86400)
     {
+        // Development and other non-production environments
         if ($this->mem === null) {
             return $callback();
         }
 
+        // Attempt to read cached data
         $data = $this->mem->get($key);
 
-        if ($data !== false) { // important fix
+        // Do not use a truthiness check: an empty array can be valid cached data
+        if ($data !== false) {
             return $data;
         }
 
+        // Cache miss: fetch fresh data
         $data = $callback();
-        $this->mem->set($key, $data);
+
+        // Store for the configured duration
+        $this->mem->set($key, $data, $ttl);
 
         return $data;
     }

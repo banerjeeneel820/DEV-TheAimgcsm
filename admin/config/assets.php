@@ -196,4 +196,12 @@ return [
         'groups' => ['common', 'iCheck','fancybox']
     ],
 
+    'dashboard' => [
+        'groups' => ['common', 'iCheck','footable', 'printThis', 'fancybox']
+    ],
+
+    'student_exam_dashboard' => [
+        'groups' => ['common', 'datatable', 'prettycheckbox']
+    ],
+
 ];

@@ -18,7 +18,7 @@ $receiptListArr = $pageContent['pageData']['receipt_data']['data'];
 $receiptCount = $pageContent['pageData']['receipt_data']['row_count'];
 
 //Configiring gallery data
-$galleryListArr = $pageContent['pageData']['gallery_data'];
+$galleryCount = $pageContent['pageData']['gallery_data'];
 
 //Configiring news data
 $newsListArr = $pageContent['pageData']['news_data'];
@@ -195,8 +195,8 @@ $backupLimit = $_SESSION['user_type'] == "developer" ? true : ($_COOKIE["backupC
             <h5><i class="fa fa-picture-o"></i> Gallery</h5>
           </div>
           <div class="ibox-content">
-            <h1 class="no-margins"><?= count($galleryListArr) ?></h1>
-            <div class="stat-percent font-bold text-danger"><?= count($galleryListArr) ?> <i class="fa fa-picture-o"></i></div>
+            <h1 class="no-margins"><?= $galleryCount ?></h1>
+            <div class="stat-percent font-bold text-danger"><?= $galleryCount ?> <i class="fa fa-picture-o"></i></div>
             <small>Total Pictures</small>
           </div>
         </div>
