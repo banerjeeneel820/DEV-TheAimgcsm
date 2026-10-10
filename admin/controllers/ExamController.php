@@ -562,6 +562,41 @@ class ExamController extends BaseController
     | Student exam's handler methods
     |--------------------------------------------------------------------------
     */
+    public function manage_start_exam_view($data)
+    {
+        // Page configuration
+        $assets = Asset::load("start_exam");
+
+        // Get and validate exam ID
+        $examId = (int) ($data['exm_id'] ?? 0);
+
+        // Default permission and page data
+        $permission = $examId > 0;
+
+        $pageData = [
+            'page_type'    => 'exams',
+            'exam_details' => [],
+            'questions'    => []
+        ];
+
+        // Fetch exam details and questions only for a valid ID
+        if ($permission) {
+            $pageData['exam_details'] = $this->examService
+                ->getStudentExamDetail($examId);
+
+            $pageData['questions'] = $this->examService
+                ->getExamQuestions($examId);
+        }
+
+        return $this->page(
+            $pageData,
+            'Start Exam',
+            $assets,
+            false,
+            $permission
+        );
+    }
+
     public function set_exam_validation_log($data)
     {
         //Declaring necessary variables

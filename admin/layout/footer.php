@@ -74,7 +74,7 @@ if (!empty($jsPluginArr)) {
 
 <?php if ($_GET['route'] == "start_exam") { ?>
   <!-- <script src="<?= RESOURCE_URL ?>js/plugins/smooth-scrollbar/smooth-scrollbar.js"></script> -->
-  <script src="<?= RESOURCE_URL ?>js/plugins/count-timer/countDown.js"></script>
+  <script type="text/javascript" src="<?= RESOURCE_URL ?>js/plugins/count-timer/countDown.js"></script>
 <?php } ?>
 
 <!-- Theme Custom js -->

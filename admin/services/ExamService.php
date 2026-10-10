@@ -222,6 +222,11 @@ class ExamService
     | Student exam's handler methods
     |--------------------------------------------------------------------------
     */
+    public function getStudentExamDetail($examId)
+    {
+        return $this->model->fetch_Student_Exam_Detail($examId);
+    }
+
     public function updateExamValidationLog($formDataArr)
     {
         return $this->model->update_Exam_Validation_Log($formDataArr);

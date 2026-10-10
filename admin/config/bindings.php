@@ -1,7 +1,20 @@
 <?php
 defined('ROOTPATH') or exit('No direct script access allowed');
 
-return [
+/*
+|--------------------------------------------------------------------------
+| Model Registry
+|--------------------------------------------------------------------------
+*/
+
+$modelBindings = [
+    'interfaceModel' => GlobalInterfaceModel::class,
+    'authModel'   => AuthModel::class,
+    'cmsModel'   => CmsModel::class,
+    
+];
+
+$bindings = [
 
     /*
     |--------------------------------------------------------------------------
@@ -25,11 +38,11 @@ return [
     |--------------------------------------------------------------------------
     */
 
-    'interfaceModel' => function ($container) {
-        return new GlobalInterfaceModel(
-            $container->get('db')
-        );
-    },
+    // 'interfaceModel' => function ($container) {
+    //     return new GlobalInterfaceModel(
+    //         $container->get('db')
+    //     );
+    // },
 
     /*
     |--------------------------------------------------------------------------
@@ -135,13 +148,6 @@ return [
         );
     },
 
-    'utilityService' => function ($container) {
-        return new UtilityService(
-            $container->get('interfaceModel'),
-            $container->get('lib')
-        );
-    },
-
     'newsService' => function ($container) {
         return new NewsService(
             $container->get('interfaceModel'),
@@ -171,3 +177,23 @@ return [
     },
 
 ];
+
+/*
+|--------------------------------------------------------------------------
+| REGISTER MODEL BINDINGS
+|--------------------------------------------------------------------------
+*/
+
+foreach ($modelBindings as $key => $modelClass) {
+
+    $bindings[$key] = function ($container) use ($modelClass) {
+
+        return new $modelClass(
+            $container->get('db')
+        );
+
+    };
+
+}
+
+return $bindings;

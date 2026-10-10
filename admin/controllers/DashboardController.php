@@ -164,7 +164,7 @@ class DashboardController extends BaseController
 
             // Retrieve franchise details
             $franchise = $this->courseFranchiseService
-                ->getFranchiseDetail($userId);
+                ->getSingleFranchise($userId);
 
             $ownedStatus = is_object($franchise)
                 ? ($franchise->owned_status ?? 'no')
@@ -226,7 +226,7 @@ class DashboardController extends BaseController
         $recordStatus = $data['record_status'] ?? 'active';
 
         // Fetch exam records through the service layer
-        $examData = $this->examService->getExamData([
+        $examData = $this->examService->getViewExams([
             'record_status' => $recordStatus
         ]);
 

@@ -204,4 +204,8 @@ return [
         'groups' => ['common', 'datatable', 'prettycheckbox']
     ],
 
+    'start_exam' => [
+        'groups' => ['common', 'iCheck']
+    ],
+
 ];
