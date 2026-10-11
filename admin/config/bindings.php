@@ -10,7 +10,14 @@ defined('ROOTPATH') or exit('No direct script access allowed');
 $modelBindings = [
     'interfaceModel' => GlobalInterfaceModel::class,
     'authModel'   => AuthModel::class,
+    'permissionModel'   => PermissionModel::class,
     'cmsModel'   => CmsModel::class,
+    'courseFranchiseModel'   => CourseFranchiseModel::class,
+    'dashboardModel'   => DashboardModel::class,
+    'examModel'   => ExamModel::class,
+    'newsModel'   => NewsModel::class,
+    'StudentModel'   => StudentModel::class,
+    'studentReceiptModel'   => StudentReceiptModel::class,
     
 ];
 

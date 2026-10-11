@@ -2060,7 +2060,6 @@ class GlobalInterfaceModel extends BaseModel
       return $resultArr;
    }
 
-
    public function fetch_Parent_Category($params = [])
    {
       $queryParams = [];
