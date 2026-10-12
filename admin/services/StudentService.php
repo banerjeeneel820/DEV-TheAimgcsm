@@ -4,7 +4,7 @@ defined('ROOTPATH') or exit('No direct script access allowed');
 class StudentService
 {
     public function __construct(
-        private GlobalInterfaceModel $model,
+        private StudentModel $studentModel,
         private GlobalLibraryHandler $lib,
         private PermissionService $permissionService,
         private CacheService $cacheService,
@@ -65,7 +65,7 @@ class StudentService
 
     public function getviewStudents($filters)
     {
-        return  $this->model->fetch_Global_Student($filters);
+        return  $this->studentModel->fetch_Global_Student($filters);
     }
 
     /*
@@ -82,7 +82,7 @@ class StudentService
 
     public function getStudentDataWithAccessCheck($studentId)
     {
-        $student = $this->model
+        $student = $this->studentModel
             ->fetch_Global_Single_Student($studentId);
 
         if (empty($student)) {
@@ -107,7 +107,7 @@ class StudentService
     public function create_Student_ID()
     {
         //Creating new Student id method
-        $stuIdDetail = $this->model->fetch_Last_Student_Detail();
+        $stuIdDetail = $this->studentModel->fetch_Last_Student_Detail();
         $lst_stu_id = $stuIdDetail['lst_stu_id'];
 
         if (!empty($lst_stu_id)) {
@@ -131,7 +131,7 @@ class StudentService
         $isUpdate = !empty($stuId) && $stuId !== "null";
 
         $student = $isUpdate
-            ? $this->model->fetch_Detail_Single_Student($stuId)
+            ? $this->studentModel->fetch_Detail_Single_Student($stuId)
             : null;
 
         if ($isUpdate && empty($student)) {
@@ -144,7 +144,7 @@ class StudentService
         $ownedStatus = "yes";
 
         if ($userType === "franchise") {
-            $franchise = $this->model->fetch_Global_Single_Franchise($userId);
+            $franchise = $this->studentModel->fetch_Global_Single_Franchise($userId);
             $ownedStatus = $franchise->owned_status;
 
             if ($isUpdate && $student->franchise_id != $userId) {
@@ -384,7 +384,7 @@ class StudentService
 
     public function saveStudent($formData)
     {
-        return $this->model->manage_Global_Student($formData);
+        return $this->studentModel->manage_Global_Student($formData);
     }
 
     public function handlePostSave($result, $formData, $context, $upload)
@@ -488,18 +488,18 @@ class StudentService
 
     public function fetchReceiptCategory($category)
     {
-        return  $this->model->fetch_Single_Parent_Category($category);
+        return  $this->studentModel->fetch_Single_Parent_Category($category);
     }
 
     public function resolveAdmissionStudentData($studentId, $tmpId)
     {
         if (!empty($studentId)) {
-            return $this->model
+            return $this->studentModel
                 ->fetch_Global_Single_Student($studentId) ?: [];
         }
 
         if (!empty($tmpId)) {
-            return $this->model
+            return $this->studentModel
                 ->fetch_Tmp_Single_Student($tmpId) ?: [];
         }
 
@@ -508,7 +508,7 @@ class StudentService
 
     public function fetchFreshStudents($filters)
     {
-        return  $this->model->fetch_Fresh_Students($filters);
+        return  $this->studentModel->fetch_Fresh_Students($filters);
     }
 
     /*
@@ -533,7 +533,7 @@ class StudentService
 
     public function getStudentOrFail($studentId)
     {
-        $student = $this->model->fetch_Detail_Single_Student($studentId);
+        $student = $this->studentModel->fetch_Detail_Single_Student($studentId);
 
         if (empty($student)) {
             return ['check' => 'failure', 'message' => 'Student not found'];
@@ -587,7 +587,7 @@ class StudentService
 
     public function manageStudentAdmission($formattedPayload)
     {
-        return $this->model->manage_Student_Admission($formattedPayload);
+        return $this->studentModel->manage_Student_Admission($formattedPayload);
     }
 
     private function resolveFranchiseLogic($post, $isUpdate, $studentDetail, $data)
@@ -625,7 +625,7 @@ class StudentService
 
             if ($receipt['check'] === 'failure') {
 
-                $this->model->delete_Student_By_Id($formData['stu_id']);
+                $this->studentModel->delete_Student_By_Id($formData['stu_id']);
 
                 return [
                     'check'   => 'failure',
@@ -642,7 +642,7 @@ class StudentService
         $id = $post('id');
 
         if (!empty($id)) {
-            $this->model->update_Tmp_Student_Conversion_Status($id, 'y');
+            $this->studentModel->update_Tmp_Student_Conversion_Status($id, 'y');
         }
     }
 
@@ -680,7 +680,7 @@ class StudentService
             'record_status'          => 'active'
         ];
 
-        return $this->model
+        return $this->studentModel
             ->create_Student_Admission_Receipt($receiptFormArr);
     }
 
@@ -691,7 +691,7 @@ class StudentService
     */
     public function fetchTmpSingleStudent($id)
     {
-        return $this->model->fetch_Tmp_Single_Student($id);
+        return $this->studentModel->fetch_Tmp_Single_Student($id);
     }
 
     public function prepareTempStudentFilters($data)
@@ -787,7 +787,7 @@ class StudentService
 
     public function fetchTmpStudents($filters)
     {
-        return $this->model->fetch_Tmp_Students($filters);
+        return $this->studentModel->fetch_Tmp_Students($filters);
     }
 
     /*
@@ -797,7 +797,7 @@ class StudentService
     */
     public function fetchTempStudentDetails($id)
     {
-        return $this->model->fetch_Detail_Single_Student($id);
+        return $this->studentModel->fetch_Detail_Single_Student($id);
     }
 
     public function create_Tmp_Student_ID($min = 999, $max = 999999, $quantity = 1)
@@ -811,7 +811,7 @@ class StudentService
 
     public function saveTempStudent($formDataArr)
     {
-        return $this->model->manage_Temp_Student($formDataArr);
+        return $this->studentModel->manage_Temp_Student($formDataArr);
     }
 
     /*
@@ -821,12 +821,12 @@ class StudentService
     */
     public function saveStudentStatus($formDataArr)
     {
-        return $this->model->manage_Student_Status($formDataArr);
+        return $this->studentModel->manage_Student_Status($formDataArr);
     }
 
     public function saveBulkStudentStatus($formDataArr)
     {
-        return $this->model->update_Bulk_Student_Status($formDataArr);
+        return $this->studentModel->update_Bulk_Student_Status($formDataArr);
     }
 
     /*
@@ -836,6 +836,6 @@ class StudentService
     */
     public function fetchStudentDetails($id)
     {
-        return $this->model->fetch_Global_Single_Student($id);
+        return $this->studentModel->fetch_Global_Single_Student($id);
     }
 }

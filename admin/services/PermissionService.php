@@ -4,7 +4,7 @@ defined('ROOTPATH') or exit('No direct script access allowed');
 class PermissionService
 {   
     public function __construct(
-        private GlobalInterfaceModel $model,
+        private PermissionModel $permissionModel,
         private GlobalLibraryHandler $lib,
     ){}
 
@@ -15,7 +15,7 @@ class PermissionService
 
         // Fetch roles
         if ($fetch_type === "hard") {
-            $userRoleArr = $this->model->fetch_Current_User_Role($paramArr);
+            $userRoleArr = $this->permissionModel->fetch_Current_User_Role($paramArr);
         } else {
             $userRoleArr = $_SESSION['user_role'] ?? [];
         }

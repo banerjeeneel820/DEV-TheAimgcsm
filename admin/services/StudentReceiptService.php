@@ -5,7 +5,7 @@ class StudentReceiptService
 {
 
     public function __construct(
-        private GlobalInterfaceModel $model,
+        private StudentReceiptModel $studentReceiptModel,
         private GlobalLibraryHandler $lib,
         private PermissionService $permissionService,
         private CacheService $cacheService,
@@ -20,27 +20,27 @@ class StudentReceiptService
     */
     public function fetchReceiptCategory($category)
     {
-        return  $this->model->fetch_Single_Parent_Category($category);
+        return  $this->studentReceiptModel->fetch_Single_Parent_Category($category);
     }
 
     public function fetchStudentDetails($id)
     {
-        return $this->model->fetch_Global_Single_Student($id);
+        return $this->studentReceiptModel->fetch_Global_Single_Student($id);
     }
 
     public function fetchReceiptDetails($id)
     {
-        return $this->model->fetch_Single_Receipt_Data($id);
+        return $this->studentReceiptModel->fetch_Single_Receipt_Data($id);
     }
 
     public function fetchReceiptData($filters)
     {
-        return $this->model->fetch_Global_Receipt($filters);
+        return $this->studentReceiptModel->fetch_Global_Receipt($filters);
     }
 
     public function fetchStudentReceiptSummary($filters)
     {
-        return $this->model->fetch_Student_Receipt_Summary($filters);
+        return $this->studentReceiptModel->fetch_Student_Receipt_Summary($filters);
     }
 
     public function prepareReceiptFilters($data)
@@ -200,7 +200,7 @@ class StudentReceiptService
             return null;
         }
 
-        return $this->model
+        return $this->studentReceiptModel
             ->fetch_Receipt_Detail(
                 $payload['receipt_row_id']
             );
@@ -276,7 +276,7 @@ class StudentReceiptService
         }
 
         $studentDetailArr =
-            $this->model
+            $this->studentReceiptModel
             ->fetch_Detail_Single_Student($studentId);
 
         if (
@@ -417,7 +417,7 @@ class StudentReceiptService
     public function create_Receipt_ID()
     {
         //Creating new Franchise id method
-        $receiptDetail = $this->model->fetch_Last_Receipt_Detail();
+        $receiptDetail = $this->studentReceiptModel->fetch_Last_Receipt_Detail();
         $last_rcpt_id = $receiptDetail[0]->receipt_id;
 
         if ($last_rcpt_id != null) {
@@ -434,7 +434,7 @@ class StudentReceiptService
 
     public function saveReceiptData($savePayload)
     {
-        return $this->model
+        return $this->studentReceiptModel
             ->manage_Student_Receipt($savePayload);
     }
 
@@ -469,7 +469,7 @@ class StudentReceiptService
                 $saveResult['last_insert_id'];
 
             $receiptDetails =
-                $this->model
+                $this->studentReceiptModel
                 ->fetch_Single_Receipt_Data($receipt_id);
 
             $this->cacheService
@@ -755,7 +755,7 @@ class StudentReceiptService
 
         return json_decode(
             json_encode(
-                $this->model
+                $this->studentReceiptModel
                     ->fetch_Receipt_Collection($filters)
             ),
             true
@@ -787,7 +787,7 @@ class StudentReceiptService
         // -----------------------------
         // FETCH DATA
         // -----------------------------
-        $tmpStudent = $this->model->fetch_Tmp_Single_Student($id);
+        $tmpStudent = $this->studentReceiptModel->fetch_Tmp_Single_Student($id);
 
         if (empty($tmpStudent)) {
             return ['check' => 'failure', 'message' => 'Student not found'];
@@ -815,8 +815,8 @@ class StudentReceiptService
         // -----------------------------
         // PREPARE DATA
         // -----------------------------
-        $site = $this->model->fetch_Global_Site_Setting_Detail();
-        $template = $this->model
+        $site = $this->studentReceiptModel->fetch_Global_Site_Setting_Detail();
+        $template = $this->studentReceiptModel
             ->fetch_Email_Template_Detail('student-temp-receipt-invoice')->template;
 
         $swap = $this->buildTempReceiptTemplateVars($tmpStudent, $site);
@@ -848,7 +848,7 @@ class StudentReceiptService
         // -----------------------------
         // FETCH DATA
         // -----------------------------
-        $receipt = $this->model
+        $receipt = $this->studentReceiptModel
             ->fetch_Single_Receipt_Data($receipt_id);
 
         if (empty($receipt)) {
@@ -870,8 +870,8 @@ class StudentReceiptService
         // -----------------------------
         $email_code = $this->getStuReceiptEmailCode($receipt->category);
 
-        $site = $this->model->fetch_Global_Site_Setting_Detail();
-        $template = $this->model->fetch_Email_Template_Detail($email_code);
+        $site = $this->studentReceiptModel->fetch_Global_Site_Setting_Detail();
+        $template = $this->studentReceiptModel->fetch_Email_Template_Detail($email_code);
 
         // -----------------------------
         // CALCULATIONS
@@ -965,11 +965,11 @@ class StudentReceiptService
             $filters['fetchType'] === 'dueList'
         ) {
 
-            return $this->model
+            return $this->studentReceiptModel
                 ->fetch_Due_Students_Data($filters);
         }
 
-        return $this->model
+        return $this->studentReceiptModel
             ->fetch_Updated_Markup_Students_Data($filters);
     }
 }

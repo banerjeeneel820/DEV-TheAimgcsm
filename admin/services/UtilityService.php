@@ -5,7 +5,7 @@ class UtilityService
 {
 
     public function __construct(
-        private GlobalInterfaceModel $model,
+        private UtilityModel $utilityModel,
         private GlobalLibraryHandler $lib,
     ){}
 
@@ -16,17 +16,17 @@ class UtilityService
     */    
     public function updateRecordStatus($type, $ids, $status)
     {
-        return $this->model->update_Global_Record_Status($type, $ids, $status);
+        return $this->utilityModel->update_Global_Record_Status($type, $ids, $status);
     }
 
     public function updateFeaturedStatus($type, $ids, $status)
     {
-        return $this->model->update_Global_Featured_Status($type, $ids, $status);
+        return $this->utilityModel->update_Global_Featured_Status($type, $ids, $status);
     }
 
     public function updateVerified_Status($type, $ids, $status)
     {
-        return $this->model->update_Global_Verified_Status($type, $ids, $status);
+        return $this->utilityModel->update_Global_Verified_Status($type, $ids, $status);
     }
 
     /*
@@ -36,12 +36,12 @@ class UtilityService
     */ 
     public function fetchMultipleRecordData($type, $ids)
     {
-        return $this->model->fetch_Global_Multiple_Data($type, $ids);
+        return $this->utilityModel->fetch_Global_Multiple_Data($type, $ids);
     }
 
     public function deleteRecordData($paramArr)
     {
-        return $this->model->delete_Global_Data($paramArr);
+        return $this->utilityModel->delete_Global_Data($paramArr);
     }
 
     /*
@@ -51,12 +51,12 @@ class UtilityService
     */ 
     public function checkTaskStatus($job_type = null)
     {
-        return $this->model->check_Task_Status($job_type);
+        return $this->utilityModel->check_Task_Status($job_type);
     }
 
     public function manageQueueJobs($payload)
     {
-        return $this->model->manage_Queue_Jobs($payload);
+        return $this->utilityModel->manage_Queue_Jobs($payload);
     }
 
     /*
@@ -66,12 +66,12 @@ class UtilityService
     */ 
     public function getSiteSettings()
     {
-        return $this->model->fetch_Global_Site_Setting_Detail();
+        return $this->utilityModel->fetch_Global_Site_Setting_Detail();
     }
     
     public function updateSiteSetting($payload)
     {
-        return $this->model->update_Global_Site_Setting($payload);
+        return $this->utilityModel->update_Global_Site_Setting($payload);
     }
 
     

@@ -18,7 +18,8 @@ $modelBindings = [
     'newsModel'   => NewsModel::class,
     'StudentModel'   => StudentModel::class,
     'studentReceiptModel'   => StudentReceiptModel::class,
-    
+    'templateModel'   => TemplateModel::class,
+    'utilityModel'   => UtilityModel::class,
 ];
 
 $bindings = [
@@ -71,7 +72,14 @@ $bindings = [
 
     'permissionService' => function ($container) {
         return new PermissionService(
-            $container->get('interfaceModel'),
+            $container->get('permissionModel'),
+            $container->get('lib')
+        );
+    },
+
+    'authService' => function ($container) {
+        return new AuthService(
+            $container->get('authModel'),
             $container->get('lib')
         );
     },
@@ -107,21 +115,21 @@ $bindings = [
 
     'utilityService' => function ($container) {
         return new UtilityService(
-            $container->get('interfaceModel'),
+            $container->get('utilityModel'),
             $container->get('lib'),
         );
     },
 
     'courseFranchiseService' => function ($container) {
         return new CourseFranchiseService(
-            $container->get('interfaceModel'),
+            $container->get('courseFranchiseModel'),
             $container->get('lib')
         );
     },
 
     'studentService' => function ($container) {
         return new StudentService(
-            $container->get('interfaceModel'),
+            $container->get('studentModel'),
             $container->get('lib'),
             $container->get('permissionService'),
             $container->get('cacheService'),
@@ -132,7 +140,7 @@ $bindings = [
 
     'studentReceiptService' => function ($container) {
         return new StudentReceiptService(
-            $container->get('interfaceModel'),
+            $container->get('studentReceiptModel'),
             $container->get('lib'),
             $container->get('permissionService'),
             $container->get('cacheService'),
@@ -142,7 +150,7 @@ $bindings = [
 
     'examService' => function ($container) {
         return new ExamService(
-            $container->get('interfaceModel'),
+            $container->get('examModel'),
             $container->get('lib'),
             $container->get('permissionService'),
         );
@@ -150,35 +158,28 @@ $bindings = [
 
     'cmsService' => function ($container) {
         return new CmsService(
-            $container->get('interfaceModel'),
+            $container->get('cmsModel'),
             $container->get('lib')
         );
     },
 
     'newsService' => function ($container) {
         return new NewsService(
-            $container->get('interfaceModel'),
+            $container->get('newsModel'),
             $container->get('lib')
         );
     },
 
     'templateService' => function ($container) {
         return new TemplateService(
-            $container->get('interfaceModel'),
-            $container->get('lib')
-        );
-    },
-
-    'authService' => function ($container) {
-        return new AuthService(
-            $container->get('interfaceModel'),
+            $container->get('templateModel'),
             $container->get('lib')
         );
     },
 
     'dashboardService' => function ($container) {
         return new DashboardService(
-            $container->get('interfaceModel'),
+            $container->get('dashboardModel'),
             $container->get('lib')
         );
     },
@@ -198,9 +199,7 @@ foreach ($modelBindings as $key => $modelClass) {
         return new $modelClass(
             $container->get('db')
         );
-
     };
-
 }
 
 return $bindings;

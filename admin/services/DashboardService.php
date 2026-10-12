@@ -4,7 +4,7 @@ defined('ROOTPATH') or exit('No direct script access allowed');
 class DashboardService
 {
     public function __construct(
-        private GlobalInterfaceModel $model,
+        private DashboardModel $dashboardModel,
         private GlobalLibraryHandler $lib,
     ) {
     }
@@ -21,11 +21,11 @@ class DashboardService
 
     public function getStudentDashboardData($params = [])
     {
-        return $this->model->fetch_Dashboard_Student_Data($params);
+        return $this->dashboardModel->fetch_Dashboard_Student_Data($params);
     }
 
     public function getReceiptDashboardData($params = [])
     {
-        return $this->model->fetch_Dashboard_Receipt_Data($params);
+        return $this->dashboardModel->fetch_Dashboard_Receipt_Data($params);
     }
 }

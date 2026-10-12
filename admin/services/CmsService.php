@@ -4,7 +4,7 @@ defined('ROOTPATH') or exit('No direct script access allowed');
 class CmsService
 {
     public function __construct(
-        private GlobalInterfaceModel $model,
+        private CmsModel $cmsModel,
         private GlobalLibraryHandler $lib,
     ) {
     }
@@ -16,19 +16,19 @@ class CmsService
     */
     public function getGalleryList($params)
     {
-        return $this->model
+        return $this->cmsModel
             ->fetch_Gallery_Arr($params);
     }
 
     public function fetchGalleryCount($params)
     {
-        return $this->model
+        return $this->cmsModel
             ->fetch_Gallery_Count($params);
     }
 
     public function getGalleryCategories($type)
     {
-        return $this->model
+        return $this->cmsModel
             ->fetch_Single_Parent_Category($type);
     }
 
@@ -37,7 +37,7 @@ class CmsService
         $params = [];
         $params['media_id'] = $media_id;
 
-        return $this->model
+        return $this->cmsModel
             ->fetch_Gallery_Item_Detail($params);
     }
 
@@ -48,17 +48,17 @@ class CmsService
     */
     public function saveGalleryData($formDataArr)
     {
-        return $this->model->manage_Global_Media($formDataArr);
+        return $this->cmsModel->manage_Global_Media($formDataArr);
     }
 
     public function editPostCategory($formDataArr)
     {
-        return $this->model->edit_Post_Category($formDataArr);
+        return $this->cmsModel->edit_Post_Category($formDataArr);
     }
 
     public function fetchSingleParentCategory($type)
     {
-        return $this->model->fetch_Single_Parent_Category($type);
+        return $this->cmsModel->fetch_Single_Parent_Category($type);
     }
 
     /*
@@ -71,7 +71,7 @@ class CmsService
         $params = [];
         $params['record_status'] = $recordStatus;
 
-        return $this->model
+        return $this->cmsModel
             ->fetch_Parent_Category($params);
     }
 
@@ -82,7 +82,7 @@ class CmsService
     */
     public function manageParentCategory($formDataArr)
     {
-        return $this->model->manage_Parent_Category($formDataArr);
+        return $this->cmsModel->manage_Parent_Category($formDataArr);
     }
 
     /*
@@ -92,8 +92,8 @@ class CmsService
     */
     public function getSliderData($params)
     {
-        // Refactor model method first
-        return $this->model
+        // Refactor $this->cmsModel method first
+        return $this->cmsModel
             ->fetch_Slider_Arr($params);
     }
 
@@ -102,8 +102,8 @@ class CmsService
         $params = [];
         $params['slider_id'] = $id;
 
-        // Refactor model method first
-        return $this->model
+        // Refactor $this->cmsModel method first
+        return $this->cmsModel
             ->fetch_Slider_Detail($params);
     }
 
@@ -124,7 +124,7 @@ class CmsService
         // Save Slider
         // -----------------------------
 
-        $returnArr = $this->model->manage_Home_Slider($formDataArr);
+        $returnArr = $this->cmsModel->manage_Home_Slider($formDataArr);
 
         // -----------------------------
         // Handle Save Failure
@@ -190,7 +190,7 @@ class CmsService
     */
     public function getCityData($params = [])
     {
-        return $this->model
+        return $this->cmsModel
             ->fetch_Global_Cities($params);
     }
 
@@ -201,7 +201,7 @@ class CmsService
     */
     public function manageGlobalCity(array $formDataArr)
     {
-        return $this->model->manage_Global_City($formDataArr);
+        return $this->cmsModel->manage_Global_City($formDataArr);
     }
 
     /*
@@ -211,6 +211,6 @@ class CmsService
     */
     public function getEnquiryData($params = [])
     {
-        return $this->model->fetch_Global_Enquiry($params);
+        return $this->cmsModel->fetch_Global_Enquiry($params);
     }
 }

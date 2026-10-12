@@ -4,7 +4,7 @@ defined('ROOTPATH') or exit('No direct script access allowed');
 class TemplateService
 {
     public function __construct(
-        private GlobalInterfaceModel $model,
+        private TemplateModel $templateModel,
         private GlobalLibraryHandler $lib,
     ) {
     }
@@ -19,7 +19,7 @@ class TemplateService
         $params = [];
         $params['record_status'] = $record_status;
 
-        return $this->model->fetch_Email_Templates($params);
+        return $this->templateModel->fetch_Email_Templates($params);
     }
 
     /*
@@ -29,7 +29,7 @@ class TemplateService
     */
     public function getEmailTemplateDetail($template_id)
     {
-        return $this->model->fetch_Global_Email_Template_Detail($template_id);
+        return $this->templateModel->fetch_Global_Email_Template_Detail($template_id);
     }
 
     /*
@@ -51,7 +51,7 @@ class TemplateService
         // Code Availability Check
         // -----------------------------
 
-        $existingTemplate = $this->model
+        $existingTemplate = $this->templateModel
             ->check_Slug_Availibility(
                 'email_template',
                 'code',
@@ -83,7 +83,7 @@ class TemplateService
         // Save Template
         // -----------------------------
 
-        return $this->model
+        return $this->templateModel
             ->manage_Global_Email_Template($formDataArr);
     }
 }

@@ -5,7 +5,7 @@ class AuthService
 {
 
     public function __construct(
-        private GlobalInterfaceModel $model,
+        private AuthModel $authModel,
         private GlobalLibraryHandler $lib,
     ){}
 
@@ -16,7 +16,7 @@ class AuthService
     */
     public function checkUserLogin($params)
     {
-        return $this->model->check_User_Login($params);
+        return $this->authModel->check_User_Login($params);
     }
 
     /*
@@ -26,7 +26,7 @@ class AuthService
     */
     public function getDevProfileData($user_id)
     {
-        return $this->model->fetch_Developer_Profile_Data($user_id);
+        return $this->authModel->fetch_Developer_Profile_Data($user_id);
     }
 
     /*
@@ -36,7 +36,7 @@ class AuthService
     */
     public function getAdminProfileData($user_id)
     {
-        return $this->model->fetch_Admin_Profile_Data($user_id);
+        return $this->authModel->fetch_Admin_Profile_Data($user_id);
     }
 
     /*
@@ -46,7 +46,7 @@ class AuthService
     */
     public function getFranchiseProfileData($user_id)
     {
-        return $this->model->fetch_Global_Single_Franchise($user_id);
+        return $this->authModel->fetch_Global_Single_Franchise($user_id);
     }
 
     /*
@@ -56,7 +56,7 @@ class AuthService
     */
     public function manageProfileData($params)
     {
-        return $this->model->manage_Profile_Data($params);
+        return $this->authModel->manage_Profile_Data($params);
     }
 
     /*
@@ -66,7 +66,7 @@ class AuthService
     */
     public function editFranchiseProfile($params)
     {
-        return $this->model->edit_Franchise_Profile($params);
+        return $this->authModel->edit_Franchise_Profile($params);
     }
 
     /*
@@ -76,6 +76,6 @@ class AuthService
     */
     public function checkUserEmailAvailability($payload)
     {
-        return $this->model->check_user_email_availability($payload);
+        return $this->authModel->check_user_email_availability($payload);
     }
 }

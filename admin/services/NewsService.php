@@ -4,7 +4,7 @@ defined('ROOTPATH') or exit('No direct script access allowed');
 class NewsService
 {
     public function __construct(
-        private GlobalInterfaceModel $model,
+        private NewsModel $newsModel,
         private GlobalLibraryHandler $lib,
     ) {
     }
@@ -16,7 +16,7 @@ class NewsService
     */
     public function getNewsData($params = [])
     {
-        return $this->model->fetch_Global_News($params);
+        return $this->newsModel->fetch_Global_News($params);
     }
 
     /*
@@ -27,7 +27,7 @@ class NewsService
 
     public function getNewsDetail($news_id)
     {
-        return $this->model->fetch_Global_News_Detail($news_id);
+        return $this->newsModel->fetch_Global_News_Detail($news_id);
     }
 
     /*
@@ -108,7 +108,7 @@ class NewsService
         // Save News
         // -----------------------------
 
-        $returnArr = $this->model
+        $returnArr = $this->newsModel
             ->manage_Global_News($formDataArr);
 
         // -----------------------------

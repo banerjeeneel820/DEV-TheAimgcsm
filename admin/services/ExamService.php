@@ -4,7 +4,7 @@ defined('ROOTPATH') or exit('No direct script access allowed');
 class ExamService
 {
     public function __construct(
-        private GlobalInterfaceModel $model,
+        private ExamModel $examModel,
         private GlobalLibraryHandler $lib,
         private PermissionService $permissionService,
     ) {
@@ -24,7 +24,7 @@ class ExamService
 
     public function getViewExams($filters)
     {
-        return $this->model->fetch_Global_Exams($filters);
+        return $this->examModel->fetch_Global_Exams($filters);
     }
 
     /*
@@ -34,7 +34,7 @@ class ExamService
     */
     public function getExamDetails($exam_id)
     {
-        return $this->model->fetch_Student_Exam_Detail($exam_id);
+        return $this->examModel->fetch_Student_Exam_Detail($exam_id);
     }
 
     /*
@@ -136,7 +136,7 @@ class ExamService
 
     public function saveExamData($data)
     {
-        return $this->model->manage_Global_Exam($data);
+        return $this->examModel->manage_Global_Exam($data);
     }
 
     public function handleExamSaveResponse(
@@ -194,27 +194,27 @@ class ExamService
     */
     public function getExamQuestions($exam_id)
     {
-        return $this->model->fetch_Exam_Questions($exam_id);
+        return $this->examModel->fetch_Exam_Questions($exam_id);
     }
 
     public function getExamQuestionsLimit($exam_id)
     {
-        return $this->model->fetch_Exam_Questions_Limit($exam_id);
+        return $this->examModel->fetch_Exam_Questions_Limit($exam_id);
     }
 
     public function updateExamQuestions($payload)
     {
-        return $this->model->update_Exam_Questions($payload);
+        return $this->examModel->update_Exam_Questions($payload);
     }
 
     public function saveQuestionsOrder($data)
     {
-        return $this->model->save_Exam_Questions_Order($data);
+        return $this->examModel->save_Exam_Questions_Order($data);
     }
 
     public function deleteAllQuestions($exam_id)
     {
-        return $this->model->delete_All_Questions($exam_id);
+        return $this->examModel->delete_All_Questions($exam_id);
     }
 
     /*
@@ -224,26 +224,26 @@ class ExamService
     */
     public function getStudentExamDetail($examId)
     {
-        return $this->model->fetch_Student_Exam_Detail($examId);
+        return $this->examModel->fetch_Student_Exam_Detail($examId);
     }
 
     public function updateExamValidationLog($formDataArr)
     {
-        return $this->model->update_Exam_Validation_Log($formDataArr);
+        return $this->examModel->update_Exam_Validation_Log($formDataArr);
     }
 
     public function updateExamAnswer($postData)
     {
-        return $this->model->update_Exam_Answer($postData);
+        return $this->examModel->update_Exam_Answer($postData);
     }
 
     public function updateFlagQuestionExam($postData)
     {
-        return $this->model->update_Flag_Question_Exam($postData);
+        return $this->examModel->update_Flag_Question_Exam($postData);
     }
 
     public function updateViewedQuestionExam($postData)
     {
-        return $this->model->update_Viewed_Question_Exam($postData);
+        return $this->examModel->update_Viewed_Question_Exam($postData);
     }
 }

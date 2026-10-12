@@ -6,7 +6,7 @@ class CourseFranchiseService
     private $memObj;
 
     public function __construct(
-        private GlobalInterfaceModel $model,
+        private CourseFranchiseModel $courseFranchiseModel,
         private GlobalLibraryHandler $lib,
     ){}
 
@@ -17,7 +17,7 @@ class CourseFranchiseService
 
         // If no cache system
         if ($this->memObj == null) {
-            return $this->model->fetch_Global_Franchise($paramArr);
+            return $this->courseFranchiseModel->fetch_Global_Franchise($paramArr);
         }
 
         $cacheKey = "franchise_data_{$record_status}";
@@ -28,7 +28,7 @@ class CourseFranchiseService
             return $cached;
         }
 
-        $data = $this->model->fetch_Global_Franchise($paramArr);
+        $data = $this->courseFranchiseModel->fetch_Global_Franchise($paramArr);
 
         $this->memObj->set($cacheKey, $data);
 
@@ -39,7 +39,7 @@ class CourseFranchiseService
     {
         if (!$id) return [];
 
-        return $this->model->fetch_Global_Single_Franchise($id);
+        return $this->courseFranchiseModel->fetch_Global_Single_Franchise($id);
     }
 
     public function getFranchiseId($data)
@@ -57,7 +57,7 @@ class CourseFranchiseService
 
         // If no memcache, fallback directly
         if ($this->memObj === null) {
-            return $this->model->fetch_Global_Course($record_status);
+            return $this->courseFranchiseModel->fetch_Global_Course($record_status);
         }
 
         // Try cache
@@ -68,7 +68,7 @@ class CourseFranchiseService
         }
 
         // Fetch from DB
-        $response = $this->model->fetch_Global_Course($record_status);
+        $response = $this->courseFranchiseModel->fetch_Global_Course($record_status);
 
         // Store in cache
         $this->memObj->set($cacheKey, $response);
@@ -82,13 +82,13 @@ class CourseFranchiseService
             return [];
         }
 
-        return $this->model->fetch_Global_Single_Course($courseId);
+        return $this->courseFranchiseModel->fetch_Global_Single_Course($courseId);
     }
 
     public function create_Frnachise_ID()
     {
         //Creating new Franchise id method
-        $franchiseDetail = $this->model->fetch_Last_Franchise_Detail();
+        $franchiseDetail = $this->courseFranchiseModel->fetch_Last_Franchise_Detail();
         $last_fran_id = $franchiseDetail[0]->fran_id;
 
         if ($last_fran_id != null) {
@@ -105,7 +105,7 @@ class CourseFranchiseService
 
     public function checkSlugAvailibility($type, $field, $slug)
     {
-        return $this->model
+        return $this->courseFranchiseModel
         ->check_Slug_Availibility($type, $field, $slug);
     }
 
@@ -116,14 +116,14 @@ class CourseFranchiseService
 
         //Fetch franchise data based on memcached
         if ($this->memObj == null) {
-            $activeCourseFranchiseArr['franchise'] = $this->model->fetch_Global_Franchise("active");
+            $activeCourseFranchiseArr['franchise'] = $this->courseFranchiseModel->fetch_Global_Franchise("active");
         } else {
             $response = $this->memObj->get("franchise_data_active");
             //Check if data stored in memcached
             if ($response) {
                 $activeCourseFranchiseArr['franchise'] = $response;
             } else {
-                $response = $this->model->fetch_Global_Franchise("active");
+                $response = $this->courseFranchiseModel->fetch_Global_Franchise("active");
                 $this->memObj->set("franchise_data_active", $response);
                 //Set data into a key of memcached
                 $activeCourseFranchiseArr['franchise'] = $response;
@@ -132,14 +132,14 @@ class CourseFranchiseService
 
         //Fetch course data based on memcached
         if ($this->memObj == null) {
-            $activeCourseFranchiseArr['course'] = $this->model->fetch_Global_Course("active");
+            $activeCourseFranchiseArr['course'] = $this->courseFranchiseModel->fetch_Global_Course("active");
         } else {
             $response = $this->memObj->get("course_data_active");
             //Check if data stored in memcached
             if ($response) {
                 $activeCourseFranchiseArr['course'] = $response;
             } else {
-                $response = $this->model->fetch_Global_Course("active");
+                $response = $this->courseFranchiseModel->fetch_Global_Course("active");
                 $this->memObj->set("course_data_active", $response);
                 //Set data into a key of memcached
                 $activeCourseFranchiseArr['course'] = $response;
@@ -150,12 +150,12 @@ class CourseFranchiseService
     }
 
     public function saveFranchiseData($formDataArr){
-        return $this->model
+        return $this->courseFranchiseModel
         ->manage_Global_Franchise($formDataArr);
     }
 
     public function saveCourseData($formDataArr){
-        return $this->model
+        return $this->courseFranchiseModel
         ->manage_Global_Course($formDataArr);
     }
    
