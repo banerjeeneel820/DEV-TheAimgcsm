@@ -37,7 +37,7 @@ class NewsController extends BaseController
                 'News List',
                 $assets,
                 false,
-                false // page_permission
+                false, // page_permission
             );
         }
 
@@ -57,7 +57,11 @@ class NewsController extends BaseController
             'News List',
             $assets,
             false,
-            true
+            true,
+            [
+                'view'   => 'news/view_news.php',
+                'layout' => 'admin',
+            ]
         );
     }
 

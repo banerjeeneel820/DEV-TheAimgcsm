@@ -8,17 +8,21 @@ class ViewEngine extends BaseController
 	private $assets;
 	private $sidebarMenus;
 	private $viewRoutes;
+	private $viewLayouts;
 	private $permissionService;
 
 	public function __construct($container, $route, $data)
 	{
 		parent::__construct($container);
 
-		$this->route  = $route;
-		$this->data   = $data;
+		$this->route = $route;
+		$this->data = $data;
 		$this->assets = $data['assetData'] ?? [];
+
 		$this->viewRoutes = require ROOTPATH . '/config/view_routes.php';
-		$this->permissionService = $this->permissionService = $container->get('permissionService');
+		$this->viewLayouts = require ROOTPATH . '/config/view_layouts.php';
+
+		$this->permissionService = $container->get('permissionService');
 	}
 
 	public function render()
@@ -58,37 +62,129 @@ class ViewEngine extends BaseController
 			exit;
 		}
 	}
-
+	
 	private function renderViewWithLayout()
 	{
 		$data = $this->prepareViewData();
 
-		// Extract ONCE for everything
 		extract($data, EXTR_SKIP);
 		extract($data['pageData'] ?? [], EXTR_SKIP);
 
-		$viewPath = $this->resolveViewPath();
+		$viewConfig = $this->data['viewConfig'] ?? [];
+
+		$viewPath = $viewConfig['view'] ?? $this->resolveViewPath();
+		$layoutName = $this->getLayoutName();
+		$layoutConfig = $this->viewLayouts[$layoutName] ?? null;
+
+		$fullViewPath = $this->resolveFilePath(
+			$layoutConfig['view_root'] ?? '',
+			$viewPath ?? ''
+		);
+
+		if (!$fullViewPath || !is_file($fullViewPath)) {
+			$this->renderFallbackView(404);
+			return;
+		}
+
 		$permissionService = $this->permissionService;
 		$currentRoute = $this->route;
 
-		if (!$viewPath) {
-			$viewPath = 'utility/not_found.php';
+		// This is where shouldLoadLayout() is used.
+		if (!$this->shouldLoadLayout()) {
+			include $fullViewPath;
+			return;
 		}
 
-		// Layout check
-		if ($this->shouldLoadLayout()) {
-			$sidebarMenus = require ROOTPATH . '/config/sidebar.php';
-			$cssPluginArr = $this->assets['css'] ?? [];
-			include ROOTPATH . "/layout/header.php";
+		$sidebarMenus = null;
+		$cssPluginArr = $this->assets['css'] ?? [];
+		$jsPluginArr = $this->assets['js'] ?? [];
+
+		if (!empty($layoutConfig['sidebar'])) {
+			$sidebarPath = $layoutConfig['sidebar'];
+
+			if (is_file($sidebarPath)) {
+				$sidebarMenus = require $sidebarPath;
+			}
 		}
 
-		// Main View
-		include ROOTPATH . "/views/" . $viewPath;
+		$headerPath = $this->resolveFilePath(
+			$layoutConfig['layout_root'] ?? '',
+			$layoutConfig['header'] ?? ''
+		);
 
-		if ($this->shouldLoadLayout()) {
-			$jsPluginArr = $this->assets['js'] ?? [];
-			include ROOTPATH . "/layout/footer.php";
+		$footerPath = $this->resolveFilePath(
+			$layoutConfig['layout_root'] ?? '',
+			$layoutConfig['footer'] ?? ''
+		);
+
+		if (!$headerPath || !is_file($headerPath)) {
+			throw new RuntimeException('Layout header not found.');
 		}
+
+		if (!$footerPath || !is_file($footerPath)) {
+			throw new RuntimeException('Layout footer not found.');
+		}
+
+		include $headerPath;
+		include $fullViewPath;
+		include $footerPath;
+	}
+
+	private function resolveFilePath($root, $relativePath)
+	{
+		if (
+			!is_string($root) ||
+			!is_string($relativePath) ||
+			$root === '' ||
+			$relativePath === '' ||
+			str_contains($relativePath, "\0") ||
+			str_contains($relativePath, '..') ||
+			str_starts_with($relativePath, '/') ||
+			str_starts_with($relativePath, '\\')
+		) {
+			return null;
+		}
+
+		return rtrim($root, '/\\')
+			. DIRECTORY_SEPARATOR
+			. str_replace(['/', '\\'], DIRECTORY_SEPARATOR, $relativePath);
+	}
+
+	private function renderFallbackView($status = 404)
+	{
+		http_response_code($status);
+
+		$layoutName = $this->getLayoutName();
+		$layoutConfig = $this->viewLayouts[$layoutName] ?? null;
+
+		$fallbacks = $layoutConfig['fallbacks'] ?? [];
+
+		// Use the requested error page, or fall back to 404.
+		$fallbackView = $fallbacks[$status]
+			?? $fallbacks[404]
+			?? null;
+
+		$viewRoot = $layoutConfig['view_root'] ?? null;
+
+		$fallbackPath = $viewRoot && $fallbackView
+			? $this->resolveFilePath($viewRoot, $fallbackView)
+			: null;
+
+		if ($fallbackPath && is_file($fallbackPath)) {
+			include $fallbackPath;
+			return;
+		}
+
+		// Safe generic fallback if the configured template is missing.
+		echo $status === 403 ? 'Access denied.' : 'Page not found.';
+	}
+
+	private function getLayoutName()
+	{
+		$routeLayouts = $this->viewLayouts['layout_routes'] ?? [];
+
+		return $routeLayouts[$this->route]
+			?? ($this->data['viewConfig']['layout'] ?? 'admin');
 	}
 
 	private function prepareViewData()
@@ -103,7 +199,15 @@ class ViewEngine extends BaseController
 
 	private function shouldLoadLayout()
 	{
-		return !in_array($this->route, ['login', 'logout']);
+		$routeLayouts = $this->viewLayouts['layout_routes'] ?? [];
+
+		$layoutName = $routeLayouts[$this->route]
+			?? ($this->data['viewConfig']['layout'] ?? 'admin');
+
+		$layoutConfig = $this->viewLayouts[$layoutName] ?? null;
+
+		return $layoutConfig !== null
+			&& !empty($layoutConfig['enabled']);
 	}
 
 	private function resolveViewPath()
@@ -124,5 +228,4 @@ class ViewEngine extends BaseController
 
 		return $view;
 	}
-
 }

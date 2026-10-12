@@ -53,15 +53,23 @@ class BaseController
         }
     }
 
-    protected function page($data, $title, $assets = [], $tiny = false, $permission = true)
-    {
+
+    protected function page(
+        $data,
+        $title,
+        $assets = [],
+        $tiny = false,
+        $permission = true,
+        $viewConfig = []
+    ) {
         return [
             'pageData' => array_merge($data, [
-                'page_title' => $title,
-                'tiny_allowed' => $tiny,
-                'page_permission' => $permission
+                'page_title'      => $title,
+                'tiny_allowed'    => $tiny,
+                'page_permission' => $permission,
             ]),
-            'assetData' => $assets,
+            'assetData'  => $assets,
+            'viewConfig' => $viewConfig,
         ];
     }
 
@@ -71,5 +79,4 @@ class BaseController
         ///header('Content-Type: application/json');
         return json_encode($data);
     }
-
 }
