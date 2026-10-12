@@ -221,29 +221,6 @@ class AuthModel extends BaseModel
       return $resultArr;
    }
 
-   public function fetch_Global_Single_Franchise($franchise_id)
-   {
-      $where = [];
-      $params = [];
-
-      $where[] = "(fran.id = ?)";
-      $params[] = $franchise_id;
-
-      $whereSql = "WHERE " . implode(" AND ", $where);
-
-      $sql = "SELECT * FROM " . DB_AIMGCSM . "." . TABLEPREFIX . "franchise fran $whereSql";;
-
-      // Important because of COUNT()
-      $sql .= " GROUP BY fran.id LIMIT 1";
-
-      // Debug (optional)
-      // $this->debugQuery($sql, $params);
-
-      $resultArr = $this->global_Fetch_Single_DB($sql, $params);
-
-      return $resultArr;
-   }
-
    public function manage_Profile_Data($formDataArr)
    {
 

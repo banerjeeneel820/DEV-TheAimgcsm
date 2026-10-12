@@ -8,18 +8,6 @@ class StudentReceiptModel extends BaseModel
       parent::__construct($database);
    }
 
-   public function fetch_Single_Parent_Category($parent_category)
-   {
-      $sql = "SELECT pc.id, pc.parent_category, pc.name 
-               FROM " . DB_AIMGCSM . "." . TABLEPREFIX . "parent_category pc 
-               WHERE pc.parent_category = ?
-               ORDER BY pc.id DESC";
-
-      $resultArr = $this->global_Fetch_All_DB($sql, [$parent_category]);
-
-      return $resultArr;
-   }
-
    public function fetch_Global_Single_Student($student_id, $receipt_timestamp = null)
    {
       $receiptParams = [];
@@ -354,54 +342,6 @@ class StudentReceiptModel extends BaseModel
       return $resultArr;
    }
 
-   public function fetch_Detail_Single_Student($student_id)
-   {
-      $where = [];
-      $params = [];
-
-      // Allow search by stu_id OR id
-      $where[] = "(stu.stu_id = ? OR stu.id = ?)";
-      $params[] = $student_id;
-      $params[] = $student_id;
-
-      $whereSql = "WHERE " . implode(" AND ", $where);
-
-      $sql = "
-           SELECT 
-               stu.*,
-               frn.center_name,
-               crs.course_title,
-               rslt.stu_result,
-               COUNT(DISTINCT rcpt.id) AS receipt_count
-   
-           FROM " . DB_AIMGCSM . "." . TABLEPREFIX . "students stu
-   
-           LEFT JOIN " . DB_AIMGCSM . "." . TABLEPREFIX . "results rslt 
-               ON stu.stu_id = rslt.stu_id
-   
-           LEFT JOIN " . DB_AIMGCSM . "." . TABLEPREFIX . "student_receipts rcpt 
-               ON stu.stu_id = rcpt.stu_id
-   
-           LEFT JOIN " . DB_AIMGCSM . "." . TABLEPREFIX . "franchise frn 
-               ON stu.franchise_id = frn.id
-   
-           LEFT JOIN " . DB_AIMGCSM . "." . TABLEPREFIX . "course crs 
-               ON stu.course_id = crs.id
-   
-           $whereSql
-       ";
-
-      // Important because of COUNT()
-      $sql .= " GROUP BY stu.id LIMIT 1";
-
-      // Debug (optional)
-      // $this->debugQuery($sql, $params);
-
-      $resultArr = $this->global_Fetch_Single_DB($sql, $params);
-
-      return $resultArr;
-   }
-
    public function fetch_Last_Receipt_Detail()
    {
 
@@ -592,42 +532,6 @@ class StudentReceiptModel extends BaseModel
       // $this->debugQuery($sql, $params);
 
       $resultArr = $this->global_Fetch_Single_DB($sql, $params);
-
-      return $resultArr;
-   }
-
-   public function fetch_Tmp_Single_Student($id)
-   {
-
-      $sql = "SELECT tmp_stu.*,frn.center_name,frn.fran_email,frn.fran_phone,frn.fran_address,crs.course_title FROM " . DB_AIMGCSM . "." . TABLEPREFIX . "temp_students tmp_stu LEFT JOIN " . DB_AIMGCSM . "." . TABLEPREFIX . "franchise frn ON tmp_stu.franchise_id = frn.id LEFT JOIN " . DB_AIMGCSM . "." . TABLEPREFIX . "course crs ON tmp_stu.course_id = crs.id WHERE tmp_stu.id = '$id'";
-
-      //echo $sql;exit();
-
-      $resultArr = $this->global_Fetch_Single_DB($sql);
-
-      return $resultArr;
-   }
-
-   public function fetch_Global_Site_Setting_Detail()
-   {
-
-      $sql = "SELECT * FROM " . DB_AIMGCSM . "." . TABLEPREFIX . "site_setting WHERE `update_id` = 'UPDATE_THE_AIMGCSM_SITE_SETTINGS'";
-
-      //echo $sql;exit();
-
-      $resultArr = $this->global_Fetch_Single_DB($sql);
-
-      return $resultArr;
-   }
-
-   public function fetch_Email_Template_Detail($email_code)
-   {
-
-      $sql = "SELECT * FROM " . DB_AIMGCSM . "." . TABLEPREFIX . "email_template et WHERE et.code='$email_code'";
-
-      //echo $sql;exit();
-
-      $resultArr = $this->global_Fetch_Single_DB($sql);
 
       return $resultArr;
    }

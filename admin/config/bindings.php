@@ -16,7 +16,7 @@ $modelBindings = [
     'dashboardModel'   => DashboardModel::class,
     'examModel'   => ExamModel::class,
     'newsModel'   => NewsModel::class,
-    'StudentModel'   => StudentModel::class,
+    'studentModel'   => StudentModel::class,
     'studentReceiptModel'   => StudentReceiptModel::class,
     'templateModel'   => TemplateModel::class,
     'utilityModel'   => UtilityModel::class,
@@ -80,6 +80,7 @@ $bindings = [
     'authService' => function ($container) {
         return new AuthService(
             $container->get('authModel'),
+            $container->get('courseFranchiseModel'),
             $container->get('lib')
         );
     },
@@ -130,6 +131,8 @@ $bindings = [
     'studentService' => function ($container) {
         return new StudentService(
             $container->get('studentModel'),
+            $container->get('courseFranchiseModel'),
+            $container->get('cmsModel'),
             $container->get('lib'),
             $container->get('permissionService'),
             $container->get('cacheService'),
@@ -141,6 +144,10 @@ $bindings = [
     'studentReceiptService' => function ($container) {
         return new StudentReceiptService(
             $container->get('studentReceiptModel'),
+            $container->get('cmsModel'),
+            $container->get('studentModel'),
+            $container->get('utilityModel'),
+            $container->get('templateModel'),
             $container->get('lib'),
             $container->get('permissionService'),
             $container->get('cacheService'),
@@ -173,6 +180,7 @@ $bindings = [
     'templateService' => function ($container) {
         return new TemplateService(
             $container->get('templateModel'),
+            $container->get('utilityModel'),
             $container->get('lib')
         );
     },

@@ -77,13 +77,16 @@ class TemplateModel extends BaseModel
       return $this->global_Fetch_Single_DB($sql, $queryParams);
    }
 
-   public function check_Slug_Availibility($type, $field, $slug)
+   public function fetch_Email_Template_Detail($email_code)
    {
-      $sql = "SELECT * FROM " . DB_AIMGCSM . "." . TABLEPREFIX . $type . " WHERE `$field`='$slug'";
-      //echo $sql;exit();
-      $retrunArr = $this->global_Fetch_Single_DB($sql);
 
-      return $retrunArr;
+      $sql = "SELECT * FROM " . DB_AIMGCSM . "." . TABLEPREFIX . "email_template et WHERE et.code='$email_code'";
+
+      //echo $sql;exit();
+
+      $resultArr = $this->global_Fetch_Single_DB($sql);
+
+      return $resultArr;
    }
 
    public function manage_Global_Email_Template($params = [])

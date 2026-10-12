@@ -6,6 +6,10 @@ class StudentReceiptService
 
     public function __construct(
         private StudentReceiptModel $studentReceiptModel,
+        private CmsModel $cmsModel,
+        private StudentModel $studentModel,
+        private UtilityModel $utilityModel,
+        private TemplateModel $templateModel,
         private GlobalLibraryHandler $lib,
         private PermissionService $permissionService,
         private CacheService $cacheService,
@@ -20,7 +24,7 @@ class StudentReceiptService
     */
     public function fetchReceiptCategory($category)
     {
-        return  $this->studentReceiptModel->fetch_Single_Parent_Category($category);
+        return  $this->cmsModel->fetch_Single_Parent_Category($category);
     }
 
     public function fetchStudentDetails($id)
@@ -276,7 +280,7 @@ class StudentReceiptService
         }
 
         $studentDetailArr =
-            $this->studentReceiptModel
+            $this->studentModel
             ->fetch_Detail_Single_Student($studentId);
 
         if (
@@ -787,7 +791,7 @@ class StudentReceiptService
         // -----------------------------
         // FETCH DATA
         // -----------------------------
-        $tmpStudent = $this->studentReceiptModel->fetch_Tmp_Single_Student($id);
+        $tmpStudent = $this->studentModel->fetch_Tmp_Single_Student($id);
 
         if (empty($tmpStudent)) {
             return ['check' => 'failure', 'message' => 'Student not found'];
@@ -815,8 +819,8 @@ class StudentReceiptService
         // -----------------------------
         // PREPARE DATA
         // -----------------------------
-        $site = $this->studentReceiptModel->fetch_Global_Site_Setting_Detail();
-        $template = $this->studentReceiptModel
+        $site = $this->utilityModel->fetch_Global_Site_Setting_Detail();
+        $template = $this->templateModel
             ->fetch_Email_Template_Detail('student-temp-receipt-invoice')->template;
 
         $swap = $this->buildTempReceiptTemplateVars($tmpStudent, $site);
@@ -870,8 +874,8 @@ class StudentReceiptService
         // -----------------------------
         $email_code = $this->getStuReceiptEmailCode($receipt->category);
 
-        $site = $this->studentReceiptModel->fetch_Global_Site_Setting_Detail();
-        $template = $this->studentReceiptModel->fetch_Email_Template_Detail($email_code);
+        $site = $this->utilityModel->fetch_Global_Site_Setting_Detail();
+        $template = $this->templateModel->fetch_Email_Template_Detail($email_code);
 
         // -----------------------------
         // CALCULATIONS

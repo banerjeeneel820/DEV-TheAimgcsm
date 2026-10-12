@@ -6,6 +6,7 @@ class AuthService
 
     public function __construct(
         private AuthModel $authModel,
+        private CourseFranchiseModel $courseFranchiseModel,
         private GlobalLibraryHandler $lib,
     ){}
 
@@ -46,7 +47,7 @@ class AuthService
     */
     public function getFranchiseProfileData($user_id)
     {
-        return $this->authModel->fetch_Global_Single_Franchise($user_id);
+        return $this->courseFranchiseModel->fetch_Global_Single_Franchise($user_id);
     }
 
     /*

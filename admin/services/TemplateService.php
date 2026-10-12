@@ -5,6 +5,7 @@ class TemplateService
 {
     public function __construct(
         private TemplateModel $templateModel,
+        private UtilityModel $utilityModel,
         private GlobalLibraryHandler $lib,
     ) {
     }
@@ -51,7 +52,7 @@ class TemplateService
         // Code Availability Check
         // -----------------------------
 
-        $existingTemplate = $this->templateModel
+        $existingTemplate = $this->utilityModel
             ->check_Slug_Availibility(
                 'email_template',
                 'code',

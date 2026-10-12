@@ -5,6 +5,8 @@ class StudentService
 {
     public function __construct(
         private StudentModel $studentModel,
+        private CourseFranchiseModel $courseFranchiseModel,
+        private CmsModel $cmsModel,
         private GlobalLibraryHandler $lib,
         private PermissionService $permissionService,
         private CacheService $cacheService,
@@ -144,7 +146,7 @@ class StudentService
         $ownedStatus = "yes";
 
         if ($userType === "franchise") {
-            $franchise = $this->studentModel->fetch_Global_Single_Franchise($userId);
+            $franchise = $this->courseFranchiseModel->fetch_Global_Single_Franchise($userId);
             $ownedStatus = $franchise->owned_status;
 
             if ($isUpdate && $student->franchise_id != $userId) {
@@ -488,7 +490,7 @@ class StudentService
 
     public function fetchReceiptCategory($category)
     {
-        return  $this->studentModel->fetch_Single_Parent_Category($category);
+        return  $this->cmsModel->fetch_Single_Parent_Category($category);
     }
 
     public function resolveAdmissionStudentData($studentId, $tmpId)

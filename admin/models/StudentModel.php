@@ -307,29 +307,6 @@ class StudentModel extends BaseModel
       return $resultArr;
    }
 
-   public function fetch_Global_Single_Franchise($franchise_id)
-   {
-      $where = [];
-      $params = [];
-
-      $where[] = "(fran.id = ?)";
-      $params[] = $franchise_id;
-
-      $whereSql = "WHERE " . implode(" AND ", $where);
-
-      $sql = "SELECT * FROM " . DB_AIMGCSM . "." . TABLEPREFIX . "franchise fran $whereSql";;
-
-      // Important because of COUNT()
-      $sql .= " GROUP BY fran.id LIMIT 1";
-
-      // Debug (optional)
-      // $this->debugQuery($sql, $params);
-
-      $resultArr = $this->global_Fetch_Single_DB($sql, $params);
-
-      return $resultArr;
-   }
-
    public function manage_Global_Student($stuDataArr)
    {
       $params = [];
@@ -414,18 +391,6 @@ class StudentModel extends BaseModel
       // $this->debugQuery($sql, $params);
 
       return $this->global_CRUD_DB($sql, $params);
-   }
-
-   public function fetch_Single_Parent_Category($parent_category)
-   {
-      $sql = "SELECT pc.id, pc.parent_category, pc.name 
-               FROM " . DB_AIMGCSM . "." . TABLEPREFIX . "parent_category pc 
-               WHERE pc.parent_category = ?
-               ORDER BY pc.id DESC";
-
-      $resultArr = $this->global_Fetch_All_DB($sql, [$parent_category]);
-
-      return $resultArr;
    }
 
    public function fetch_Fresh_Students($dataArr = [])

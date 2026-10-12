@@ -474,4 +474,13 @@ class UtilityModel extends BaseModel
 
       return $this->global_CRUD_DB($sql);
    }
+
+   public function check_Slug_Availibility($type, $field, $slug)
+   {
+      $sql = "SELECT * FROM " . DB_AIMGCSM . "." . TABLEPREFIX . $type . " WHERE `$field`='$slug'";
+      //echo $sql;exit();
+      $retrunArr = $this->global_Fetch_Single_DB($sql);
+
+      return $retrunArr;
+   }
 }   
