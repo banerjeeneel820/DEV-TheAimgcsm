@@ -59,6 +59,7 @@ class NewsController extends BaseController
             false,
             true,
             [
+                'application' => 'admin',
                 'view'   => 'news/view_news.php',
                 'layout' => 'admin',
             ]

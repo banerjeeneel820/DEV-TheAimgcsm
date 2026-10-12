@@ -1,4 +1,6 @@
+
 <?php
+
 defined('ROOTPATH') or exit('No direct script access allowed');
 
 class ViewEngine extends BaseController
@@ -32,37 +34,181 @@ class ViewEngine extends BaseController
 		$this->renderViewWithLayout();
 	}
 
+	/**
+	 * Apply authentication, permission, maintenance and logout guards.
+	 */
 	private function applyGuards()
 	{
-		// login fallback
+		// Login fallback
 		if (empty($this->route) && empty($_SESSION['user_id'])) {
 			$this->route = 'login';
 		}
 
-		// permission check
+		// Permission check
 		if (!($this->data['pageData']['page_permission'] ?? true)) {
 			$status = $this->data['pageData']['status'] ?? 403;
-			$this->route = ($status == 403) ? 'no_access' : 'not_found';
+
+			$this->route = ($status == 403)
+				? 'no_access'
+				: 'not_found';
 		}
 
-		// maintenance check
+		// Maintenance check
 		if (
-			($_SESSION['user_type'] ?? '') !== 'admin' &&
-			($_SESSION['user_type'] ?? '') !== 'developer'
+			!in_array(
+				$_SESSION['user_type'] ?? '',
+				['admin', 'developer'],
+				true
+			)
 		) {
 			if (!($this->data['check_site_maintenance'] ?? true)) {
 				$this->route = 'under_maintenance';
 			}
 		}
 
-		// logout
+		// Logout
 		if ($this->route === 'logout') {
-			session_destroy();
-			header("Location: " . SITE_URL);
+			$application = $this->getApplicationName();
+
+			// Clear session data.
+			$_SESSION = [];
+
+			if (session_status() === PHP_SESSION_ACTIVE) {
+				session_destroy();
+			}
+
+			// Redirect according to the current application.
+			$redirectUrl = match ($application) {
+				'frontend' => FRONT_SITE_URL,
+				'admin'    => SITE_URL,
+				default    => throw new RuntimeException(
+					'Logout redirect is not configured for this application.'
+				),
+			};
+
+			header('Location: ' . $redirectUrl);
 			exit;
 		}
 	}
-	
+
+	/**
+	 * Resolve the current application from explicit view configuration.
+	 *
+	 * No application is silently assumed.
+	 */
+
+	private function getApplicationName()
+	{
+		$viewConfig = $this->data['viewConfig'] ?? [];
+
+		// 1. Use the application explicitly provided by the controller.
+		$application = $viewConfig['application'] ?? null;
+
+		if (
+			is_string($application) &&
+			isset($this->viewLayouts[$application]) &&
+			!empty($this->viewLayouts[$application]['enabled']) &&
+			!empty($this->viewLayouts[$application]['view_root'])
+		) {
+			return $application;
+		}
+
+		// 2. Infer the application from the configured layout.
+		$layout = $viewConfig['layout'] ?? null;
+
+		if (
+			is_string($layout) &&
+			isset($this->viewLayouts[$layout]) &&
+			!empty($this->viewLayouts[$layout]['enabled']) &&
+			!empty($this->viewLayouts[$layout]['view_root'])
+		) {
+			return $layout;
+		}
+
+		// 3. Infer from the authenticated user's role.
+		$userType = $_SESSION['user_type'] ?? '';
+
+		if (
+			is_string($userType) &&
+			isset($this->viewLayouts[$userType]) &&
+			!empty($this->viewLayouts[$userType]['enabled']) &&
+			!empty($this->viewLayouts[$userType]['view_root'])
+		) {
+			return $userType;
+		}
+
+		// 4. Fall back to a configured default application.
+		$defaultApplication = $this->viewLayouts['default_application'] ?? null;
+
+		if (
+			is_string($defaultApplication) &&
+			isset($this->viewLayouts[$defaultApplication]) &&
+			!empty($this->viewLayouts[$defaultApplication]['enabled']) &&
+			!empty($this->viewLayouts[$defaultApplication]['view_root'])
+		) {
+			return $defaultApplication;
+		}
+
+		throw new RuntimeException(
+			'Unable to determine the application context for this view.'
+		);
+	}
+
+	/**
+	 * Determine which layout should be used.
+	 *
+	 * Route-specific layout takes priority, followed by
+	 * the explicitly configured layout and application default.
+	 */
+	private function getLayoutName()
+	{
+		$application = $this->getApplicationName();
+		$applicationConfig = $this->viewLayouts[$application];
+
+		$routeLayouts = $this->viewLayouts['layout_routes'] ?? [];
+
+		if (array_key_exists($this->route, $routeLayouts)) {
+			return $routeLayouts[$this->route];
+		}
+
+		$requestedLayout = $this->data['viewConfig']['layout'] ?? null;
+
+		if ($requestedLayout !== null) {
+			return $requestedLayout;
+		}
+
+		return $applicationConfig['default_layout'] ?? $application;
+	}
+
+	/**
+	 * Determine whether the selected layout should be rendered.
+	 */
+	private function shouldLoadLayout()
+	{
+		$application = $this->getApplicationName();
+		$applicationConfig = $this->viewLayouts[$application];
+
+		$layoutName = $this->getLayoutName();
+
+		// Layout-free views use the application's nested "none" config.
+		if ($layoutName === 'none') {
+			return false;
+		}
+
+		// Only allow the application's configured layout.
+		if ($layoutName !== $application) {
+			return false;
+		}
+
+		return !empty($applicationConfig['enabled'])
+			&& !empty($applicationConfig['layout_root'])
+			&& !empty($applicationConfig['header'])
+			&& !empty($applicationConfig['footer']);
+	}
+
+	/**
+	 * Render the requested view with or without its layout.
+	 */
 	private function renderViewWithLayout()
 	{
 		$data = $this->prepareViewData();
@@ -72,12 +218,34 @@ class ViewEngine extends BaseController
 
 		$viewConfig = $this->data['viewConfig'] ?? [];
 
+		$application = $this->getApplicationName();
+		$applicationConfig = $this->viewLayouts[$application];
+
 		$viewPath = $viewConfig['view'] ?? $this->resolveViewPath();
+
 		$layoutName = $this->getLayoutName();
-		$layoutConfig = $this->viewLayouts[$layoutName] ?? null;
+
+		// Select the configuration for the requested layout.
+		if ($layoutName === 'none') {
+			$layoutConfig = $applicationConfig['none'] ?? null;
+		} elseif ($layoutName === $application) {
+			$layoutConfig = $applicationConfig;
+		} else {
+			$layoutConfig = null;
+		}
+
+		if ($layoutConfig === null) {
+			$this->renderFallbackView(404);
+			return;
+		}
+
+		// The selected layout may override the application's view root.
+		$viewRoot = $layoutConfig['view_root']
+			?? $applicationConfig['view_root']
+			?? '';
 
 		$fullViewPath = $this->resolveFilePath(
-			$layoutConfig['view_root'] ?? '',
+			$viewRoot,
 			$viewPath ?? ''
 		);
 
@@ -89,16 +257,18 @@ class ViewEngine extends BaseController
 		$permissionService = $this->permissionService;
 		$currentRoute = $this->route;
 
-		// This is where shouldLoadLayout() is used.
+		// Render a view without header/footer when layout is disabled.
 		if (!$this->shouldLoadLayout()) {
 			include $fullViewPath;
 			return;
 		}
 
 		$sidebarMenus = null;
+
 		$cssPluginArr = $this->assets['css'] ?? [];
 		$jsPluginArr = $this->assets['js'] ?? [];
 
+		// Load sidebar configuration when available.
 		if (!empty($layoutConfig['sidebar'])) {
 			$sidebarPath = $layoutConfig['sidebar'];
 
@@ -107,6 +277,7 @@ class ViewEngine extends BaseController
 			}
 		}
 
+		// Resolve header and footer.
 		$headerPath = $this->resolveFilePath(
 			$layoutConfig['layout_root'] ?? '',
 			$layoutConfig['header'] ?? ''
@@ -118,11 +289,15 @@ class ViewEngine extends BaseController
 		);
 
 		if (!$headerPath || !is_file($headerPath)) {
-			throw new RuntimeException('Layout header not found.');
+			throw new RuntimeException(
+				'Layout header not found for application: ' . $application
+			);
 		}
 
 		if (!$footerPath || !is_file($footerPath)) {
-			throw new RuntimeException('Layout footer not found.');
+			throw new RuntimeException(
+				'Layout footer not found for application: ' . $application
+			);
 		}
 
 		include $headerPath;
@@ -130,6 +305,9 @@ class ViewEngine extends BaseController
 		include $footerPath;
 	}
 
+	/**
+	 * Safely resolve a relative path against its configured root.
+	 */
 	private function resolveFilePath($root, $relativePath)
 	{
 		if (
@@ -147,69 +325,85 @@ class ViewEngine extends BaseController
 
 		return rtrim($root, '/\\')
 			. DIRECTORY_SEPARATOR
-			. str_replace(['/', '\\'], DIRECTORY_SEPARATOR, $relativePath);
+			. str_replace(
+				['/', '\\'],
+				DIRECTORY_SEPARATOR,
+				$relativePath
+			);
 	}
 
+	/**
+	 * Render an application-specific fallback page.
+	 */
 	private function renderFallbackView($status = 404)
 	{
 		http_response_code($status);
 
+		$application = $this->getApplicationName();
+		$applicationConfig = $this->viewLayouts[$application];
+
 		$layoutName = $this->getLayoutName();
-		$layoutConfig = $this->viewLayouts[$layoutName] ?? null;
 
-		$fallbacks = $layoutConfig['fallbacks'] ?? [];
+		// Use nested "none" configuration when applicable.
+		if ($layoutName === 'none') {
+			$layoutConfig = $applicationConfig['none'] ?? [];
+		} elseif ($layoutName === $application) {
+			$layoutConfig = $applicationConfig;
+		} else {
+			$layoutConfig = [];
+		}
 
-		// Use the requested error page, or fall back to 404.
+		// Prefer the selected context's fallbacks.
+		// Fall back to the application's general configuration.
+		$fallbacks = $layoutConfig['fallbacks']
+			?? $applicationConfig['fallbacks']
+			?? [];
+
 		$fallbackView = $fallbacks[$status]
 			?? $fallbacks[404]
 			?? null;
 
-		$viewRoot = $layoutConfig['view_root'] ?? null;
+		$viewRoot = $layoutConfig['view_root']
+			?? $applicationConfig['view_root']
+			?? null;
 
 		$fallbackPath = $viewRoot && $fallbackView
 			? $this->resolveFilePath($viewRoot, $fallbackView)
 			: null;
 
 		if ($fallbackPath && is_file($fallbackPath)) {
+			$permissionService = $this->permissionService;
+			$currentRoute = $this->route;
+
+			$cssPluginArr = $this->assets['css'] ?? [];
+			$jsPluginArr = $this->assets['js'] ?? [];
+
 			include $fallbackPath;
 			return;
 		}
 
-		// Safe generic fallback if the configured template is missing.
-		echo $status === 403 ? 'Access denied.' : 'Page not found.';
+		// Safe generic fallback.
+		echo $status === 403
+			? 'Access denied.'
+			: 'Page not found.';
 	}
 
-	private function getLayoutName()
-	{
-		$routeLayouts = $this->viewLayouts['layout_routes'] ?? [];
-
-		return $routeLayouts[$this->route]
-			?? ($this->data['viewConfig']['layout'] ?? 'admin');
-	}
-
+	/**
+	 * Prepare shared view variables.
+	 */
 	private function prepareViewData()
 	{
 		return [
 			'pageContent' => $this->data,
-			'page_title'  => $this->data['pageData']['page_title'] ?? '',
+			'page_title' => $this->data['pageData']['page_title'] ?? '',
 			'site_setting_data' => $this->data['site_setting_data'] ?? '',
-			'isTinyAllowed' => $this->data['pageData']['tiny_allowed'] ?? false
+			'isTinyAllowed' => $this->data['pageData']['tiny_allowed'] ?? false,
 		];
 	}
 
-	private function shouldLoadLayout()
-	{
-		$routeLayouts = $this->viewLayouts['layout_routes'] ?? [];
-
-		$layoutName = $routeLayouts[$this->route]
-			?? ($this->data['viewConfig']['layout'] ?? 'admin');
-
-		$layoutConfig = $this->viewLayouts[$layoutName] ?? null;
-
-		return $layoutConfig !== null
-			&& !empty($layoutConfig['enabled']);
-	}
-
+	/**
+	 * Resolve the view path associated with the current route.
+	 */
 	private function resolveViewPath()
 	{
 		$route = $this->route;
@@ -220,9 +414,10 @@ class ViewEngine extends BaseController
 
 		$view = $this->viewRoutes[$route];
 
-		// Role-based views (for home)
+		// Role-based views.
 		if (is_array($view)) {
 			$userType = $_SESSION['user_type'] ?? 'student';
+
 			return $view[$userType] ?? null;
 		}
 
