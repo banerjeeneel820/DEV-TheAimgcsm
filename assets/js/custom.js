@@ -1,513 +1,554 @@
-/*
- * jQuery Theme.Custom
- * http://theaimgcsm.com/
- * Copyright (c) 2019 The AIMGCSM
- */
-
-//Declaring Global Varibales and Objects
-
-//Google recaptcha variables
-var enquiryCaptchaWidget, stuVerCaptchaWidget;
-var countAddShowClassContact = 0;
-var onloadCallback = function () {
-  // Renders the HTML element with id 'example1' as a reCAPTCHA widget.
-  enquiryCaptchaWidget = grecaptcha.render("form_recaptcha_div", {
-    sitekey: "6LdJ398UAAAAALCcgKy69mXlTjI4sfz682uHR0_e",
-    theme: "light",
-  });
-
-  stuVerCaptchaWidget = grecaptcha.render("stu_verification_recaptcha_div", {
-    sitekey: "6LdJ398UAAAAALCcgKy69mXlTjI4sfz682uHR0_e",
-    theme: "light",
-  });
-};
-
-/*Site cookie Handler*/
-//deleteCookie('cookieaccepted');
-
-function acceptCookie() {
-  (document.cookie =
-    "cookieaccepted=1; expires=Thu, 18 Dec 2030 12:00:00 UTC; path=/"),
-    (document.getElementById("cookie-notice").style.visibility = "hidden");
-}
-
-function deleteCookie(name) {
-  document.cookie = name + "=; Path=/; Expires=Thu, 01 Jan 1970 00:00:01 GMT;";
-}
-
-document.cookie.indexOf("cookieaccepted") < 0 &&
-  (document.getElementById("cookie-notice").style.visibility = "visible");
-
-function myFunction() {
-  document.getElementById("cookie-notice").style.visibility = "hidden";
-}
-/*End here*/
-
-//User city autofill variables
-var searchInput = "user_city";
-
-function getLocation() {
-  if (navigator.geolocation) {
-    navigator.geolocation.getCurrentPosition(serUserLocation);
-  } else {
-    x.innerHTML = "Geolocation is not supported by this browser.";
-  }
-}
-
-function serUserLocation(position) {
-  //Pouplating user location value on hidden fields
-  $("#user_latitude").val(position.coords.latitude);
-  $("#user_longitude").val(position.coords.longitude);
-}
-
-function autocomplete(inp, arr) {
-  /*the autocomplete function takes two arguments,
-the text field element and an array of possible autocompleted values:*/
-  var currentFocus;
-  /*execute a function when someone writes in the text field:*/
-  inp.addEventListener("input", function (e) {
-    var a,
-      b,
-      i,
-      val = this.value;
-    /*close any already open lists of autocompleted values*/
-    closeAllLists();
-    if (!val) {
-      return false;
-    }
-    currentFocus = -1;
-    /*create a DIV element that will contain the items (values):*/
-    a = document.createElement("DIV");
-    a.setAttribute("id", this.id + "autocomplete-list");
-    a.setAttribute("class", "autocomplete-items");
-    /*append the DIV element as a child of the autocomplete container:*/
-    this.parentNode.appendChild(a);
-    /*for each item in the array...*/
-    for (i = 0; i < arr.length; i++) {
-      /*check if the item starts with the same letters as the text field value:*/
-      if (arr[i].substr(0, val.length).toUpperCase() == val.toUpperCase()) {
-        /*create a DIV element for each matching element:*/
-        b = document.createElement("DIV");
-        /*make the matching letters bold:*/
-        b.innerHTML = "<strong>" + arr[i].substr(0, val.length) + "</strong>";
-        b.innerHTML += arr[i].substr(val.length);
-        /*insert a input field that will hold the current array item's value:*/
-        b.innerHTML += "<input type='hidden' value='" + arr[i] + "'>";
-        /*execute a function when someone clicks on the item value (DIV element):*/
-        b.addEventListener("click", function (e) {
-          /*insert the value for the autocomplete text field:*/
-          inp.value = this.getElementsByTagName("input")[0].value;
-          /*close the list of autocompleted values,
-            (or any other open lists of autocompleted values:*/
-          closeAllLists();
-        });
-        a.appendChild(b);
-      }
-    }
-  });
-  /*execute a function presses a key on the keyboard:*/
-  inp.addEventListener("keydown", function (e) {
-    var x = document.getElementById(this.id + "autocomplete-list");
-    if (x) x = x.getElementsByTagName("div");
-    if (e.keyCode == 40) {
-      /*If the arrow DOWN key is pressed,
-      increase the currentFocus variable:*/
-      currentFocus++;
-      /*and and make the current item more visible:*/
-      addActive(x);
-    } else if (e.keyCode == 38) {
-      //up
-      /*If the arrow UP key is pressed,
-      decrease the currentFocus variable:*/
-      currentFocus--;
-      /*and and make the current item more visible:*/
-      addActive(x);
-    } else if (e.keyCode == 13) {
-      /*If the ENTER key is pressed, prevent the form from being submitted,*/
-      e.preventDefault();
-      if (currentFocus > -1) {
-        /*and simulate a click on the "active" item:*/
-        if (x) x[currentFocus].click();
-      }
-    }
-  });
-  function addActive(x) {
-    /*a function to classify an item as "active":*/
-    if (!x) return false;
-    /*start by removing the "active" class on all items:*/
-    removeActive(x);
-    if (currentFocus >= x.length) currentFocus = 0;
-    if (currentFocus < 0) currentFocus = x.length - 1;
-    /*add class "autocomplete-active":*/
-    x[currentFocus].classList.add("autocomplete-active");
-  }
-  function removeActive(x) {
-    /*a function to remove the "active" class from all autocomplete items:*/
-    for (var i = 0; i < x.length; i++) {
-      x[i].classList.remove("autocomplete-active");
-    }
-  }
-  function closeAllLists(elmnt) {
-    /*close all autocomplete lists in the document,
-  except the one passed as an argument:*/
-    var x = document.getElementsByClassName("autocomplete-items");
-    for (var i = 0; i < x.length; i++) {
-      if (elmnt != x[i] && elmnt != inp) {
-        x[i].parentNode.removeChild(x[i]);
-      }
-    }
-  }
-  /*execute a function when someone clicks in the document:*/
-  document.addEventListener("click", function (e) {
-    closeAllLists(e.target);
-  });
-}
-
-$(window).load(function () {
-  $(".book_preload").delay(2000).fadeOut(200);
-  $(".book").on("click", function () {
-    $(".book_preload").fadeOut(200);
-  });
-});
-
-$(document).on("ready", function (e) {
-  if ($(".sticky_sidebar").length > 0) {
-    //STICKY SIDEBAR HANDLER
-    $.stickysidebarscroll(".sticky_sidebar", {
-      offset: { top: 70, bottom: 700 },
-    });
-  }
-
-  setTimeout(function () {
-    if ($("#page_content").length > 0) {
-      $("html,body").animate(
+function initDtTbl(){
+   $('.dataTables-example').DataTable({
+     "pageLength": 10,
+     "lengthChange": true,
+     "paging":true,
+     "responsive": true,
+     "info":true,
+     "ordering": true,
+     language: {"searchPlaceholder": "Search here...",},
+     dom: '<"html5buttons"B>lTfgitp',
+     buttons: [
+        //{extend:'copy'},
         {
-          scrollTop: $("#page_content").offset().top,
+           extend: 'csv',
+           "fnClick": function ( nButton, oConfig, oFlash ) {
+                alert( 'Mouse click' );
+            },
+           text: '<i class="fa fa-file-excel-o"></i> Export Csv',
+           className: 'btn btn-primary',
+           exportOptions: {
+             columns: 'th:not(.notexport)'
+           }
         },
-        "slow"
-      );
-    }
-  }, 500);
 
-  //Calling geo location function to collect user location
-  //getLocation();
+        {
+         extend: 'print',
+         text: '<i class="fa fa-print"></i> Print',
+         customize: function (win){
+            $(win.document.body).addClass('white-bg');
+            $(win.document.body).css('font-size', '10px');
 
-  //Actiating tooltip for dom
-  $('[data-toggle="tooltip"]').tooltip();
+            $(win.document.body).find('table')
+                    .addClass('compact')
+                    .css('font-size', 'inherit');
+         },
+         exportOptions: {
+             columns: 'th:not(.notexport)'
+         }
+       },
+     ],
 
-  //applying select 2 js for course dropdown
-  //$('.course').select2({'width': "100%",'border-radius':'50px'});
-
-  setTimeout(function () {
-    if ($(".shimmer-preview").length > 0 && $(".div-content").length > 0) {
-      $(".shimmer-preview").addClass("d-none");
-      $(".div-content").removeClass("d-none");
-    }
-
-    //Loading datatable specifications
-    if ($(".dataTables").length > 0) {
-      $(".dataTables").DataTable({
-        pageLength: 10,
-        lengthChange: false,
-        paging: true,
-        responsive: true,
-        info: false,
-        ordering: false,
-        language: { searchPlaceholder: "Search by name..." },
-        //sDom: 'lrtip'
-      });
-    }
-  }, 2000);
-
-  if ($("#user_enquiry_form").length) {
-    $("#user_enquiry_form").validate();
-  }
-});
-
-//User enquiry form city autosuggestion
-$(document).on("keyup", "#user_city", function (e) {
-  e.preventDefault();
-
-  var city = $(this).val();
-  var formData = { action: "findUserCity", city: city };
-
-  $.ajax({
-    type: "POST",
-    url: ajaxCallUrl,
-    data: formData,
-    beforeSend: function () {
-      //$("#search-box").css("background", "#FFF url(LoaderIcon.gif) no-repeat 165px");
-    },
-    success: function (responseData) {
-      var data = JSON.parse(responseData);
-
-      if (data.check == "success") {
-        /*initiate the autocomplete function on the "myInput" element, and pass along the countries array as possible autocomplete values:*/
-        autocomplete(document.getElementById("user_city"), data.cities);
-        //$("#search-box").css("background", "#FFF");
-      } else {
-        return false;
+     aoColumnDefs: [
+      {
+         bSortable: false,
+         aTargets: [ 0 ]
       }
-    },
+    ],
+
   });
+
+   /**Table Design is Fixed*/
+    $('#DataTables_Table_0').removeClass('dataTable no-footer');
+    $('#DataTables_Table_0_wrapper').attr('style','padding-left:0px;padding-right:0');
+    /*-------------Ends Here ---------------*/
+}
+
+function destroyDTbl(){
+    $('.dataTables-example').DataTable().clear().destroy();
+}
+
+var btn = $('#button_to_top');
+
+$(window).scroll(function() {
+    var window_top = $(window).scrollTop() - 0;  
+  
+    //Calculating scroll top
+    if ($(window).scrollTop() > 300) {
+      btn.addClass('show');
+    } else {
+      btn.removeClass('show');
+    }
 });
+
+$(document).ready(function(){
+
+    //Initializing smooth scrollbar
+    //Scrollbar.initAll({alwaysShowTracks:true});
+
+    //Initializing datatable
+    if ($(".dataTables-example")[0]){
+        initDtTbl();
+
+        /**Table Design is Fixed*/
+        $('#DataTables_Table_0').removeClass('dataTable no-footer');
+        $('#DataTables_Table_0_wrapper').attr('style','padding-left:0px;padding-right:0');
+        /*-------------Ends Here ---------------*/
+    }    
+
+    setTimeout(function(){
+       $('#preloader').fadeOut();
+    },1000);
+
+    $('.buttons-csv,.buttons-excel,.buttons-pdf').on('click',function(){
+       // $('.content_div_loader').addClass('sk-loading');
+    }) 
+
+    $('.dataTables-example').on('draw.dt', function () {
+        //turn_on_icheck();
+        //alert('hi');
+    });
+
+     /**----------------- ICHECK STYLING ------------------*/
+    if ($(".i-checks")[0]){
+        $('.i-checks').iCheck({
+             checkboxClass: 'icheckbox_square-green',
+             radioClass: 'iradio_square-green',
+        });
+
+        $(".i-checks.checkAll input").on('ifChecked', function (e) {
+             var checked = $(this).is(':checked');
+             alert(checked); 
+             if(checked != false){
+                $(this).data('check','checked');
+                $('.selectAllItem input').iCheck('check');
+            }else{
+                $('.selectAllItem input').iCheck('uncheck');
+            }
+        });
+    }
+        
+    $(document).on('change','.checkAll input',function (e) {
+           var checked = $(this).prop('checked');
+
+           if(checked == true){
+              $('.selectAllItem input').prop('checked',true);
+          }else{
+              $('.selectAllItem input').prop('checked',false);
+          }
+     });
+     /*---------------- Ends here -----------------------*/
+
+    $('#loading-example-btn').click(function () {
+        btn = $(this);
+        simpleLoad(btn, true)
+
+        // Ajax example
+        //$.ajax().always(function () {
+        //  simpleLoad($(this), false)
+       //});
+
+        simpleLoad(btn, false)
+    });
+
+    /**----ICheck Validation----*/
+    $(document).on('ifChanged', '.i-checks input', function (e) {
+        $(this).valid();
+    });
+});
+/*--------------- End Here------------------*/
+
+var validator = $('.needs-validation').validate({
+    errorPlacement: function(label, element) {
+        label.addClass('arrow');
+        label.insertAfter(element.parent());
+    },
+    wrapper: 'span',
+
+    /*rules: {
+     'record_status':{ required:true }
+    }*/
+});
+
+//Setting tooltip class for dom
+$('[data-toggle="tooltip"]').tooltip({
+    trigger : 'hover'
+})  
+
+btn.on('click', function(e) {
+  e.preventDefault();
+  $('html, body').animate({scrollTop:0}, '300');
+});  
+
+/** Toastr option during page load */
+setTimeout(function() {
+    toastr.options = {
+        closeButton: true,
+        progressBar: true,
+        showMethod: 'slideDown',
+        timeOut: 3000
+    };
+    //toastr.info('You can edit any listing by click on edit button.', 'Quick Info!');
+
+}, 1300);
+
+/*----------------- End Here ---------------*/
+
+ //Clean dynamic content storing folder
+ $(document).on("click",".cleanRuntimeUpload",function(e){
+    e.preventDefault();
+    var formData = {action:"cleanDynamicContentFolder"};
+
+    swal({
+        title: "Are you sure?",
+        text: "Are you sure to clean the folder right now?",
+        type: "warning",
+        showCancelButton: true,
+        confirmButtonColor: "#DD6B55",
+        confirmButtonText: "Yes, Go ahead!",
+        closeOnConfirm: true
+    }, function () {
+        $.ajax({
+          url:ajaxControllerHandler,
+          method:'POST',
+          data: formData,
+          beforeSend: function() {
+             //$('.tooltip').hide();
+             //$('#clean_dynamic_content_store_folder').html('<i class="fa fa-spinner fa-spin"></i>&nbsp;Processing').attr('disabled',true);
+             $('.overlay').fadeIn();
+          },
+          success:function(responseData){
+              var result = JSON.parse(responseData);
+              //console.log(result);
+              if(result.check == "success"){
+                 toastr.success(result.message, 'Success!');
+              }else{
+                 toastr.error(result.message, 'Error!');
+              }
+              
+              $('.overlay').fadeOut();
+              //$('#clean_dynamic_content_store_folder').html('<i class="fa fa-recycle"></i>&nbsp; Clean Dynamic PDF Store Folder').attr('disabled',false);
+              return true; 
+           }
+        });
+    });    
+ });
 
 //Clean cache files from server
-$(document).on("click", ".clearSiteCache", function (e) {
-  e.preventDefault();
+$(document).on("click",".clearSiteCache",function(e){
+    e.preventDefault();
+    
+    var warningTxt = "Are you sure to clear the cache folder right now?"; 
+    var formData = {action:"clearCacheFolder"};  
 
-  var currentCacheFile = $("#currentCacheFile").val();
+    swal({
+        title: "Are you sure?",
+        text: warningTxt,
+        type: "warning",
+        showCancelButton: true,
+        confirmButtonColor: "#DD6B55",
+        confirmButtonText: "Yes, Go ahead!",
+        closeOnConfirm: true
+    }, function () {
+        $.ajax({
+          url:ajaxControllerHandler,
+          method:'POST',
+          data: formData,
+          beforeSend: function() {
+             //$('.tooltip').hide();
+             //$('#clean_dynamic_content_store_folder').html('<i class="fa fa-spinner fa-spin"></i>&nbsp;Processing').attr('disabled',true);
+             $('.overlay').fadeIn();
+          },
+          success:function(responseData){
+              var result = JSON.parse(responseData);
+              //console.log(result);
+              toastr.options.onHidden = function() { location.reload(); }
+              toastr.success(result.message, 'Success!');
+              $('.overlay').fadeOut();
+              //$('#clean_dynamic_content_store_folder').html('<i class="fa fa-recycle"></i>&nbsp; Clean Dynamic PDF Store Folder').attr('disabled',false);
+              return true; 
+           }
+        });
+    });    
+});
 
-  var warningTxt = "Are you sure to delete current page cache?";
-  var formData = {
-    action: "clearCacheFolder",
-    currentCacheFile: currentCacheFile,
+ //Configuring page records fetching params
+ $(document).on('submit', '#fetch_all_records', function(event){
+      event.preventDefault();
+      var record_status = $('#record_status').val();
+      var page_route = $('#page_route').val();
+
+      if(record_status === null){
+          window.location = SITE_URL+"?route="+page_route;
+      }else{
+        $('#fetch_item_data').html('<i class="fa fa-spinner fa-spin"></i>&nbsp;Fetching').attr('disabled',true);
+         setTimeout(function(){
+         $('#fetch_item_data').html('<i class="fa fa-search"></i>&nbsp;Fetch Data').attr('disabled',false);
+         //show sweetalert success
+         swal({
+          title: "Great!",
+          text: "Data has been successfully fetched!",
+          type: "success",
+          allowEscapeKey : false,
+          allowOutsideClick: false
+         },function(){
+           window.location = SITE_URL+"?route="+page_route+"&record_status="+record_status;
+         });},500);
+         return true;  
+     } 
+ });
+
+ /*Status change handler*/
+ $(document).on('click','.featured_action',function(){
+  var action = "globalFeaturedStatusUpdate";  
+  var row_id = $(this).data('rid'); 
+  var type = $(this).data('type');
+  var featured_status = $(this).data('ftype');
+  var page_type = $(this).data('ptype');
+
+  var thisItem = $(this);
+
+  if(featured_status == 'active'){
+    var toastrText = 'This '+page_type+' has been marked as featured successfully!';
+  }else{
+    var toastrText = 'This '+page_type+' has been marked as non-featured successfully!';
+  }
+  //show toastr success
+  toastr.options = {
+     closeButton: true,
+     progressBar: true,
+     showMethod: 'slideDown',
+     timeOut: 5000,
   };
 
+  var formData = {action:action,type:type,row_id:row_id,featured_status:featured_status};
+  
   $.ajax({
-    url: ajaxCallUrl,
-    method: "POST",
-    data: formData,
-    beforeSend: function () {
-      //$('.tooltip').hide();
-    },
-    success: function (responseData) {
-      var result = JSON.parse(responseData);
-      //console.log(result);
-      swal("Success!", result.message, "success");
-      return true;
-    },
-  });
-});
-
-function check_user_email(user_email) {
-  if (user_email.length > 0) {
-    var regularExp = /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,4}$/;
-    var chkEmail = regularExp.test(user_email);
-
-    if (!chkEmail) {
-      swal({
-        title: "Oops!",
-        text: "Enter a proper email!",
-        type: "error",
-      });
-      $("#create").attr("disabled", true);
-      return false;
-    }
-  } else {
-    swal({
-      title: "Oops!",
-      text: "This field is required!",
-      type: "error",
-    });
-    $("#create").attr("disabled", true);
-    return false;
-  }
-}
-
-/*What'sapp Widget*/
-// var url = 'https://wati-integration-service.clare.ai/ShopifyWidget/shopifyWidget.js?75265';
-// var s = document.createElement('script');
-// s.type = 'text/javascript';
-// s.async = true;
-// s.src = url;
-// var options = {
-//   "enabled":true,
-//   "chatButtonSetting":{
-//       "backgroundColor":"#4dc247",
-//       "ctaText":"Contact For Franchise",
-//       "borderRadius":"25",
-//       "marginLeft":"30",
-//       "marginBottom":"18",
-//       "marginRight":"90",
-//       "position":"right"
-//   },
-//   "brandSetting":{
-//       "brandName":"The AIMGCSM",
-//       "brandSubTitle":"Typically replies within a day",
-//       "brandImg":"https://cdn.clare.ai/wati/images/WATI_logo_square_2.png",
-//       "welcomeText":"Hi there!\nHow can I help you?",
-//       "messageText":"Hello, I have a question about {{page_link}}",
-//       "backgroundColor":"#0a5f54",
-//       "ctaText":"Start Chat",
-//       "borderRadius":"25",
-//       "autoShow":false,
-//       "phoneNumber":"9831649099"
-//   }
-// };
-// s.onload = function() {
-//     CreateWhatsappChatWidget(options);
-// };
-// var x = document.getElementsByTagName('script')[0];
-// x.parentNode.insertBefore(s, x);
-/*end here*/
-
-/*$('.nb-form').on('mouseover',function(){
-    if(countAddShowClassContact == 0){
-        console.log(countAddShowClassContact);
-        $('#minimize_contact_form').removeClass('d-none');
-        $(this).addClass('show');
-        countAddShowClassContact++;
-    }    
-});
-
-$('#minimize_contact_form').on('click',function(){
-    $(this).addClass('d-none');
-    $('.nb-form').removeClass('show');
-    countAddShowClassContact = 0;
-});*/
-
-var wa_btnSetting = {
-  btnColor: "#16BE45",
-  ctaText: "Contact Us for Franchise",
-  cornerRadius: 40,
-  marginBottom: 20,
-  marginLeft: 20,
-  marginRight: 20,
-  btnPosition: "left",
-  whatsAppNumber: "919831649099",
-  welcomeMessage:
-    "Hi, how can we help you?\nWe normally reply reply within a day.",
-  zIndex: 999999,
-  btnColorScheme: "light",
-};
-window.onload = () => {
-  _waEmbed(wa_btnSetting);
-};
-
-//Hndling enquiry type of the contact form
-$(document).on("change", "#enquiry_type", function () {
-  var enquiry_type = $(this).val();
-  if (enquiry_type == "course") {
-    $("#course_div").removeClass("d-none").attr("disabled", false);
-    $("#subject_div").addClass("d-none").attr("disabled", true);
-    $("#course_id").attr("required", true);
-    $("#subject").attr("required", false);
-  } else {
-    $("#subject_div").removeClass("d-none").attr("disabled", false);
-    $("#course_div").addClass("d-none").attr("disabled", true);
-    $("#course_id").attr("required", false);
-    $("#subject").attr("required", true);
-  }
-  return true;
-});
-
-//handling user enquiry form
-$(document).on("submit", "#user_enquiry_form", function (event) {
-  event.preventDefault();
-
-  var response = grecaptcha.getResponse(enquiryCaptchaWidget);
-
-  if (response.length === 0) {
-    // reCAPTCHA not checked
-    swal("Error!", "Please verify that you are not a robot.", "error");
-  } else {
-    var enquiry_type = $("#enquiry_type").val();
-
-    var course_id = $("#course_id").val();
-    var course_name = $("#course_" + course_id).text();
-    //putting course name for further use
-    $("#course_name").val(course_name);
-
-    //var user_email = $('#user_email').val();
-    //validate user email
-    //check_user_email(user_email);
-
-    if (enquiry_type == "course") {
-      var course_id = $("#course_id").val();
-      if (!course_id > 0) {
-        swal("Error!", "Please select a course to proceed!", "error");
-        return false;
-      }
-    } else {
-      var subject = $("#subject").val();
-      if (!subject.length > 0) {
-        swal("Error!", "Please write a subject to proceed!", "error");
-        return false;
-      }
-    }
-
-    $.ajax({
-      url: ajaxCallUrl,
-      method: "POST",
-      data: new FormData(this),
-      contentType: false,
-      processData: false,
-      beforeSend: function () {
-        $("#contact_submit")
-          .html('Processing <i class="fa fa-spinner fa-spin"></i>')
-          .attr("disabled", true);
+      url:ajaxControllerHandler,
+      method:'POST',
+      data: formData,
+      beforeSend: function() {
+         $('.content_div_loader').addClass('sk-loading');
       },
-      success: function (responseData) {
-        var data = JSON.parse(responseData);
-        $("#contact_submit").html("Send Now").attr("disabled", false);
-        
-        //reseting captcha
-        grecaptcha.reset(enquiryCaptchaWidget);
+      success:function(responseData){
+          //console.log(responseData); 
+          var data = JSON.parse(responseData);
+          //Disabling loader
+          $('.content_div_loader').removeClass('sk-loading');
+          //Check response
+          if(data.check == 'success'){
+              //toggle switcher
+              if(featured_status == 'active'){
+                $(thisItem).data('ftype', 'inactive');
+                $(thisItem).attr('data-original-title','Non-Featured this '+page_type);
+                $(thisItem).html('<i class="fa fa-star"></i> Featured');
+                toastr.success(toastrText, 'Success!');
+
+              }else{
+                $(thisItem).data('ftype', 'active');
+                $(thisItem).attr('data-original-title','Featured this '+page_type);
+                $(thisItem).html('<i class="fa fa-star-o"></i> Non-Featured');
+                toastr.warning(toastrText, 'Success!');
+              }  
+              return true; 
+          }else{
+              if(data.message.length>0){
+                var toastrErrorText = data.message;
+              }else{
+                var toastrErrorText = 'Something went wrong! Please try again.'
+              }
+              //show toastr error
+              toastr.options.onHidden = function() { window.location.reload(); }
+              toastr.error(toastrErrorText, 'Error!');
+              return false;
+          } 
+
+       }
+     });
+ });
+
+ //Handle change record status record
+ $(document).on("click",".changeRecordStatus",function (e) {
+   e.preventDefault();
+   
+   var ids = '';
+   var row_id = $(this).data('rid');
+   var type = $(this).data('type');
+   var record_status = $(this).data('rstatus');
+   var page_type = $(this).data('ptype');
+
+   if(row_id == 'all'){
+     $('.singleCheck').each(function(index,element){
+       if($(this).prop("checked") == true){
+         ids += $(this).val()+',';
+       } 
+     });
+     ids = ids.replace(/,\s*$/, "");
+     var singular_text = 'These';
+   }else{
+     ids = row_id;
+     var singular_text = 'This';
+   }
+
+   if(record_status == 'active'){
+     var action = 'updateGlobalStatusRecord';
+     var errorText = "Restoration failed!";
+     var alertText = singular_text+" "+page_type+" will be restored into active record list!";
+     var confirmText = "Yes, Restore it!";
+     var successText = page_type+" has been successfully restored into active records!";
+   }
+   else if(record_status == 'blocked'){
+     var action = 'updateGlobalStatusRecord';
+     var errorText = "Block failed!";
+     var alertText = singular_text+" "+page_type+" will be removed to trash;You can recover this item from trash anytime!";
+     var confirmText = "Yes, Trash it!";
+     var successText = page_type+" has been successfully moved into trash!";
+   }else{
+     var action = 'deleteGlobalData';
+     var errorText = "Deletion failed!";
+     var alertText = singular_text+" "+page_type+" will be parmanently deleted and not recoverable!";
+     var confirmText = "Yes, Delete it!";
+     var successText = page_type+" has been successfully deleted!"; 
+   }
+
+   var formData = {action:action,type:type,row_id:ids,record_status:record_status};
+
+   //console.log(formData);return false;
+   
+   if(ids){
+       swal({
+            title: "Are you sure?",
+            text: alertText,
+            type: "warning",
+            showCancelButton: true,
+            confirmButtonColor: "#DD6B55",
+            confirmButtonText: confirmText,
+            closeOnConfirm: true
+            }, function () {
+            //dataTable.destroy();
+              $.ajax({
+              url:ajaxControllerHandler,
+              method:'POST',
+              data: formData,
+              beforeSend: function() {
+                 $('.content_div_loader').addClass('sk-loading');
+              },
+              success:function(responseData){
+                 //console.log(responseData); 
+                 var data = JSON.parse(responseData);
+                 if(data.check == 'success'){
+                    //show sweetalert success
+                    setTimeout(function() {
+                          //Disabling loader
+                          $('.content_div_loader').removeClass('sk-loading');
+                          //showing success message
+                          swal({
+                              title: "Success!",
+                              text: successText,
+                              type: "success"
+                          }, function() {
+                              location.reload();
+                          });
+                      }, 1000);
+
+                      return true; 
+                 }else{
+                     //Disabling loader
+                     $('.content_div_loader').removeClass('sk-loading');
+                     //show sweetalert success
+                     toastr.error(data.message,'Error!', {timeOut: 2000,closeButton:true,progressBar:true});
+                     return false;
+                 }
+               }
+             });
+          });
+       }else{
+          toastr.error('Please select at least one data!',errorText, {timeOut: 2000,closeButton:true,progressBar:true});  
+          return false;   
+       } 
+ });
+
+ //Handle change record status record
+ $(document).on("click",".sendMailToUser",function (e) {
+   e.preventDefault();
+   
+   var ids = '';
+   var user_type = null;
+   var row_id = $(this).data('rid');
+   var type = $(this).data('type');
+   var page_type = $(this).data('ptype');
+
+   if(row_id == 'all'){
+     $('.singleCheck').each(function(index,element){
+       if($(this).prop("checked") == true){
+         ids += $(this).val()+',';
+       } 
+     });
+     ids = ids.replace(/,\s*$/, "");
+     var singular_text = 'These';
+   }else{
+     ids = row_id;
+     var singular_text = 'This';
+   }
+
+   var errorText = "Mail Sent Failed!";
+   var confirmText = "Yes, Go ahead!";
+   var successText = page_type+(row_id=='all'?'s have':' has')+"  been successfully sent over mail!";
+
+   if(type == 'student_receipts'){
+     var action = 'sendStudentReceipt';
+     var alertText = singular_text+" "+page_type+" will be sent to "+singular_text.toLowerCase()+" student!";
+   }
+
+   var formData = {action:action,type:type,row_id:ids,user_type:user_type};
+
+   //console.log(formData);return false;
+   
+   if(ids){
+       swal({
+            title: "Are you sure?",
+            text: alertText,
+            type: "warning",
+            showCancelButton: true,
+            confirmButtonColor: "#DD6B55",
+            confirmButtonText: confirmText,
+            closeOnConfirm: true
+            }, function () {
+            //dataTable.destroy();
+              $.ajax({
+              url:ajaxControllerHandler,
+              method:'POST',
+              data: formData,
+              beforeSend: function() {
+                 $('.content_div_loader').addClass('sk-loading');
+              },
+              success:function(responseData){
+                 //console.log(responseData); 
+                 var data = JSON.parse(responseData);
+                 if(data.check == 'success'){
+                    //show sweetalert success
+                    setTimeout(function() {
+                          //Disabling loader
+                          $('.content_div_loader').removeClass('sk-loading');
+                          //showing success message
+                          swal({
+                              title: "Success!",
+                              text: successText,
+                              type: "success"
+                          }, function() {
+                              location.reload();
+                          });
+                      }, 1000);
+
+                      return true; 
+                 }else{
+                     //Disabling loader
+                     $('.content_div_loader').removeClass('sk-loading');
+                     //show sweetalert success
+                     toastr.error(data.message,'Error!', {timeOut: 2000,closeButton:true,progressBar:true});
+                     return false;
+                 }
+               }
+             });
+          });
+       }else{
+          toastr.error('Please select at least one data!',errorText, {timeOut: 2000,closeButton:true,progressBar:true});  
+          return false;   
+       } 
+ });
+ 
+
+
+
        
-        //hiding subject div
-        $("#subject_div").addClass("d-none").attr("disabled", true);
-        $("#course_div").addClass("d-none").attr("disabled", true);
        
-        //reseting form data
-        $("#user_enquiry_form")[0].reset();
-
-        //console.log(responseData);
-        if (data.check == "success") {
-          //show sweetalert success
-          swal(
-            "Success!",
-            "Your enquiry is reached to us successfully! We shall contact you shortly.",
-            "success"
-          );
-          return true;
-        } else {
-          //show sweetalert success
-          if (data.message.length > 0) {
-            var message = data.message;
-          } else {
-            var message = "Something went wrong";
-          }
-          swal("Error!", message, "error");
-          return false;
-        }
-      },
-    });
-  }
-});
-
-//UNSUBSCRIBE USER NEWSLETTER FORM HANDLER
-$(document).on("submit", "#unsubscribe_newsletter_form", function (event) {
-  event.preventDefault();
-
-  var user_email = $("#unsubscribe_email").val();
-  //validate user email
-  check_user_email(user_email);
-
-  $.ajax({
-    url: ajaxCallUrl,
-    method: "POST",
-    data: new FormData(this),
-    contentType: false,
-    processData: false,
-    beforeSend: function () {
-      //$('#unsubscribe_user_btn').html('<i class="fa fa-spinner fa-spin"></i>').attr('disabled',true);
-    },
-    success: function (responseData) {
-      //console.log(responseData);return false;
-      var data = JSON.parse(responseData);
-      $("#unsubscribe_user_btn").html("Submit").attr("disabled", false);
-      if (data.check == "success") {
-        $("#unsubscribe_newsletter_form")[0].reset();
-        swal(
-          "Success!",
-          "An email is sent to your inbox containing link to unsubscribe."
-        );
-        return true;
-      } else {
-        swal("Error!", "Something went wrong!", "error");
-        return false;
-      }
-    },
-  });
-});
