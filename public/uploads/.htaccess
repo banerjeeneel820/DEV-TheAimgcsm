@@ -1,0 +1,19 @@
+# Disable directory listing
+Options -Indexes
+
+# Deny access to all .php files in this folder
+<Files "*.php">
+    Order Deny,Allow
+    Deny from all
+</Files>
+
+# Deny access to specific file(s)
+<Files "filename.php">
+    Order Deny,Allow
+    Deny from all
+</Files>
+
+# Deny access to the folder itself
+<IfModule mod_autoindex.c>
+    IndexIgnore *
+</IfModule>

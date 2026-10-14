@@ -1,4 +1,8 @@
 <?php
+use App\Core\Bootstrap;
+use App\Core\Container;
+use App\Core\Router;
+
 ob_start();
 
 define('ROOTPATH', __DIR__);

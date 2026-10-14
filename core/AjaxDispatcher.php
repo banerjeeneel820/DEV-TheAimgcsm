@@ -1,5 +1,8 @@
-
 <?php
+namespace App\Core;
+
+use App\Core\BaseController;
+
 defined('ROOTPATH') OR exit('No direct script access allowed');
 
 class AjaxDispatcher extends BaseController

@@ -1,5 +1,18 @@
 <?php
+namespace App\Libraries;
+
 defined('ROOTPATH') or exit('No direct script access allowed');
+
+use App\Core\Database;
+
+use DateTime;
+use RuntimeException;
+use finfo;
+use InvalidArgumentException;
+use mysqli;
+use ZipArchive;
+use RecursiveIteratorIterator;
+use RecursiveDirectoryIterator;
 
 use PHPMailer\PHPMailer\PHPMailer;
 use PHPMailer\PHPMailer\Exception;
@@ -427,51 +440,73 @@ class GlobalLibraryHandler
     return $success;
   }
 
+
   public function handleFileUpload($config)
   {
-      $input    = $config['input'];
-      $hidden   = $config['hidden'] ?? '';
-      $default  = $config['default'] ?? null;
-      $dir      = $config['dir'];
-      $isUpdate = $config['isUpdate'] ?? false;
-  
-      // New file uploaded
-      if (!empty($_FILES[$input]['size'])) {
-  
-          $upload = $this->upload_file($input, $dir);
-  
-          if ($upload['check'] === 'success') {
-  
-              // Delete old file only when updating
-              if (
-                  $isUpdate &&
-                  !empty($hidden) &&
-                  file_exists(USER_UPLOAD_DIR . $dir . '/' . $hidden)
-              ) {
-                  unlink(USER_UPLOAD_DIR . $dir . '/' . $hidden);
-              }
-  
-              return $upload['fileName'];
+    $input         = $config['input'];
+    $hidden        = $config['hidden'] ?? '';
+    $default       = $config['default'] ?? null;
+    $dir           = $config['dir'];
+    $isUpdate      = $config['isUpdate'] ?? false;
+
+    // Destination for the newly uploaded file.
+    $visibility = $config['visibility'] ?? 'legacy';
+
+    // Where the existing file currently lives.
+    // During migration, existing files may still be in the legacy folder.
+    $oldVisibility = $config['old_visibility'] ?? $visibility;
+
+    // New file uploaded.
+    if (!empty($_FILES[$input]['size'])) {
+
+      $upload = $this->upload_file(
+        $input,
+        $dir,
+        $visibility
+      );
+
+      if ($upload['check'] === 'success') {
+
+        // Delete the old file only when updating.
+        if ($isUpdate && !empty($hidden)) {
+
+          $oldDir = $this->resolveUploadBaseDirectory(
+            $oldVisibility
+          );
+
+          $oldPath = $oldDir
+            . trim($dir, '/\\')
+            . '/'
+            . basename($hidden);
+
+          if (is_file($oldPath)) {
+            unlink($oldPath);
           }
-  
-          // Upload was attempted but failed
-          return $default;
+        }
+
+        return $upload['fileName'];
       }
-  
-      // No new file uploaded:
-      // Keep the existing/hidden file if one exists
-      if (!empty($hidden)) {
-          return $hidden;
-      }
-  
-      // No new file and no existing file
+
+      // Preserve the existing failure behavior.
       return $default;
+    }
+
+    // No new file uploaded: keep the existing file.
+    if (!empty($hidden)) {
+      return $hidden;
+    }
+
+    // No new file and no existing file.
+    return $default;
   }
 
-  public function upload_file($file_name, $dir)
+  public function upload_file($file_name, $dir, $visibility = 'legacy')
   {
 
-    $targetDir = USER_UPLOAD_DIR . $dir . '/';
+    $targetDir = $this->resolveUploadBaseDirectory($visibility)
+      . trim($dir, '/\\')
+      . '/';
+
     $allowTypeArr = array(
       'jpg' => 'image/jpeg',
       'png' => 'image/png',
@@ -561,6 +596,25 @@ class GlobalLibraryHandler
         return array('check' => 'failure', 'message' => $error_message);
       }
     }
+  }
+
+  /**
+   * Resolve the base directory for uploaded files.
+   *
+   * legacy  = existing storage/uploads/
+   * public  = public/uploads/
+   * private = storage/uploads/private/
+   */
+  private function resolveUploadBaseDirectory(string $visibility = 'legacy'): string
+  {
+    return match ($visibility) {
+      'public'  => USER_PUBLIC_UPLOAD_DIR,
+      'private' => USER_PRIVATE_UPLOAD_DIR,
+      'legacy'  => USER_UPLOAD_DIR,
+      default   => throw new InvalidArgumentException(
+        "Invalid upload visibility: {$visibility}"
+      ),
+    };
   }
 
   public function createDBBak($filePath)
@@ -878,57 +932,57 @@ class GlobalLibraryHandler
   // helper for sanitization
   private function inputDataSanitize($key, $method = 'post', $escape = false)
   {
-      // =========================
-      // Prevent Invalid Key Types
-      // =========================
-      if (is_array($key) || is_object($key)) {
-          return null;
-      }
-  
-      $sources = [
-          'get'     => $_GET,
-          'post'    => $_POST,
-          'request' => $_REQUEST
-      ];
-  
-      $data = $sources[strtolower($method)] ?? [];
-  
-      if (!isset($data[$key])) {
-          return null;
-      }
-  
-      return $this->sanitizeValue(
-          $data[$key],
-          $escape
-      );
+    // =========================
+    // Prevent Invalid Key Types
+    // =========================
+    if (is_array($key) || is_object($key)) {
+      return null;
+    }
+
+    $sources = [
+      'get'     => $_GET,
+      'post'    => $_POST,
+      'request' => $_REQUEST
+    ];
+
+    $data = $sources[strtolower($method)] ?? [];
+
+    if (!isset($data[$key])) {
+      return null;
+    }
+
+    return $this->sanitizeValue(
+      $data[$key],
+      $escape
+    );
   }
-  
+
   private function sanitizeValue($value, $escape = false)
   {
-      // =========================
-      // Recursive Array Handling
-      // =========================
-      if (is_array($value)) {
-  
-          return array_map(function ($item) use ($escape) {
-              return $this->sanitizeValue($item, $escape);
-          }, $value);
-      }
-  
-      // =========================
-      // Scalar Handling
-      // =========================
-      $value = trim((string)$value);
-  
-      if ($escape) {
-  
-          return mysqli_real_escape_string(
-              $this->db,
-              $value
-          );
-      }
-  
-      return $value;
+    // =========================
+    // Recursive Array Handling
+    // =========================
+    if (is_array($value)) {
+
+      return array_map(function ($item) use ($escape) {
+        return $this->sanitizeValue($item, $escape);
+      }, $value);
+    }
+
+    // =========================
+    // Scalar Handling
+    // =========================
+    $value = trim((string)$value);
+
+    if ($escape) {
+
+      return mysqli_real_escape_string(
+        $this->db,
+        $value
+      );
+    }
+
+    return $value;
   }
 
   public function getDataSanitize($key, $default = null)
@@ -955,25 +1009,25 @@ class GlobalLibraryHandler
 
   public function formatEscapedHtmlContent($content = '')
   {
-      if ($content === '') {
-          return $content;
-      }
-
-      // Convert escaped quotes to normal quotes
-      $content = str_replace(
-          ['\\"', "\\'"],
-          ['"', "'"],
-          $content
-      );
-
-      // Convert literal escaped line endings to actual line breaks
-      $content = str_replace(
-          ['\\r\\n', '\\n', '\\r'],
-          ["\r\n", "\n", "\r"],
-          $content
-      );
-
+    if ($content === '') {
       return $content;
+    }
+
+    // Convert escaped quotes to normal quotes
+    $content = str_replace(
+      ['\\"', "\\'"],
+      ['"', "'"],
+      $content
+    );
+
+    // Convert literal escaped line endings to actual line breaks
+    $content = str_replace(
+      ['\\r\\n', '\\n', '\\r'],
+      ["\r\n", "\n", "\r"],
+      $content
+    );
+
+    return $content;
   }
 
   public function formatDateDB($date)

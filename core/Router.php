@@ -1,4 +1,11 @@
 <?php
+namespace App\Core;
+
+use App\Core\RouteDispatcher;
+use App\Core\AjaxDispatcher;
+use App\Core\PostDispatcher;
+use App\Core\ViewEngine;
+
 defined('ROOTPATH') or exit('No direct script access allowed');
 
 class Router
@@ -27,9 +34,9 @@ class Router
     private static function handlePost()
     {
         if (self::isAjax()) {
-            self::dispatch('AjaxDispatcher', 'handle', true);
+            self::dispatch(AjaxDispatcher::class, 'handle', true);
         } else {
-            self::dispatch('PostDispatcher', 'handle', false);
+            self::dispatch(PostDispatcher::class, 'handle', false);
         }
     }
 
@@ -53,7 +60,7 @@ class Router
         $requestData['route'] = $route;
 
         $pageData = self::dispatch(
-            'RouteDispatcher',
+            RouteDispatcher::class,
             'get_PageContent',
             false,
             $requestData
@@ -90,7 +97,6 @@ class Router
 
         return $route;
     }
-
 
     /**
      * Central Dispatch Method

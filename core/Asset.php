@@ -1,4 +1,6 @@
 <?php
+namespace App\Core;
+
 defined('ROOTPATH') or exit('No direct script access allowed');
 
 class Asset

@@ -1,4 +1,6 @@
 <?php
+namespace App\Libraries;
+
 defined('ROOTPATH') or exit('No direct script access allowed');
 
 use Dompdf\Dompdf;

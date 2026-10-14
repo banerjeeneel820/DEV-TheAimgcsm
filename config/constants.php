@@ -155,7 +155,7 @@ if (!defined('ADMIN_SITE_URL')) {
 |--------------------------------------------------------------------------
 */
 if (!defined('RESOURCE_URL')) {
-    define('RESOURCE_URL', PROJECT_SITE_URL . 'assets/');
+    define('RESOURCE_URL', PROJECT_SITE_URL . 'public/assets/');
 }
 
 /*
@@ -163,9 +163,28 @@ if (!defined('RESOURCE_URL')) {
 | Upload Directory & URL
 |--------------------------------------------------------------------------
 */
-if (!defined('USER_UPLOAD_DIR')) {
-    define('USER_UPLOAD_DIR', ROOTPATH . '/uploads/');
-}
+// Public files: directly accessible through the web server.
+define(
+    'USER_PUBLIC_UPLOAD_DIR',
+    ROOTPATH . '/public/uploads/'
+);
+
+define(
+    'USER_PUBLIC_UPLOAD_URL',
+    PROJECT_SITE_URL . 'public/uploads/'
+);
+
+// Private files: must be served through an authorized PHP endpoint.
+define(
+    'USER_PRIVATE_UPLOAD_DIR',
+    ROOTPATH . '/storage/uploads/private/'
+);
+
+// Legacy path — retain temporarily while migrating existing callers.
+define(
+    'USER_UPLOAD_DIR',
+    ROOTPATH . '/storage/uploads/'
+);
 
 if (!defined('USER_UPLOAD_URL')) {
     define('USER_UPLOAD_URL', SITE_URL . 'uploads/');
@@ -177,11 +196,11 @@ if (!defined('USER_UPLOAD_URL')) {
 |--------------------------------------------------------------------------
 */
 if (!defined('SITE_BACKUP_DIR')) {
-    define('SITE_BACKUP_DIR', ROOTPATH . '/backup/');
+    define('SITE_BACKUP_DIR', ROOTPATH . '/storage/backup/');
 }
 
 if (!defined('SITE_BACKUP_URL')) {
-    define('SITE_BACKUP_URL', SITE_URL . 'backup/');
+    define('SITE_BACKUP_URL', SITE_URL . '/storage/backup/');
 }
 
 /*
@@ -190,7 +209,7 @@ if (!defined('SITE_BACKUP_URL')) {
 |--------------------------------------------------------------------------
 */
 if (!defined('APP_CACHE_DIR')) {
-    define('APP_CACHE_DIR', ROOTPATH . '/cache/');
+    define('APP_CACHE_DIR', ROOTPATH . '/storage/cache/');
 }
 
 if (!defined('APP_CACHE_TIME')) {

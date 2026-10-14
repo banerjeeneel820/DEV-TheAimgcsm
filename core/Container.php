@@ -1,4 +1,9 @@
 <?php
+namespace App\Core;
+
+use Exception;
+use ReflectionClass;
+
 defined('ROOTPATH') or exit('No direct script access allowed');
 
 class Container

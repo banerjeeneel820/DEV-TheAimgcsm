@@ -1,8 +1,28 @@
+
 {
     "require": {
         "php": "^8.2.0",
         "phpmailer/phpmailer": "^6.6",
         "phpoffice/phpspreadsheet": "^1.23",
         "dompdf/dompdf": "^2.0.1"
+    },
+    "autoload": {
+        "psr-4": {
+            "App\\": "app/",
+            "App\\Controllers\\Admin\\": "controllers/admin/",
+            "App\\Controllers\\Frontend\\": "controllers/frontend/",
+            "App\\Controllers\\": "controllers/",
+
+            "App\\Models\\Admin\\": "models/admin/",
+            "App\\Models\\Frontend\\": "models/frontend/",
+            "App\\Models\\": "models/",
+
+            "App\\Services\\Admin\\": "services/admin/",
+            "App\\Services\\Frontend\\": "services/frontend/",
+            "App\\Services\\": "services/",
+
+            "App\\Core\\": "core/",
+            "App\\Libraries\\": "libraries/"
+        }
     }
 }

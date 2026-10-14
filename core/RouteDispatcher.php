@@ -1,4 +1,7 @@
 <?php
+namespace App\Core;
+
+use App\Core\BaseController;
 
 defined('ROOTPATH') or exit('No direct script access allowed');
 
@@ -36,12 +39,11 @@ class RouteDispatcher extends BaseController
           }
      }
 
-
      public function get_PageContent($data)
      {
           $route = trim($data['route'] ?? 'home', '/');
 
-          //var_dump($route);exit;
+          var_dump($route);exit;
 
           if (!isset($this->routes[$route])) {
                return $this->errorPage(404);

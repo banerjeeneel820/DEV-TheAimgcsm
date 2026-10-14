@@ -1,5 +1,8 @@
-
 <?php
+namespace App\Core;
+
+use RuntimeException;
+use App\Core\BaseController;
 
 defined('ROOTPATH') or exit('No direct script access allowed');
 

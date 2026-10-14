@@ -1,4 +1,8 @@
 <?php 
+namespace App\Core;
+
+use Exception;
+
 defined('ROOTPATH') or exit('No direct script access allowed');
 
 class Database

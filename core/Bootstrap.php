@@ -1,4 +1,6 @@
 <?php
+namespace App\Core;
+
 defined('ROOTPATH') or exit('No direct script access allowed');
 
 class Bootstrap
@@ -64,7 +66,6 @@ class Bootstrap
                 ROOTPATH . '/models/',
                 ROOTPATH . '/libraries/',
                 ROOTPATH . '/services/',
-                ROOTPATH . '/helpers/',
                 ROOTPATH . '/config/',
             ];
 

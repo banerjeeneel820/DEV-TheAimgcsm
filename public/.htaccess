@@ -1,0 +1,11 @@
+
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+    RewriteBase /theaimgcsm/
+
+    # Serve existing files directly.
+    RewriteCond %{REQUEST_FILENAME} !-f
+
+    # Send virtual routes to the root entry point.
+    RewriteRule ^ index.php [QSA,L]
+</IfModule>

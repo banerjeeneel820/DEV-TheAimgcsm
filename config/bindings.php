@@ -1,6 +1,40 @@
 <?php
 defined('ROOTPATH') or exit('No direct script access allowed');
 
+use App\Core\Database;
+use App\Libraries\GlobalLibraryHandler;
+
+use App\Controllers\Admin\GlobalValidationController;
+
+use App\Services\Admin\AuthService;
+use App\Services\Admin\PermissionService;
+use App\Services\Admin\CacheService;
+use App\Services\Admin\PdfService;
+use App\Services\Admin\CmsService;
+use App\Services\Admin\CourseFranchiseService;
+use App\Services\Admin\DashboardService;
+use App\Services\Admin\ExamService;
+use App\Services\Admin\ExcelService;
+use App\Services\Admin\ExportService;
+use App\Services\Admin\ImportService;
+use App\Services\Admin\NewsService;
+use App\Services\Admin\StudentService;
+use App\Services\Admin\StudentReceiptService;
+use App\Services\Admin\TemplateService;
+use App\Services\Admin\UtilityService;
+
+use App\Models\Admin\GlobalInterfaceModel;
+use App\Models\Admin\AuthModel;
+use App\Models\Admin\PermissionModel;
+use App\Models\Admin\CmsModel;
+use App\Models\Admin\CourseFranchiseModel;
+use App\Models\Admin\DashboardModel;
+use App\Models\Admin\ExamModel;
+use App\Models\Admin\NewsModel;
+use App\Models\Admin\StudentModel;
+use App\Models\Admin\StudentReceiptModel;
+use App\Models\Admin\TemplateModel;
+use App\Models\Admin\UtilityModel;
 /*
 |--------------------------------------------------------------------------
 | Model Registry
