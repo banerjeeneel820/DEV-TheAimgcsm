@@ -38,8 +38,8 @@
 
         <!-- Admin Sidebar Nav Section -->
         <?php 
-            include ROOTPATH . "/layout/admin/sidebar.php"; 
-            //include ROOTPATH . "/layout/admin/sidebar_old.php"; 
+            include ROOTPATH . "/resources/layouts/admin/sidebar.php"; 
+            //include ROOTPATH . "/resources/layouts/admin/sidebar_old.php"; 
         ?>
 
         <div id="page-wrapper" class="gray-bg">

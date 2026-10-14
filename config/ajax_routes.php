@@ -1,4 +1,6 @@
 <?php
+use App\Controllers\Admin\NewsController;
+
 return [
 
     // Auth & Profile Routes
@@ -45,8 +47,8 @@ return [
     'manageEmailTemplate' => ['TemplateController', 'manage_email_template'],
     'manageHomeSlider' => ['CmsController', 'manage_home_slider'],
     
-    //'manageGlobalNews' => ['NewsController', 'manage_global_news'],
-    'admin/news/manage' => ['NewsController', 'manage_global_news'],
+    //'manageGlobalNews' => [NewsController::class, 'manage_global_news'],
+    // 'admin/news/manage' => [NewsController::class, 'manage_global_news'],
 
     // Utility Routes
     'updateGlobalStatusRecord' => ['UtilityController', 'update_global_record_status'],

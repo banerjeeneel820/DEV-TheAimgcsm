@@ -4,6 +4,9 @@ namespace App\Controllers\Admin;
 use App\Core\Asset;
 use App\Core\BaseController;
 
+use App\Services\Admin\PermissionService;
+use App\Services\Admin\NewsService;
+
 defined('ROOTPATH') or exit('No direct script access allowed');
 
 class NewsController extends BaseController
@@ -64,6 +67,7 @@ class NewsController extends BaseController
             false,
             true,
             [
+                'application' => 'admin',
                 'view'   => 'news/view_news.php',
                 'layout' => 'admin',
             ]

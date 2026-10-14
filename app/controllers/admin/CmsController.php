@@ -4,6 +4,10 @@ namespace App\Controllers\Admin;
 use App\Core\Asset;
 use App\Core\BaseController;
 
+use App\Services\Admin\PermissionService;
+use App\Services\Admin\CmsService;
+use App\Services\Admin\CourseFranchiseService;
+
 defined('ROOTPATH') or exit('No direct script access allowed');
 
 class CmsController extends BaseController

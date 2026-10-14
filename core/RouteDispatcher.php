@@ -2,6 +2,7 @@
 namespace App\Core;
 
 use App\Core\BaseController;
+use App\Core\RouteRegistry;
 
 defined('ROOTPATH') or exit('No direct script access allowed');
 
@@ -18,7 +19,7 @@ class RouteDispatcher extends BaseController
           parent::__construct($container);
           $this->container = $container;
 
-          $routes = require ROOTPATH . '/config/routes.php';
+          $routes = RouteRegistry::all();
           $this->routes = $routes['get'] ?? [];
           
           $this->viewLayouts = require ROOTPATH . '/config/view_layouts.php';
@@ -43,7 +44,7 @@ class RouteDispatcher extends BaseController
      {
           $route = trim($data['route'] ?? 'home', '/');
 
-          var_dump($route);exit;
+          //var_dump($route);exit;
 
           if (!isset($this->routes[$route])) {
                return $this->errorPage(404);

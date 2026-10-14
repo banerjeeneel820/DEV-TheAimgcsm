@@ -2,6 +2,7 @@
 namespace App\Core;
 
 use App\Core\BaseController;
+use App\Core\RouteRegistry;
 
 defined('ROOTPATH') OR exit('No direct script access allowed');
 
@@ -17,7 +18,7 @@ class AjaxDispatcher extends BaseController
         $this->container = $container;
 
         // Load the central route configuration.
-        $this->routes = require ROOTPATH . '/config/routes.php';
+        $this->routes = RouteRegistry::all();
     }
 
     public function handle($data)
@@ -38,12 +39,7 @@ class AjaxDispatcher extends BaseController
                     'status' => false,
                     'message' => 'Invalid AJAX route',
                 ], 400);
-
-                echo $this->json([
-                    'status' => false,
-                    'message' => 'Invalid AJAX route',
-                ], 400);
-
+                
                 return;
             }
 

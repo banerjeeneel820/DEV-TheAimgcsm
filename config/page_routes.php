@@ -1,4 +1,6 @@
 <?php
+use App\Controllers\Admin\NewsController;
+
 return [
     // Auth & Profile Routes
     'edit_admin_profile' => ['AuthProfileController', 'manage_admin_profile_data'],
@@ -46,20 +48,20 @@ return [
     'edit_email_template' => ['TemplateController', 'manage_email_template_data_view'],
 
     // News Routes
-    'admin/news' => [
-        'NewsController',
-        'fetch_news_data',
-    ],
+    // 'admin/news' => [
+    //     NewsController::class,
+    //     'fetch_news_data',
+    // ],
 
-    'admin/news/add' => [
-        'NewsController',
-        'manage_news_data_view',
-    ],
+    // 'admin/news/add' => [
+    //     NewsController::class,
+    //     'manage_news_data_view',
+    // ],
 
-    'admin/news/edit' => [
-        'NewsController',
-        'manage_news_data_view',
-    ],    
+    // 'admin/news/edit' => [
+    //     NewsController::class,
+    //     'manage_news_data_view',
+    // ],    
 
     // 'view_news' => ['NewsController', 'fetch_news_data'],
     // 'add_news' => ['NewsController', 'manage_news_data_view'],

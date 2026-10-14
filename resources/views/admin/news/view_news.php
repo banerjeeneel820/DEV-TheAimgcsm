@@ -61,7 +61,7 @@
                             <h5>All News List</h5>
                             <div class="ibox-tools">
                                  <?php if($createPermission){ ?> 
-                                     <a href="<?=SITE_URL?>admin/news/add" class="table-action-primary" data-toggle="tooltip" data-placement="bottom" title="Add New News"><i class="fa fa-plus-circle"></i></a>
+                                     <a href="<?= route('admin.news.create') ?>" class="table-action-primary" data-toggle="tooltip" data-placement="bottom" title="Add New News"><i class="fa fa-plus-circle"></i></a>
                                  <?php }?>
 
                                   <a href="<?=SITE_URL?>admin/news" class="table-action-info"  data-toggle="tooltip" data-placement="bottom" title="Refresh News Data"><i class="fa fa-refresh"></i></a>

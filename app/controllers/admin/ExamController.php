@@ -4,6 +4,10 @@ namespace App\Controllers\Admin;
 use App\Core\Asset;
 use App\Core\BaseController;
 
+use App\Services\Admin\PermissionService;
+use App\Services\Admin\CourseFranchiseService;
+use App\Services\Admin\ExamService;
+
 defined('ROOTPATH') or exit('No direct script access allowed');
 
 class ExamController extends BaseController

@@ -2,6 +2,7 @@
 namespace App\Core;
 
 use App\Core\BaseController;
+use App\Core\RouteRegistry;
 
 defined('ROOTPATH') OR exit('No direct script access allowed');
 
@@ -14,7 +15,7 @@ class PostDispatcher extends BaseController
         parent::__construct($container);
 
         // Load post routes
-        $this->routes = require ROOTPATH . '/config/post_routes.php';
+        $this->routes = RouteRegistry::all();
     }
 
     public function handle($data)
