@@ -7,6 +7,7 @@ defined('ROOTPATH') or exit('No direct script access allowed');
 class Route
 {
     private static array $routes = [];
+    private static array $groups = [];
     private static bool $loaded = false;
 
     /**
@@ -47,16 +48,22 @@ class Route
             !is_string($action[1])
         ) {
             throw new \InvalidArgumentException(
-                'A route action must contain a controller class and method.'
+                'Route action must contain a controller class and method.'
             );
         }
 
-        $uri = trim($uri, '/');
+        $group = self::getGroupAttributes();
+
+        $uri = trim(
+            $group['prefix'] . '/' . trim($uri, '/'),
+            '/'
+        );
 
         $definition = new RouteDefinition(
             $method,
             $uri,
-            $action
+            $action,
+            $group['namePrefix']
         );
 
         self::$routes[] = $definition;
@@ -176,6 +183,46 @@ class Route
             "Named route '{$name}' not found."
         );
     }
+
+    // Constructing group routes
+    public static function group(array $attributes, callable $callback): void
+    {
+        self::$groups[] = $attributes;
+
+        try {
+            $callback();
+        } finally {
+            array_pop(self::$groups);
+        }
+    }
+
+    private static function getGroupAttributes(): array
+    {
+        $prefix = '';
+        $namePrefix = '';
+
+        foreach (self::$groups as $group) {
+            $groupPrefix = trim($group['prefix'] ?? '', '/');
+
+            if ($groupPrefix !== '') {
+                $prefix = trim($prefix . '/' . $groupPrefix, '/');
+            }
+
+            // Support both "as" and "name" for the name prefix.
+            $currentNamePrefix = $group['as']
+                ?? $group['name']
+                ?? '';
+
+            if ($currentNamePrefix !== '') {
+                $namePrefix .= rtrim($currentNamePrefix, '.') . '.';
+            }
+        }
+
+        return [
+            'prefix' => $prefix,
+            'namePrefix' => $namePrefix,
+        ];
+    }
 }
 
 /**
@@ -187,15 +234,18 @@ class RouteDefinition
     private string $uri;
     private array $action;
     private ?string $name = null;
+    private string $namePrefix;
 
     public function __construct(
         string $method,
         string $uri,
-        array $action
+        array $action,
+        string $namePrefix = ''
     ) {
         $this->method = $method;
         $this->uri = $uri;
         $this->action = $action;
+        $this->namePrefix = $namePrefix;
     }
 
     /**
@@ -211,7 +261,10 @@ class RouteDefinition
             );
         }
 
-        Route::assignName($this, $name);
+        Route::assignName(
+            $this,
+            $this->namePrefix . ltrim($name, '.')
+        );
 
         return $this;
     }

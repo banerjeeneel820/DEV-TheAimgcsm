@@ -10,6 +10,11 @@ if (isset($_GET['id'])) {
   }
 }
 
+//Constructing page routes
+$viewRoute = route('admin.news.index');
+$editRoute = route('admin.news.edit');
+$saveRoute = route('admin.news.manage');
+
 /*print"<pre>";
   print_r($newsDetailArr);
   print"</pre>";*/
@@ -35,7 +40,6 @@ if (isset($_GET['id'])) {
             <div class="sk-rect5"></div>
           </div>
           <form id="manage_news_form" class="needs-validation" method="post" onsubmit="return false;">
-
             <input type="hidden" name="news_id" id="feedback_id" value="<?= (isset($newsDetailArr) ? $newsDetailArr->id : 'null') ?>">
             <div class="form-group row"><label class="col-sm-2 col-form-label text-right">Title <span class="cursor-pointer" data-toggle="tooltip" data-placement="bottom" title="Enter News Subject"><i class="fa fa-question-circle"></i></span></label>
               <div class="col-sm-10">
@@ -145,6 +149,10 @@ if (isset($_GET['id'])) {
 <!-- Custom JS -->
 <script>
   $(document).ready(function() {
+
+    var view_route = "<?= $viewRoute ?>";
+    var edit_route = "<?= $editRoute ?>";
+    var save_route = "<?= $saveRoute ?>";
 
     $('.i-checks').iCheck({
       checkboxClass: 'icheckbox_square-green',
@@ -283,7 +291,7 @@ if (isset($_GET['id'])) {
       var feedback_id = $('#feedback_id').val();
 
       $.ajax({
-        url: `${SITE_URL}admin/news/manage`,
+        url: save_route,
         method: 'POST',
         data: new FormData(this),
         contentType: false,
@@ -308,10 +316,10 @@ if (isset($_GET['id'])) {
 
             if (data.last_insert_id > 0) {
               var successText = "News has been successfully created!";
-              var redirect_url = `${SITE_URL}${page_route}/?id=${data.last_insert_id}`
+              var redirect_url = `${edit_route}/?id=${data.last_insert_id}`
             } else {
               var successText = "News has been successfully updated!";
-              var redirect_url = `${SITE_URL}${page_route}/?id=${feedback_id}`
+              var redirect_url = `${edit_route}/?id=${feedback_id}`
             }
 
             swal({

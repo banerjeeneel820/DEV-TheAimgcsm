@@ -62,6 +62,7 @@ class Bootstrap
 
             $paths = [
                 ROOTPATH . '/core/',
+                ROOTPATH . '/middleware/',
                 ROOTPATH . '/controllers/',
                 ROOTPATH . '/models/',
                 ROOTPATH . '/libraries/',

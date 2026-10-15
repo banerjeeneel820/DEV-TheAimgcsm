@@ -303,8 +303,6 @@ class ViewEngine extends BaseController
 			);
 		}
 
-		$pageRoute = $this->route;
-
 		include $headerPath;
 		include $fullViewPath;
 		include $footerPath;

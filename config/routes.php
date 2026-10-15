@@ -1,34 +1,36 @@
 <?php
 
 use App\Core\Route;
+use App\Middleware\AdminMiddleware;
 use App\Controllers\Admin\NewsController;
 
 defined('ROOTPATH') or exit('No direct script access allowed');
 
-/*
-|--------------------------------------------------------------------------
-| New-style routes
-|--------------------------------------------------------------------------
-*/
+Route::group([
+    'prefix' => 'admin',
+    'as' => 'admin.',
+], function () {
 
-// News pages
-Route::get('/admin/news', [
-    NewsController::class,
-    'fetch_news_data',
-])->name('admin.news.index');
+    // News pages
+    Route::get(
+        '/news',
+        [NewsController::class, 'fetch_news_data']
+    )->name('news.index');
 
-Route::get('/admin/news/add', [
-    NewsController::class,
-    'manage_news_data_view',
-])->name('admin.news.create');
+    Route::get(
+        '/news/add',
+        [NewsController::class, 'manage_news_data_view']
+    )->name('news.create');
 
-Route::get('/admin/news/edit', [
-    NewsController::class,
-    'manage_news_data_view',
-])->name('admin.news.edit');
+    Route::get(
+        '/news/edit',
+        [NewsController::class, 'manage_news_data_view']
+    )->name('news.edit');
 
-// News AJAX
-Route::ajax('/admin/news/manage', [
-    NewsController::class,
-    'manage_global_news',
-])->name('admin.news.manage');
+    // News AJAX endpoint
+    Route::ajax(
+        '/news/manage',
+        [NewsController::class, 'manage_global_news']
+    )->name('news.manage');
+
+});

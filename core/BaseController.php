@@ -55,7 +55,6 @@ class BaseController
         }
     }
 
-
     protected function page(
         $data,
         $title,
