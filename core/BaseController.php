@@ -12,10 +12,10 @@ class BaseController
         $this->lib = $container->get('lib');
 
         // Check user auth
-        $this->requireAuth();
+        //$this->requireAuth();
 
         // Moved from ajax controller
-        $this->lib->checkRunTimeFolderExistance();
+        //$this->lib->checkRunTimeFolderExistance();
     }
 
     private function requireAuth()

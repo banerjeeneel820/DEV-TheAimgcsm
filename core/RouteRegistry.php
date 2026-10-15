@@ -14,40 +14,32 @@ class RouteRegistry
             return self::$routes;
         }
 
-        // Load legacy routes first.
-        $legacy = [
-            'get' => require ROOTPATH . '/config/page_routes.php',
-            'ajax' => require ROOTPATH . '/config/ajax_routes.php',
-            'post' => require ROOTPATH . '/config/post_routes.php',
-        ];
-
-        // Register new-style routes.
         if (!Route::isLoaded()) {
             require ROOTPATH . '/config/routes.php';
             Route::markLoaded();
         }
 
-        $registered = Route::all();
+        self::$routes = Route::all();
 
-        // Merge new routes into their respective legacy groups.
-        foreach ($registered as $route) {
-            $group = match ($route['method']) {
-                'GET' => 'get',
-                'AJAX' => 'ajax',
-                'POST' => 'post',
-                default => null,
-            };
+        return self::$routes;
+    }
 
-            if ($group === null) {
+    public static function match(string $method, string $uri): ?array
+    {
+        $method = strtoupper($method);
+        $uri = trim($uri, '/');
+
+        foreach (self::all() as $route) {
+            if ($route['method'] !== $method) {
                 continue;
             }
 
-            $legacy[$group][$route['uri']] = $route['action'];
+            if (trim($route['uri'], '/') === $uri) {
+                return $route;
+            }
         }
 
-        self::$routes = $legacy;
-
-        return self::$routes;
+        return null;
     }
 
     public static function clear(): void

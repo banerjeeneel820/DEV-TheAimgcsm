@@ -1,47 +1,56 @@
 <?php
+
 namespace App\Core;
 
-use App\Core\BaseController;
-use App\Core\RouteRegistry;
-
-defined('ROOTPATH') OR exit('No direct script access allowed');
+defined('ROOTPATH') or exit('No direct script access allowed');
 
 class PostDispatcher extends BaseController
 {
-    private $routes;
+    private Container $container;
 
-    public function __construct($container)
+    public function __construct(Container $container)
     {
         parent::__construct($container);
-
-        // Load post routes
-        $this->routes = RouteRegistry::all();
+        $this->container = $container;
     }
 
-    public function handle($data)
+    public function handle(array $data): void
     {
-        $action = $data['action'] ?? null;
+        $path = trim($data['route'] ?? Request::path(), '/');
 
-        if (!$action || !isset($this->routes[$action])) {
-            // For normal POST, better to redirect instead of JSON
-            header("Location: index.php?route=not_found");
-            exit;
+        $route = RouteRegistry::match('POST', $path);
+
+        if ($route === null) {
+            http_response_code(404);
+            echo 'POST Route Not Found';
+            return;
         }
 
-        [$controllerName, $method] = $this->routes[$action];
+        [$controllerName, $methodName] = $route['action'];
 
-        //require_once(ROOTPATH . "/controller/" . $controllerName . ".php");
-
-        $controller = new $controllerName();
-
-        $response = $controller->$method($data);
-
-        // For normal POST → redirect or load view
-        if (isset($response['redirect'])) {
-            header("Location: " . $response['redirect']);
-            exit;
+        if (!class_exists($controllerName)) {
+            http_response_code(500);
+            echo 'Controller Class Not Found';
+            return;
         }
 
-        return $response;
+        $controller = new $controllerName($this->container);
+
+        if (!method_exists($controller, $methodName)) {
+            http_response_code(500);
+            echo 'Controller Method Not Found';
+            return;
+        }
+
+        $response = $controller->$methodName($data);
+
+        if (is_array($response) && !empty($response['redirect'])) {
+            header('Location: ' . $response['redirect']);
+            return;
+        }
+
+        if (is_string($response)) {
+            echo $response;
+        }
     }
 }

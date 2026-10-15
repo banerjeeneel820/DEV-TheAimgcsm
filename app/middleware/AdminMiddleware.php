@@ -3,12 +3,13 @@
 namespace App\Middleware;
 
 use App\Core\Container;
+use App\Core\Request;
 
 defined('ROOTPATH') or exit('No direct script access allowed');
 
 class AdminMiddleware
 {
-    private $container;
+    private Container $container;
     private $lib;
 
     public function __construct(Container $container)
@@ -17,56 +18,58 @@ class AdminMiddleware
         $this->lib = $container->get('lib');
     }
 
-    /**
-     * Runs before the controller action.
-     */
     public function handle(array $request, callable $next)
     {
         if (!$this->requireAuth()) {
-            return null;
+            return false;
         }
-    
+
+        // Perform admin runtime setup only after authentication succeeds.
         $this->lib->checkRunTimeFolderExistance();
-    
+
         return $next($request);
     }
 
-    /**
-     * Move the existing BaseController::requireAuth()
-     * logic here, preserving your current login behavior.
-     *
-     * Return true when authenticated.
-     * When unauthenticated, redirect as appropriate and
-     * return false instead of calling exit/die.
-     */
     private function requireAuth(): bool
     {
-        $path = parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP_URL_PATH) ?: '/';
-        $route = $_GET['route'] ?? null;
+        $path = trim(Request::path(), '/');
+        $legacyRoute = Request::get('route');
 
         $isLoggedIn = !empty($_SESSION['user_id']);
 
-        // Normalize the path.
-        if ($path !== '/') {
-            $path = rtrim($path, '/');
-        }
+        $isLoginEntry =
+            $path === 'admin' ||
+            $legacyRoute === 'login';
 
-        // Allow the login entry for unauthenticated users.
+        // Not logged in: allow only the login entry.
         if (!$isLoggedIn) {
-            if (
-                (strpos($path, '/admin') !== false && empty($route)) ||
-                $route === 'login'
-            ) {
+            if ($isLoginEntry) {
                 return true;
             }
 
-            // Authentication failed: redirect, but don't exit here.
+            // AJAX clients should receive a status code, not an HTML redirect.
+            if (
+                strtoupper($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'POST' &&
+                strtolower($_SERVER['HTTP_X_REQUESTED_WITH'] ?? '') ===
+                    'xmlhttprequest'
+            ) {
+                http_response_code(401);
+                header('Content-Type: application/json; charset=utf-8');
+
+                echo json_encode([
+                    'success' => false,
+                    'message' => 'Authentication required.',
+                ]);
+
+                return false;
+            }
+
             header('Location: ' . SITE_URL);
             return false;
         }
 
-        // Prevent authenticated users from opening the login route.
-        if ($route === 'login') {
+        // A logged-in user visiting the login entry should be redirected away.
+        if ($isLoginEntry) {
             header('Location: ' . SITE_URL);
             return false;
         }
@@ -74,12 +77,8 @@ class AdminMiddleware
         return true;
     }
 
-    /**
-     * Runs after the response has been sent.
-     */
     public function terminate(array $request, $response): void
     {
-        // Optional post-response work can go here later.
-        // For example: request logging or cleanup.
+        // Optional post-request cleanup.
     }
 }

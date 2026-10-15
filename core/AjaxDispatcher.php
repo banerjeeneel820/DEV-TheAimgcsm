@@ -1,63 +1,63 @@
 <?php
+
 namespace App\Core;
 
-use App\Core\BaseController;
-use App\Core\RouteRegistry;
-
-defined('ROOTPATH') OR exit('No direct script access allowed');
+defined('ROOTPATH') or exit('No direct script access allowed');
 
 class AjaxDispatcher extends BaseController
 {
-    private $routes;
-    protected $container;
+    private Container $container;
 
-    public function __construct($container)
+    public function __construct(Container $container)
     {
         parent::__construct($container);
-
         $this->container = $container;
-
-        // Load the central route configuration.
-        $this->routes = RouteRegistry::all();
     }
 
-    public function handle($data)
+    public function handle(array $data): void
     {
-        $ajaxRoutes = $this->routes['ajax'] ?? [];
+        $path = trim($data['route'] ?? Request::path(), '/');
 
-        // Prefer URL-based routing.
-        $path = Request::path();
+        $route = RouteRegistry::match('AJAX', $path);
 
-        if ($path !== '' && isset($ajaxRoutes[$path])) {
-            [$controllerName, $method] = $ajaxRoutes[$path];
-        } else {
-            // Backward compatibility for legacy action-based requests.
-            $action = $data['action'] ?? null;
+        if ($route === null) {
+            http_response_code(404);
+            echo json_encode([
+                'success' => false,
+                'message' => 'AJAX route not found.',
+            ]);
+            return;
+        }
 
-            if (!$action || !isset($ajaxRoutes[$action])) {
-                $this->json([
-                    'status' => false,
-                    'message' => 'Invalid AJAX route',
-                ], 400);
-                
-                return;
-            }
+        [$controllerName, $methodName] = $route['action'];
 
-            [$controllerName, $method] = $ajaxRoutes[$action];
+        if (!class_exists($controllerName)) {
+            http_response_code(500);
+            echo json_encode([
+                'success' => false,
+                'message' => 'Controller class not found.',
+            ]);
+            return;
         }
 
         $controller = new $controllerName($this->container);
 
-        if (!method_exists($controller, $method)) {
-            echo $this->json([
-                'status' => false,
-                'message' => 'Invalid method',
-            ], 400);
-
+        if (!method_exists($controller, $methodName)) {
+            http_response_code(500);
+            echo json_encode([
+                'success' => false,
+                'message' => 'Controller method not found.',
+            ]);
             return;
         }
 
-        $response = $controller->$method($data);
+        $response = $controller->$methodName($data);
+
+        // The existing controller can return data for the dispatcher to encode.
+        if (is_string($response)) {
+            echo $response;
+            return;
+        }
 
         echo $this->json($response);
     }

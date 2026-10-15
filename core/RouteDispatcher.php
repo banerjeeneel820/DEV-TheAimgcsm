@@ -19,8 +19,16 @@ class RouteDispatcher extends BaseController
           parent::__construct($container);
           $this->container = $container;
 
-          $routes = RouteRegistry::all();
-          $this->routes = $routes['get'] ?? [];
+          $this->routes = [];
+
+          foreach (RouteRegistry::all() as $routeDefinition) {
+          if ($routeDefinition['method'] !== 'GET') {
+               continue;
+          }
+
+          $this->routes[$routeDefinition['uri']] =
+               $routeDefinition['action'];
+          }
           
           $this->viewLayouts = require ROOTPATH . '/config/view_layouts.php';
 

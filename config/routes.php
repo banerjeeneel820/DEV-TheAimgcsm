@@ -9,6 +9,7 @@ defined('ROOTPATH') or exit('No direct script access allowed');
 Route::group([
     'prefix' => 'admin',
     'as' => 'admin.',
+    'middleware' => [AdminMiddleware::class],
 ], function () {
 
     // News pages

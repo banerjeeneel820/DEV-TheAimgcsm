@@ -10,34 +10,22 @@ class Route
     private static array $groups = [];
     private static bool $loaded = false;
 
-    /**
-     * Register a GET route.
-     */
     public static function get(string $uri, array $action): RouteDefinition
     {
         return self::register('GET', $uri, $action);
     }
 
-    /**
-     * Register a normal POST route.
-     */
     public static function post(string $uri, array $action): RouteDefinition
     {
         return self::register('POST', $uri, $action);
     }
 
-    /**
-     * Register an AJAX route.
-     */
     public static function ajax(string $uri, array $action): RouteDefinition
     {
         return self::register('AJAX', $uri, $action);
     }
 
-    /**
-     * Register a route definition.
-     */
-    private static function register(
+    public static function register(
         string $method,
         string $uri,
         array $action
@@ -48,143 +36,33 @@ class Route
             !is_string($action[1])
         ) {
             throw new \InvalidArgumentException(
-                'Route action must contain a controller class and method.'
+                'A route action must be [ControllerClass::class, "method"].'
             );
         }
 
         $group = self::getGroupAttributes();
 
-        $uri = trim(
-            $group['prefix'] . '/' . trim($uri, '/'),
+        $prefix = trim($group['prefix'] ?? '', '/');
+        $uri = trim($uri, '/');
+
+        $fullUri = trim(
+            ($prefix !== '' ? $prefix . '/' : '') . $uri,
             '/'
         );
 
-        $definition = new RouteDefinition(
-            $method,
-            $uri,
+        $route = new RouteDefinition(
+            strtoupper($method),
+            $fullUri,
             $action,
-            $group['namePrefix']
+            $group['namePrefix'] ?? '',
+            $group['middleware'] ?? []
         );
 
-        self::$routes[] = $definition;
+        self::$routes[] = $route;
 
-        return $definition;
+        return $route;
     }
 
-    /**
-     * Assign a name to a registered route.
-     */
-    public static function assignName(
-        RouteDefinition $definition,
-        string $name
-    ): void {
-        foreach (self::$routes as $route) {
-            if ($route !== $definition && $route->getName() === $name) {
-                throw new \InvalidArgumentException(
-                    "Duplicate route name: {$name}"
-                );
-            }
-        }
-
-        $definition->setName($name);
-    }
-
-    /**
-     * Return all registered routes.
-     */
-    public static function all(): array
-    {
-        return array_map(
-            static fn (RouteDefinition $route) => $route->toArray(),
-            self::$routes
-        );
-    }
-
-    /**
-     * Reset the registry.
-     * Useful for isolated tests.
-     */
-    public static function clear(): void
-    {
-        self::$routes = [];
-        self::$loaded = false;
-    }
-
-    public static function isLoaded(): bool
-    {
-        return self::$loaded;
-    }
-
-    public static function markLoaded(): void
-    {
-        self::$loaded = true;
-    }
-
-    /**
-     * Generate a URL from a named route.
-     *
-     * Parameters matching {parameter} become path segments.
-     * Remaining parameters become query-string parameters.
-     */
-    public static function url(string $name, array $parameters = []): string
-    {
-        // Ensure route definitions have been loaded.
-        RouteRegistry::all();
-
-        // Search the actual registered route definitions.
-        foreach (self::all() as $route) {
-            if (($route['name'] ?? null) !== $name) {
-                continue;
-            }
-
-            $path = $route['uri'];
-
-            // Replace parameters such as {id} in the route path.
-            $path = preg_replace_callback(
-                '/\{([a-zA-Z_][a-zA-Z0-9_]*)\}/',
-                function ($matches) use (&$parameters, $name) {
-                    $key = $matches[1];
-
-                    if (
-                        !array_key_exists($key, $parameters) ||
-                        !is_scalar($parameters[$key])
-                    ) {
-                        throw new \InvalidArgumentException(
-                            "Missing or invalid parameter '{$key}' for route '{$name}'."
-                        );
-                    }
-
-                    $value = rawurlencode((string) $parameters[$key]);
-                    unset($parameters[$key]);
-
-                    return $value;
-                },
-                $path
-            );
-
-            $url = rtrim(SITE_URL, '/') . '/' . ltrim($path, '/');
-
-            // Remaining parameters become query-string parameters.
-            $query = http_build_query(
-                $parameters,
-                '',
-                '&',
-                PHP_QUERY_RFC3986
-            );
-
-            if ($query !== '') {
-                $url .= '?' . $query;
-            }
-
-            return $url;
-        }
-
-        throw new \InvalidArgumentException(
-            "Named route '{$name}' not found."
-        );
-    }
-
-    // Constructing group routes
     public static function group(array $attributes, callable $callback): void
     {
         self::$groups[] = $attributes;
@@ -198,94 +76,168 @@ class Route
 
     private static function getGroupAttributes(): array
     {
-        $prefix = '';
-        $namePrefix = '';
+        $prefixes = [];
+        $namePrefixes = [];
+        $middleware = [];
 
         foreach (self::$groups as $group) {
-            $groupPrefix = trim($group['prefix'] ?? '', '/');
-
-            if ($groupPrefix !== '') {
-                $prefix = trim($prefix . '/' . $groupPrefix, '/');
+            if (!empty($group['prefix'])) {
+                $prefixes[] = trim($group['prefix'], '/');
             }
 
-            // Support both "as" and "name" for the name prefix.
-            $currentNamePrefix = $group['as']
-                ?? $group['name']
-                ?? '';
+            if (!empty($group['as'])) {
+                $namePrefixes[] = $group['as'];
+            }
 
-            if ($currentNamePrefix !== '') {
-                $namePrefix .= rtrim($currentNamePrefix, '.') . '.';
+            $groupMiddleware = $group['middleware'] ?? [];
+
+            if (is_string($groupMiddleware)) {
+                $groupMiddleware = [$groupMiddleware];
+            }
+
+            foreach ($groupMiddleware as $middlewareClass) {
+                if (!in_array($middlewareClass, $middleware, true)) {
+                    $middleware[] = $middlewareClass;
+                }
             }
         }
 
         return [
-            'prefix' => $prefix,
-            'namePrefix' => $namePrefix,
+            'prefix' => implode('/', array_filter($prefixes)),
+            'namePrefix' => implode('', $namePrefixes),
+            'middleware' => $middleware,
         ];
+    }
+
+    public static function all(): array
+    {
+        return array_map(
+            static fn (RouteDefinition $route) => $route->toArray(),
+            self::$routes
+        );
+    }
+
+    public static function clear(): void
+    {
+        self::$routes = [];
+        self::$groups = [];
+        self::$loaded = false;
+    }
+
+    public static function isLoaded(): bool
+    {
+        return self::$loaded;
+    }
+
+    public static function markLoaded(): void
+    {
+        self::$loaded = true;
+    }
+
+    public static function url(string $name, array $parameters = []): string
+    {
+        foreach (self::all() as $route) {
+            if (($route['name'] ?? null) !== $name) {
+                continue;
+            }
+
+            $uri = trim($route['uri'], '/');
+
+            foreach ($parameters as $key => $value) {
+                $uri = str_replace(
+                    '{' . $key . '}',
+                    rawurlencode((string) $value),
+                    $uri
+                );
+            }
+
+            if (preg_match('/\{[^}]+\}/', $uri)) {
+                throw new \InvalidArgumentException(
+                    "Missing parameters for route: {$name}"
+                );
+            }
+
+            // Include the application's installation directory.
+            $scriptName = str_replace(
+                '\\',
+                '/',
+                $_SERVER['SCRIPT_NAME'] ?? '/index.php'
+            );
+
+            $basePath = rtrim(dirname($scriptName), '/');
+
+            if ($basePath === '.' || $basePath === '/') {
+                $basePath = '';
+            }
+
+            $url = $basePath . '/' . $uri;
+
+            return '/' . ltrim($url, '/');
+        }
+
+        throw new \InvalidArgumentException(
+            "Route not found: {$name}"
+        );
     }
 }
 
-/**
- * Represents one registered route.
- */
 class RouteDefinition
 {
     private string $method;
     private string $uri;
     private array $action;
-    private ?string $name = null;
+    private ?string $name;
     private string $namePrefix;
+    private array $middleware;
 
     public function __construct(
         string $method,
         string $uri,
         array $action,
-        string $namePrefix = ''
+        string $namePrefix = '',
+        array $middleware = []
     ) {
-        $this->method = $method;
-        $this->uri = $uri;
+        $this->method = strtoupper($method);
+        $this->uri = trim($uri, '/');
         $this->action = $action;
         $this->namePrefix = $namePrefix;
+        $this->name = null;
+        $this->middleware = $middleware;
     }
 
-    /**
-     * Give this route a name.
-     */
     public function name(string $name): self
     {
-        $name = trim($name);
+        $this->name = $this->namePrefix . $name;
 
-        if ($name === '') {
-            throw new \InvalidArgumentException(
-                'Route name cannot be empty.'
-            );
-        }
+        return $this;
+    }
 
-        Route::assignName(
-            $this,
-            $this->namePrefix . ltrim($name, '.')
+    public function middleware(array|string $middleware): self
+    {
+        $middleware = is_array($middleware)
+            ? $middleware
+            : [$middleware];
+
+        $this->middleware = array_values(
+            array_unique(array_merge($this->middleware, $middleware))
         );
 
         return $this;
     }
 
-    public function getName(): ?string
+    public function getMiddleware(): array
     {
-        return $this->name;
-    }
-
-    public function setName(string $name): void
-    {
-        $this->name = $name;
+        return $this->middleware;
     }
 
     public function toArray(): array
     {
         return [
             'method' => $this->method,
-            'uri'    => $this->uri,
+            'uri' => $this->uri,
             'action' => $this->action,
-            'name'   => $this->name,
+            'name' => $this->name,
+            'middleware' => $this->middleware,
         ];
     }
 }

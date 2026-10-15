@@ -1,140 +1,183 @@
 <?php
-namespace App\Core;
 
-use App\Core\RouteDispatcher;
-use App\Core\AjaxDispatcher;
-use App\Core\PostDispatcher;
-use App\Core\ViewEngine;
+namespace App\Core;
 
 defined('ROOTPATH') or exit('No direct script access allowed');
 
 class Router
 {
-    protected static $container;
+    private static ?Container $container = null;
 
-    public static function handle($container)
+    public static function handle(Container $container): void
     {
-        self::$container = $container; // store container
+        self::$container = $container;
 
-        $method = Request::method();
+        $httpMethod = strtoupper(Request::method());
+        $isAjax = self::isAjax();
 
-        if ($method === 'POST') {
-            self::handlePost();
+        if ($httpMethod === 'GET') {
+            $routePath = self::resolveGetRoute();
+            $routeMethod = 'GET';
+        } elseif ($httpMethod === 'POST' && $isAjax) {
+            $routePath = trim(Request::path(), '/');
+            $routeMethod = 'AJAX';
+        } elseif ($httpMethod === 'POST') {
+            $routePath = trim(Request::path(), '/');
+            $routeMethod = 'POST';
         } else {
-            self::handleGet();
-        }
-    }
-
-    private static function isAjax()
-    {
-        return !empty($_SERVER['HTTP_X_REQUESTED_WITH']) &&
-            strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest';
-    }
-
-    private static function handlePost()
-    {
-        if (self::isAjax()) {
-            self::dispatch(AjaxDispatcher::class, 'handle', true);
-        } else {
-            self::dispatch(PostDispatcher::class, 'handle', false);
-        }
-    }
-
-
-    private static function handleGet()
-    {
-        $requestData = Request::all();
-
-        // Resolve either a path-based route or a legacy ?route= value.
-        $route = self::resolveGetRoute();
-
-        /*
-     * Preserve the current authentication behavior for now.
-     * We can introduce public frontend routes separately.
-     */
-        if (empty($_SESSION['user_id'])) {
-            $route = 'login';
-        }
-
-        // Ensure RouteDispatcher receives the resolved route.
-        $requestData['route'] = $route;
-
-        $pageData = self::dispatch(
-            RouteDispatcher::class,
-            'get_PageContent',
-            false,
-            $requestData
-        );
-
-        $view = new ViewEngine(self::$container, $route, $pageData);
-        $view->render();
-
-        exit;
-    }
-
-    private static function resolveGetRoute()
-    {
-        $requestUri = $_SERVER['REQUEST_URI'] ?? '/';
-        $path = parse_url($requestUri, PHP_URL_PATH) ?: '/';
-
-        // Remove the project base directory, e.g. /theaimgcsm
-        $basePath = rtrim(
-            str_replace('\\', '/', dirname($_SERVER['SCRIPT_NAME'] ?? '/index.php')),
-            '/'
-        );
-
-        if ($basePath !== '' && $basePath !== '/' && strpos($path, $basePath) === 0) {
-            $path = substr($path, strlen($basePath));
-        }
-
-        // Normalize the route
-        $route = trim($path, '/');
-
-        // Preserve legacy query-string routing
-        if ($route === '' || $route === 'index.php') {
-            return Request::get('route', 'home');
-        }
-
-        return $route;
-    }
-
-    /**
-     * Central Dispatch Method
-     */
-
-    private static function dispatch(
-        $controllerName,
-        $method,
-        $isAjax = false,
-        $data = null
-    ) {
-        if (!class_exists($controllerName)) {
-            self::error("Controller {$controllerName} not found");
-        }
-
-        // Controllers receive the container.
-        $controller = new $controllerName(self::$container);
-
-        if (!method_exists($controller, $method)) {
-            self::error("Method {$method} not found in {$controllerName}");
-        }
-
-        // Pass explicitly supplied request data, or use the normal request data.
-        $response = $controller->$method(
-            $data ?? Request::all()
-        );
-
-        if ($isAjax) {
+            http_response_code(405);
+            echo 'Method Not Allowed';
             return;
         }
 
-        return $response;
+        $routePath = trim($routePath, '/');
+
+        $routeDefinition = RouteRegistry::match(
+            $routeMethod,
+            $routePath
+        );
+
+        $requestData = Request::all();
+        $requestData['route'] = $routePath;
+
+        if ($routeDefinition !== null) {
+            $middleware = $routeDefinition['middleware'] ?? [];
+
+            $middlewareDispatcher = new MiddlewareDispatcher($container);
+
+            $result = $middlewareDispatcher->run(
+                $middleware,
+                $requestData,
+                function (array $request) use (
+                    $routeMethod,
+                    $routePath
+                ) {
+                    return self::dispatchMatchedRoute(
+                        $routeMethod,
+                        $routePath,
+                        $request
+                    );
+                }
+            );
+
+            // Middleware returned false: the request was already handled
+            // (for example, with a redirect or a 401 JSON response).
+            if ($result === false) {
+                return;
+            }
+
+            return;
+        }
+
+        self::handleMissingRoute($routeMethod, $routePath);
     }
 
-    private static function error($msg)
+    private static function dispatchMatchedRoute(
+        string $routeMethod,
+        string $routePath,
+        array $request
+    ): bool {
+        $container = self::$container;
+
+        if ($container === null) {
+            throw new \RuntimeException('Router container is not initialized.');
+        }
+
+        if ($routeMethod === 'GET') {
+            $dispatcher = new RouteDispatcher($container);
+
+            $pageData = $dispatcher->get_PageContent($request);
+
+            $viewEngine = new ViewEngine(
+                $container,
+                $routePath,
+                $pageData
+            );
+
+            $viewEngine->render();
+
+            return true;
+        }
+
+        if ($routeMethod === 'AJAX') {
+            $dispatcher = new AjaxDispatcher($container);
+            $dispatcher->handle($request);
+
+            return true;
+        }
+
+        if ($routeMethod === 'POST') {
+            $dispatcher = new PostDispatcher($container);
+            $dispatcher->handle($request);
+
+            return true;
+        }
+
+        http_response_code(405);
+        echo 'Method Not Allowed';
+
+        return true;
+    }
+
+    private static function handleMissingRoute(
+        string $routeMethod,
+        string $routePath
+    ): void {
+        if ($routeMethod === 'AJAX') {
+            http_response_code(404);
+            echo json_encode([
+                'success' => false,
+                'message' => 'Route not found.',
+            ]);
+            return;
+        }
+
+        if ($routeMethod === 'POST') {
+            http_response_code(404);
+            echo 'Route Not Found';
+            return;
+        }
+
+        $container = self::$container;
+
+        if ($container === null) {
+            http_response_code(404);
+            echo 'Page Not Found';
+            return;
+        }
+
+        $dispatcher = new RouteDispatcher($container);
+
+        $pageData = $dispatcher->get_PageContent([
+            'route' => $routePath,
+        ]);
+
+        $viewEngine = new ViewEngine(
+            $container,
+            $routePath,
+            $pageData
+        );
+
+        $viewEngine->render();
+    }
+
+    private static function resolveGetRoute(): string
     {
-        http_response_code(400);
-        echo json_encode(['error' => $msg]);
-        exit;
+        $path = trim(Request::path(), '/');
+
+        // A root URL can still use a query-string route during migration,
+        // e.g. /?route=login.
+        if ($path === '' || $path === 'index.php') {
+            return trim((string) Request::get('route', 'home'), '/');
+        }
+
+        return $path;
+    }
+
+    private static function isAjax(): bool
+    {
+        return strtolower(
+            $_SERVER['HTTP_X_REQUESTED_WITH'] ?? ''
+        ) === 'xmlhttprequest';
     }
 }
